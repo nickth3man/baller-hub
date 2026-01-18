@@ -32,3 +32,5 @@ pyvenv.cfg
 # caches
 .pytest_cache/
 **/*/__pycache__/
+
+.opencode/
