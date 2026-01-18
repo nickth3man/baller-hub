@@ -1,0 +1,82 @@
+name: Build
+
+on:
+  release:
+    types: [ published ]
+  push:
+    branches:
+      - v4
+  pull_request:
+  schedule:
+    - cron: '0 22 * * *'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        python-version: [ '3.8', '3.9', '3.10' ]
+        os: [ 'macos-latest' ]
+    runs-on: ${{ matrix.os }}
+    name: build
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run build script
+        run: bash ./scripts/build.sh "$(pwd)/dependencies"
+        shell: bash
+      - name: Upload Coverage To Codecov
+        uses: codecov/codecov-action@v3
+  e2e:
+    strategy:
+      matrix:
+        python-version: [ '3.10' ]
+        os: [ 'macos-latest' ]
+    runs-on: ${{ matrix.os }}
+    name: End-to-End Tests
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Tests
+        run: bash ./scripts/end\ to\ end\ tests.sh "$(pwd)/dependencies"
+  documentation:
+    strategy:
+      matrix:
+        python-version: [ '3.10' ]
+        os: [ 'macos-latest' ]
+    runs-on: ${{ matrix.os }}
+    name: Publish Documentation
+    if: ${{ github.ref == 'refs/heads/v4' }}
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run build script
+        run: bash ./scripts/build.sh "$(pwd)/dependencies"
+        shell: bash
+      - name: Upload Coverage To Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Set Git Configuration
+        run: |
+          REMOTE="https://${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
+          git config --global user.name "${GH_NAME}"
+          git config --global user.email "${GH_EMAIL}"
+          git remote set-url origin ${REMOTE}
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_NAME: ${{ secrets.GH_NAME }}
+          GH_EMAIL: ${{ secrets.GH_EMAIL }}
+      - name: Publish Documentation
+        run: bash ./scripts/Publish\ Documentation\ to\ GitHub\ Pages.sh "$(pwd)/dependencies/bin/poetry"
