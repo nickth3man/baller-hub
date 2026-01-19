@@ -7,7 +7,7 @@ from unittest import TestCase
 import requests_mock
 
 from src.client import players_advanced_season_totals
-from src.data import OutputType, Team, Position
+from src.data import OutputType, Position, Team
 from src.errors import InvalidSeason
 
 
@@ -16,7 +16,7 @@ class Test2019(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_advanced_season_totals/2019.html",
-        ), 'r') as file_input: self._html = file_input.read();
+        )) as file_input: self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_length(self, m):
@@ -38,7 +38,7 @@ class BaseTestPlayerAdvancedSeasonTotalsCSVOutput(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/player_advanced_season_totals/{self.year}.html",
-        ), 'r') as file_input: self._html = file_input.read()
+        )) as file_input: self._html = file_input.read()
 
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -84,7 +84,7 @@ class BaseTestPlayerAdvancedSeasonTotalsJSONOutput(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/player_advanced_season_totals/{self.year}.html",
-        ), 'r') as file_input: self._html = file_input.read()
+        )) as file_input: self._html = file_input.read()
 
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -111,8 +111,8 @@ class BaseTestPlayerAdvancedSeasonTotalsJSONOutput(TestCase):
             include_combined_values=self.include_combined_values,
         )
 
-        with open(self.output_file_path, "r", encoding="utf8") as output_file, \
-                open(self.expected_output_file_path, "r", encoding="utf8") as expected_output_file:
+        with open(self.output_file_path, encoding="utf8") as output_file, \
+                open(self.expected_output_file_path, encoding="utf8") as expected_output_file:
             self.assertEqual(
                 json.load(output_file),
                 json.load(expected_output_file),
@@ -254,8 +254,8 @@ class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
     def setUp(self):
         with open(os.path.join(
                 os.path.dirname(__file__),
-                f"../files/player_advanced_season_totals/2018.html",
-        ), 'r') as file_input: self._html = file_input.read()
+                "../files/player_advanced_season_totals/2018.html",
+        )) as file_input: self._html = file_input.read()
 
     def test_future_season_raises_invalid_season(self, m):
         m.get(f"https://www.basketball-reference.com/leagues/NBA_{sys.maxsize}_advanced.html",
@@ -266,7 +266,7 @@ class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
                                season_end_year=sys.maxsize)
 
     def test_2018_players_advanced_season_totals_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_2018_advanced.html",
+        m.get("https://www.basketball-reference.com/leagues/NBA_2018_advanced.html",
               text=self._html,
               status_code=200)
 
@@ -274,7 +274,7 @@ class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
         self.assertEqual(len(result), 605)
 
     def test_first_2018_players_advanced_season_totals_row(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_2018_advanced.html",
+        m.get("https://www.basketball-reference.com/leagues/NBA_2018_advanced.html",
               text=self._html,
               status_code=200)
 
@@ -316,7 +316,7 @@ class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
         )
 
     def test_last_2018_players_advanced_season_totals_row(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_2018_advanced.html",
+        m.get("https://www.basketball-reference.com/leagues/NBA_2018_advanced.html",
               text=self._html,
               status_code=200)
 
@@ -358,7 +358,7 @@ class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
         )
 
     def test_players_advanced_season_totals_json(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_2018_advanced.html",
+        m.get("https://www.basketball-reference.com/leagues/NBA_2018_advanced.html",
               text=self._html,
               status_code=200)
 
@@ -367,7 +367,7 @@ class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
             "./output/expected/player_advanced_season_totals/2018.json",
         )
         result = players_advanced_season_totals(season_end_year=2018, output_type=OutputType.JSON)
-        with open(expected_output_file_path, "r", encoding="utf8") as expected_output:
+        with open(expected_output_file_path, encoding="utf8") as expected_output:
             self.assertEqual(
                 json.loads(result),
                 json.load(expected_output),

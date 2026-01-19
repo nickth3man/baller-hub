@@ -1,12 +1,11 @@
 import functools
 import os
-from typing import Dict
 
 import requests_mock
 
 
 class ResponseMocker:
-    def __init__(self, basketball_reference_paths_by_filename: Dict[str, str]):
+    def __init__(self, basketball_reference_paths_by_filename: dict[str, str]):
         self._basketball_reference_paths_by_filename = basketball_reference_paths_by_filename
 
     def decorate_class(self, klass):
@@ -31,7 +30,7 @@ class ResponseMocker:
                         raise ValueError(
                             f"Unexpected prefix for {filename}. Expected all files in to end with .html.")
 
-                    with open(filename, 'r') as file_input:
+                    with open(filename) as file_input:
                         m.get(f"https://www.basketball-reference.com/{basketball_reference_path}",
                               text=file_input.read(),
                               status_code=200)
@@ -48,7 +47,7 @@ class ResponseMocker:
 
 class SeasonScheduleMocker(ResponseMocker):
     def __init__(self, schedules_directory: str, season_end_year: int):
-        basketball_reference_paths_by_filename: Dict[str, str] = {}
+        basketball_reference_paths_by_filename: dict[str, str] = {}
         html_files_directory = os.path.join(schedules_directory, str(season_end_year))
         for file in os.listdir(os.fsencode(html_files_directory)):
             filename = os.fsdecode(file)

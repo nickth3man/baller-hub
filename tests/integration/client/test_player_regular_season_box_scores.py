@@ -6,7 +6,7 @@ from unittest import TestCase
 import requests_mock
 
 from src.client import regular_season_player_box_scores
-from src.data import Team, Outcome, OutputType
+from src.data import Outcome, OutputType, Team
 from src.errors import InvalidPlayerAndSeason
 
 
@@ -15,7 +15,7 @@ class TestWestbrook2020(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_box_scores/2020/westbru01.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        )) as file_input: self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_length(self, m):
@@ -59,7 +59,7 @@ class TestWestbrook2019(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_box_scores/2019/westbru01.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        )) as file_input: self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_length(self, m):
@@ -75,7 +75,7 @@ class TestNonExistentPlayerPlayoffBoxScores(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_box_scores/2020/foobar.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        )) as file_input: self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_non_existent_player_raises(self, m):
@@ -100,7 +100,7 @@ class TestJabariBrown2015(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_box_scores/2015/brownja01.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        )) as file_input: self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_default_does_not_include_inactive_games(self, m):
@@ -176,7 +176,7 @@ class TestAveryBradley2019(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_box_scores/2019/bradlav01.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        )) as file_input: self._html = file_input.read()
         self.expected_excluding_inactive_games_output_json_file_path = os.path.join(
             os.path.dirname(__file__),
             "./output/expected/player_box_scores/2019/bradlav01/exclude_inactive.json",
@@ -205,7 +205,7 @@ class TestAveryBradley2019(TestCase):
             season_end_year=2019,
             output_type=OutputType.JSON,
         )
-        with open(self.expected_excluding_inactive_games_output_json_file_path, "r",
+        with open(self.expected_excluding_inactive_games_output_json_file_path,
                   encoding="utf8") as expected_output:
             self.assertEqual(
                 json.loads(results),
@@ -230,8 +230,8 @@ class TestAveryBradley2019(TestCase):
                 output_type=OutputType.JSON,
                 output_file_path=output_file_path,
             )
-            with open(output_file_path, 'r', encoding="utf8") as output_file, \
-                    open(self.expected_excluding_inactive_games_output_json_file_path, 'r',
+            with open(output_file_path, encoding="utf8") as output_file, \
+                    open(self.expected_excluding_inactive_games_output_json_file_path,
                          encoding="utf8") as expected_file:
                 output_lines = output_file.readlines()
                 expected_lines = expected_file.readlines()
@@ -255,7 +255,7 @@ class TestAveryBradley2019(TestCase):
         # Bradley only has 81 reported games in 2019 due to a mid-season trade
         self.assertEqual(81, len(json.loads(results)))
 
-        with open(self.expected_including_inactive_games_output_json_file_path, "r",
+        with open(self.expected_including_inactive_games_output_json_file_path,
                   encoding="utf8") as expected_output:
             self.assertEqual(
                 json.loads(results),
@@ -280,8 +280,8 @@ class TestAveryBradley2019(TestCase):
                 output_type=OutputType.CSV,
                 output_file_path=output_file_path,
             )
-            with open(output_file_path, 'r', encoding="utf8") as output_file, \
-                    open(self.expected_excluding_inactive_games_output_csv_file_path, 'r',
+            with open(output_file_path, encoding="utf8") as output_file, \
+                    open(self.expected_excluding_inactive_games_output_csv_file_path,
                          encoding="utf8") as expected_file:
                 output_lines = output_file.readlines()
                 expected_lines = expected_file.readlines()
@@ -309,8 +309,8 @@ class TestAveryBradley2019(TestCase):
                 output_file_path=output_file_path,
                 include_inactive_games=True
             )
-            with open(output_file_path, 'r', encoding="utf8") as output_file, \
-                    open(self.expected_including_inactive_games_output_csv_file_path, 'r',
+            with open(output_file_path, encoding="utf8") as output_file, \
+                    open(self.expected_including_inactive_games_output_csv_file_path,
                          encoding="utf8") as expected_file:
                 output_lines = output_file.readlines()
                 expected_lines = expected_file.readlines()

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.data import League, LEAGUE_ABBREVIATIONS_TO_LEAGUE
+from src.data import LEAGUE_ABBREVIATIONS_TO_LEAGUE, League
 from src.parsers import LeagueAbbreviationParser
 
 

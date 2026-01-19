@@ -7,7 +7,7 @@ from unittest import TestCase
 import requests_mock
 
 from src.client import standings
-from src.data import Team, Division, Conference, OutputWriteOption, OutputType
+from src.data import Conference, Division, OutputType, OutputWriteOption, Team
 
 
 class StandingsMocker:
@@ -38,7 +38,7 @@ class StandingsMocker:
                     raise ValueError(
                         f"Unexpected prefix for {filename}. Expected all files in {html_files_directory} to end with .html.")
 
-                with open(os.path.join(html_files_directory, filename), 'r') as file_input:
+                with open(os.path.join(html_files_directory, filename)) as file_input:
                     if filename.startswith(str(self._season_end_year)):
                         key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}_games.html"
                         with requests_mock.Mocker() as m:
@@ -336,7 +336,7 @@ class TestInMemoryJSONStandings2001(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(self.expected_output_file_path, "r", encoding="utf8") as expected_output_file:
+        with open(self.expected_output_file_path, encoding="utf8") as expected_output_file:
             self.assertEqual(
                 json.loads(box_scores),
                 json.load(expected_output_file)
@@ -432,7 +432,7 @@ class TestInMemoryJSONStandings2019(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(self.expected_output_file_path, "r", encoding="utf8") as expected_output_file:
+        with open(self.expected_output_file_path, encoding="utf8") as expected_output_file:
             self.assertEqual(
                 json.loads(box_scores),
                 json.load(expected_output_file)

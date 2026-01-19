@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from src.html import PlayerPageTotalsTable, PlayerPageTotalsRow
+from src.html import PlayerPageTotalsRow, PlayerPageTotalsTable
 
 
 class TestPlayerPageTotalsTable(TestCase):

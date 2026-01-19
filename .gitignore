@@ -36,3 +36,4 @@ pyvenv.cfg
 .opencode/
 .codex/
 .claude/
+.kilocode/

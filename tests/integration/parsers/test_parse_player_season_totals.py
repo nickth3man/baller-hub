@@ -3,11 +3,18 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.data import Team, Position, POSITION_ABBREVIATIONS_TO_POSITION, \
-    TEAM_ABBREVIATIONS_TO_TEAM
+from src.data import (
+    POSITION_ABBREVIATIONS_TO_POSITION,
+    TEAM_ABBREVIATIONS_TO_TEAM,
+    Position,
+    Team,
+)
 from src.html import PlayerSeasonTotalTable
-from src.parsers import PositionAbbreviationParser, TeamAbbreviationParser, \
-    PlayerSeasonTotalsParser
+from src.parsers import (
+    PlayerSeasonTotalsParser,
+    PositionAbbreviationParser,
+    TeamAbbreviationParser,
+)
 
 
 class BasePlayerSeasonTotalsTestCase(TestCase):
@@ -18,7 +25,7 @@ class BasePlayerSeasonTotalsTestCase(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{cls._season_end_year}.html",
-        ), 'r') as file_input: _html = file_input.read()
+        )) as file_input: _html = file_input.read()
         cls._parsed_season_totals = PlayerSeasonTotalsParser(
             position_abbreviation_parser=PositionAbbreviationParser(
                 abbreviations_to_positions=POSITION_ABBREVIATIONS_TO_POSITION

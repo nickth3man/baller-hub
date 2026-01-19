@@ -5,9 +5,9 @@ from unittest import TestCase
 import pytz
 from lxml import html
 
-from src.data import Team, TEAM_NAME_TO_TEAM
+from src.data import TEAM_NAME_TO_TEAM, Team
 from src.html import SchedulePage
-from src.parsers import ScheduledGamesParser, TeamNameParser, ScheduledStartTimeParser
+from src.parsers import ScheduledGamesParser, ScheduledStartTimeParser, TeamNameParser
 
 
 class BaseTest(TestCase):
@@ -18,7 +18,7 @@ class BaseTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/schedule/{cls._path_from_schedule_directory}",
-        ), 'r') as file_input: _html = file_input.read()
+        )) as file_input: _html = file_input.read()
         cls._page = SchedulePage(html=html.fromstring(_html))
 
         super().setUpClass()
@@ -31,7 +31,7 @@ class BaseParserTest(BaseTest):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/schedule/{cls._path_from_schedule_directory}",
-        ), 'r') as file_input: _html = file_input.read()
+        )) as file_input: _html = file_input.read()
         cls._parsed_results = ScheduledGamesParser(
             start_time_parser=ScheduledStartTimeParser(),
             team_name_parser=TeamNameParser(team_names_to_teams=TEAM_NAME_TO_TEAM),

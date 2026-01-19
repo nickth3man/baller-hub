@@ -2,7 +2,7 @@ from unittest import TestCase, mock
 
 from src.data import OutputType, OutputWriteOption
 from src.output.service import OutputService
-from src.output.writers import OutputOptions, FileOptions
+from src.output.writers import FileOptions, OutputOptions
 
 
 class TestOutput(TestCase):

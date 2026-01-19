@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from requests import HTTPError, codes
 
@@ -12,7 +12,7 @@ class TestPlayerAdvancedSeasonTotals(TestCase):
     @patch.object(HTTPService, "players_advanced_season_totals")
     def test_not_found_raises_invalid_season(self, mocked_players_advanced_season_totals):
         end_year = "jaebaebae"
-        expected_message = "Season end year of {end_year} is invalid".format(end_year=end_year)
+        expected_message = f"Season end year of {end_year} is invalid"
         mocked_players_advanced_season_totals.side_effect = HTTPError(
             response=MagicMock(status_code=codes.not_found))
         self.assertRaisesRegex(InvalidSeason, expected_message, players_advanced_season_totals, season_end_year=end_year)

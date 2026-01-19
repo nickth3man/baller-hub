@@ -1,6 +1,5 @@
 from unittest import TestCase
-from unittest.mock import MagicMock, PropertyMock
-from unittest.mock import patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from src.html import PlayerAdvancedSeasonTotalsRow, PlayerAdvancedSeasonTotalsTable
 
@@ -40,4 +39,4 @@ class TestPlayerAdvancedSeasonTotalsTable(TestCase):
         self.html.xpath = MagicMock(return_value=html_rows)
 
         rows = PlayerAdvancedSeasonTotalsTable(self.html).get_rows()
-        self.assertTrue(0 == len(rows))
+        self.assertTrue(len(rows) == 0)

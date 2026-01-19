@@ -5,14 +5,13 @@ import time
 from unittest import TestCase
 
 from src.client import (
-    player_box_scores,
-    season_schedule,
-    players_advanced_season_totals,
     play_by_play,
+    player_box_scores,
+    players_advanced_season_totals,
     players_season_totals,
+    season_schedule,
 )
-from src.data import Location, Outcome
-from src.data import OutputWriteOption, OutputType, Team, PeriodType
+from src.data import Location, Outcome, OutputType, OutputWriteOption, PeriodType, Team
 
 
 class BaseEndToEndTest(TestCase):

@@ -1,8 +1,8 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from src.parsers import TeamTotalsParser, TeamAbbreviationParser
-from src.data import Outcome, TeamTotal, TEAM_ABBREVIATIONS_TO_TEAM
+from src.data import TEAM_ABBREVIATIONS_TO_TEAM, TeamTotal
+from src.parsers import TeamAbbreviationParser, TeamTotalsParser
 
 
 class TestTeamTotalsParser(TestCase):

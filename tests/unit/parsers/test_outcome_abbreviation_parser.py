@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.data import Outcome, OUTCOME_ABBREVIATIONS_TO_OUTCOME
+from src.data import OUTCOME_ABBREVIATIONS_TO_OUTCOME, Outcome
 from src.parsers import OutcomeAbbreviationParser
 
 

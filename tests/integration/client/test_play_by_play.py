@@ -5,8 +5,7 @@ from unittest import TestCase
 import requests_mock
 
 from src.client import play_by_play
-from src.data import OutputType, OutputWriteOption, PeriodType
-from src.data import Team
+from src.data import OutputType, OutputWriteOption, PeriodType, Team
 from src.errors import InvalidDate
 
 
@@ -15,7 +14,7 @@ class Test199911160ATLPlayByPlay(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/199911160ATL.html",
-        ), 'r') as file_input: self._html = file_input.read();
+        )) as file_input: self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_length(self, m):
@@ -29,7 +28,7 @@ class Test201810270MILPlayByPlay(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/201810270MIL.html",
-        ), 'r') as file_input: self._html = file_input.read();
+        )) as file_input: self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_length(self, m):
@@ -80,7 +79,7 @@ class Test201901010DEN(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/201901010DEN.html",
-        ), 'r') as file_input: self._html = file_input.read();
+        )) as file_input: self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_total_play_by_play_length_for_single_digit_month_and_day(self, m):
@@ -132,7 +131,7 @@ class Test201901010SAC(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/201901010SAC.html",
-        ), 'r') as file_input: self._html = file_input.read();
+        )) as file_input: self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_last_play_by_play_for_overtime_game(self, m):
@@ -159,7 +158,7 @@ class Test201810160GSW(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/201810160GSW.html",
-        ), 'r') as file_input: self._html = file_input.read();
+        )) as file_input: self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_non_unicode_matches(self, m):
@@ -194,7 +193,7 @@ class TestPlayByPlayCSVOutput(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/200310290TOR.html",
-        ), 'r') as file_input: self._html = file_input.read();
+        )) as file_input: self._html = file_input.read()
 
     def tearDown(self):
         os.remove(self.output_file_path)
@@ -208,8 +207,8 @@ class TestPlayByPlayCSVOutput(TestCase):
             output_file_path=self.output_file_path,
             output_write_option=OutputWriteOption.WRITE,
         )
-        with open(self.output_file_path, "r", encoding="utf8") as output_file, \
-                open(self.expected_output_file_path, "r", encoding="utf8") as expected_output_file:
+        with open(self.output_file_path, encoding="utf8") as output_file, \
+                open(self.expected_output_file_path, encoding="utf8") as expected_output_file:
             self.assertEqual(output_file.readlines(), expected_output_file.readlines())
 
 
@@ -226,7 +225,7 @@ class TestPlayByPlayJSONOutput(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/200310290TOR.html",
-        ), 'r') as file_input: self._html = file_input.read();
+        )) as file_input: self._html = file_input.read()
 
     def tearDown(self):
         os.remove(self.output_file_path)
@@ -240,8 +239,8 @@ class TestPlayByPlayJSONOutput(TestCase):
             output_write_option=OutputWriteOption.WRITE,
         )
 
-        with open(self.output_file_path, "r", encoding="utf8") as output_file, \
-                open(self.expected_output_file_path, "r", encoding="utf8") as expected_output_file:
+        with open(self.output_file_path, encoding="utf8") as output_file, \
+                open(self.expected_output_file_path, encoding="utf8") as expected_output_file:
             self.assertEqual(
                 json.load(output_file),
                 json.load(expected_output_file),

@@ -3,19 +3,26 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.data import Team, Position, TEAM_ABBREVIATIONS_TO_TEAM, \
-    POSITION_ABBREVIATIONS_TO_POSITION
+from src.data import (
+    POSITION_ABBREVIATIONS_TO_POSITION,
+    TEAM_ABBREVIATIONS_TO_TEAM,
+    Position,
+    Team,
+)
 from src.html import PlayerAdvancedSeasonTotalsTable
-from src.parsers import PlayerAdvancedSeasonTotalsParser, PositionAbbreviationParser, \
-    TeamAbbreviationParser
+from src.parsers import (
+    PlayerAdvancedSeasonTotalsParser,
+    PositionAbbreviationParser,
+    TeamAbbreviationParser,
+)
 
 
 class TestPlayersAdvancedSeasonTotals(TestCase):
     def setUp(self):
         with open(os.path.join(
                 os.path.dirname(__file__),
-                f"../files/player_advanced_season_totals/2019.html",
-        ), 'r') as file_input: self._html = file_input.read()
+                "../files/player_advanced_season_totals/2019.html",
+        )) as file_input: self._html = file_input.read()
         self.parser = PlayerAdvancedSeasonTotalsParser(
             position_abbreviation_parser=PositionAbbreviationParser(
                 abbreviations_to_positions=POSITION_ABBREVIATIONS_TO_POSITION

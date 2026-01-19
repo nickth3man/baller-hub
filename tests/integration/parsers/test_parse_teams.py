@@ -3,11 +3,9 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.data import TEAM_ABBREVIATIONS_TO_TEAM, TeamTotal
-from src.data import Team, Outcome
+from src.data import TEAM_ABBREVIATIONS_TO_TEAM, Outcome, Team, TeamTotal
 from src.html import BoxScoresPage
-from src.parsers import TeamAbbreviationParser, \
-    TeamTotalsParser
+from src.parsers import TeamAbbreviationParser, TeamTotalsParser
 
 
 class TestParseTeams(TestCase):
@@ -15,8 +13,8 @@ class TestParseTeams(TestCase):
     def setUpClass(cls):
         with open(os.path.join(
                 os.path.dirname(__file__),
-                f"../files/boxscores/2017/1/201701010ATL.html",
-        ), 'r') as file_input: _html = file_input.read()
+                "../files/boxscores/2017/1/201701010ATL.html",
+        )) as file_input: _html = file_input.read()
         first_team_totals, second_team_totals = [
             TeamTotal(team_abbreviation=table.team_abbreviation, totals=table.team_totals)
             for table in BoxScoresPage(html.fromstring(html=_html)).basic_statistics_tables

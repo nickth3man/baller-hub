@@ -1,8 +1,9 @@
 import os
 from unittest import TestCase
 
-from src.html import PlayByPlayPage
 from lxml import html
+
+from src.html import PlayByPlayPage
 
 
 class TestPlayByPlayPage(TestCase):

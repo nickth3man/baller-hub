@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.utilities import str_to_int, str_to_float, merge_two_dicts
+from src.utilities import merge_two_dicts, str_to_float, str_to_int
 
 
 class TestStrToInt(TestCase):

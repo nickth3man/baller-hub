@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import patch, PropertyMock, MagicMock
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from src.html import PlayByPlayRow
 

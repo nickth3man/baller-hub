@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.data import OUTCOME_ABBREVIATIONS_TO_OUTCOME, Outcome
+from src.data import OUTCOME_ABBREVIATIONS_TO_OUTCOME
 from src.parsers import OutcomeAbbreviationParser, PlayerBoxScoreOutcomeParser
 
 
