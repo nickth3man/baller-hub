@@ -34,3 +34,5 @@ pyvenv.cfg
 **/*/__pycache__/
 
 .opencode/
+.codex/
+.claude/
