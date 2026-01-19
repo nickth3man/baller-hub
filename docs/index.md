@@ -13,26 +13,10 @@ This library was created for another Python project where I was trying to estima
 A lot of sports-related APIs are expensive - luckily, **Basketball Reference** provides a free service which can be scraped 
 and translated into a usable API.
 
-## Installation
-
-[This project is published to `PyPi`](https://pypi.org/project/basketball-reference-web-scraper/).
-
-It can be installed via `pip`.
-
-```bash
-pip install basketball_reference_web_scraper
-```
-
-!!! note
-    This library requires `Python 3.7+` 
-
-!!! note
-    Currently, only data from seasons after the `1999-2000` season is supported
-
-!!! note
-    There are currently two supported major versions - `3+` and `4+`.
-
 ## Contributors
+
+Formerly maintained by Jae Bradley
+Now maintained by Nick Alexander
 
 This is an open-source project that welcomes **_all_** pull requests and issues - I would love to hear your thoughts and 
 ideas around making this project even better.

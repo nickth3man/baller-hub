@@ -3,8 +3,8 @@ from datetime import datetime
 
 import pytz
 
-from src.data import PeriodType, Outcome
-from src.utilities import str_to_int, str_to_float
+from src.data import Outcome, PeriodType
+from src.utilities import str_to_float, str_to_int
 
 PLAYER_SEASON_BOX_SCORES_GAME_DATE_FORMAT = '%Y-%m-%d'
 PLAYER_SEASON_BOX_SCORES_OUTCOME_REGEX = '(?P<outcome_abbreviation>W|L),'
@@ -27,12 +27,7 @@ class PositionAbbreviationParser:
         return self.abbreviations_to_positions.get(abbreviation)
 
     def from_abbreviations(self, abbreviations):
-        parsed_positions = list(
-            map(
-                lambda position_abbreviation: self.from_abbreviation(position_abbreviation),
-                abbreviations.split("-")
-            )
-        )
+        parsed_positions = [self.from_abbreviation(position_abbreviation) for position_abbreviation in abbreviations.split("-")]
         return [position for position in parsed_positions if position is not None]
 
 
@@ -43,7 +38,7 @@ class LocationAbbreviationParser:
     def from_abbreviation(self, abbreviation):
         location = self.abbreviations_to_locations.get(abbreviation)
         if location is None:
-            raise ValueError("Unknown symbol: {location}".format(location=location))
+            raise ValueError(f"Unknown symbol: {location}")
 
         return location
 
@@ -55,7 +50,7 @@ class OutcomeAbbreviationParser:
     def from_abbreviation(self, abbreviation):
         outcome = self.abbreviations_to_outcomes.get(abbreviation)
         if outcome is None:
-            raise ValueError("Unknown symbol: {outcome}".format(outcome=outcome))
+            raise ValueError(f"Unknown symbol: {outcome}")
 
         return outcome
 
@@ -67,7 +62,7 @@ class LeagueAbbreviationParser:
     def from_abbreviation(self, abbreviation):
         league = self.abbreviations_to_league.get(abbreviation)
         if league is None:
-            raise ValueError("Unknown league abbreviation: {abbreviation}".format(abbreviation=abbreviation))
+            raise ValueError(f"Unknown league abbreviation: {abbreviation}")
 
         return league
 
@@ -268,7 +263,7 @@ class DivisionNameParser:
 
     def parse_division(self, formatted_name):
         for division in self.divisions:
-            if formatted_name.upper() == "{division} DIVISION".format(division=division.value):
+            if formatted_name.upper() == f"{division.value} DIVISION":
                 return division
 
         return None
@@ -590,12 +585,12 @@ class PlayerDataParser:
             "identifier": self.search_result_location_parser.parse_resource_identifier(
                 resource_location=player.resource_location
             ),
-            "leagues": set(
-                (
+            "leagues": {
+
                     self.league_abbreviation_parser.from_abbreviation(abbreviation=abbreviation)
                     for abbreviation in player.league_abbreviations
-                )
-            )
+
+            }
         }
 
 

@@ -40,11 +40,6 @@ implemented in the `client.py` file.
     Sometimes the suite of integration tests run into rate-limiting errors - I'm currently thinking of ways to mitigate
     this behavior.
 
-Currently, this project uses [**Codecov**](https://codecov.io/gh/jaebradley/basketball_reference_web_scraper) for code 
-coverage statistics.
-
 ## Continuous Integration
 
-[**GitHub Actions**](https://github.com/jaebradley/basketball_reference_web_scraper/actions) is used for continuous 
-integration to run tests on a variety of operating systems.
 

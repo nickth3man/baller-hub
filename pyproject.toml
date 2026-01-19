@@ -1,43 +1,85 @@
-[tool.poetry]
-name = "basketball_reference_web_scraper"
+[project]
+name = "basketball-reference-web-scraper"
 version = "4.15.4"
 description = "A Basketball Reference client that generates data by scraping the website"
-authors = ["Jae Bradley <jae.b.bradley@gmail.com>"]
-maintainers = ["Jae Bradley <jae.b.bradley@gmail.com>"]
-license = "MIT"
-keywords = ["NBA", "Basketball", "Basketball", "Reference", "basketball-reference.com"]
-classifiers = ["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent"]
-repository = "https://github.com/jaebradley/basketball_reference_web_scraper"
-homepage = "https://jaebradley.github.io/basketball_reference_web_scraper"
+authors = [
+    {name = "nickth3man", email = "nickth3man@gmail.com"}
+]
+maintainers = [
+    {name = "nickth3man", email = "nickth3man@gmail.com"}
+]
+license = {text = "MIT"}
+keywords = ["NBA", "Basketball", "Reference", "basketball-reference.com"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 readme = "README.md"
-exclude = ["tests", "docs"]
+requires-python = ">=3.12"
+dependencies = [
+    "lxml>=5.1.0",
+    "pytz>=2024.1",
+    "requests>=2.31.0",
+    "ruff>=0.14.13",
+    "ty>=0.0.12",
+]
 
-[tool.poetry.dependencies]
-python = "^3.7"
-lxml = "^5.1.0"
-pytz = "^2024.1"
-requests = "^2.31.0"
-
-[tool.poetry.dev-dependencies]
-codecov = "^2.1.13"
-mkdocs = "^1.5.3"
-mkdocs-material = "<= 9.2.8"
-pymdown-extensions = "<= 10.2.1"
-coverage = "<= 7.2.7"
-pytest = "<= 7.4.4"
-requests-mock = "^1.12.1"
-
-[tool.poetry.urls]
-issues = "https://github.com/jaebradley/basketball_reference_web_scraper/issues"
-pull_requests = "https://github.com/jaebradley/basketball_reference_web_scraper/pull_requests"
+[dependency-groups]
+dev = [
+    "pymdown-extensions>=10.2.1",
+    "coverage>=7.2.7",
+    "pytest>=7.4.4",
+    "requests-mock>=1.12.1",
+    "ty>=0.0.12",
+    "ruff>=0.14.13",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = "basketball_reference_web_scraper"
+pythonpath = "."
 testpaths = "tests"
 addopts = [
     "--import-mode=importlib",
 ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "C4",
+    "SIM",
+    "ARG",
+]
+ignore = [
+    "E501",
+    "B008",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.ty.environment]
+python-version = "3.12"
+
+[tool.ty.rules]
+possibly-unresolved-reference = "warn"
+possibly-missing-attribute = "warn"
+
+[tool.ty.src]
+include = ["src/**/*.py", "tests/**/*.py"]
+exclude = ["**/site-packages/**"]

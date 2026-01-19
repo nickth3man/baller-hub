@@ -120,8 +120,6 @@ or appended to the specified file path (or any of other the Python file mode opt
 
 ### Player Box Scores For A Given Day
 
-* [`repl.it` Examples](https://repl.it/@jaebradley/PlayerBoxScoresByDate#main.py)
-
 === "Python Data Structures"
     ```python
     from basketball_reference_web_scraper import client
@@ -162,8 +160,6 @@ or appended to the specified file path (or any of other the Python file mode opt
     ```
 
 ### Team Box Scores For A Given Day
-
-* [`repl.it` Examples](https://repl.it/@jaebradley/TeamBoxScoresByDate#main.py)
 
 === "Python Data Structures"
     ```python
@@ -206,8 +202,6 @@ or appended to the specified file path (or any of other the Python file mode opt
     
 ### Get Season Schedule
 
-* [`repl.it` Examples](https://repl.it/@jaebradley/SeasonSchedule#main.py)
-
 === "Python Data Structures"
     ```python
     from basketball_reference_web_scraper import client
@@ -248,8 +242,6 @@ or appended to the specified file path (or any of other the Python file mode opt
     ```
 
 ### Player Season Totals (Basic Statistics)
-
-* [`repl.it` Examples](https://repl.it/@jaebradley/PlayerSeasonTotals#main.py)
 
 === "Python Data Structures"
     ```python
@@ -292,8 +284,6 @@ or appended to the specified file path (or any of other the Python file mode opt
 
 ### Player Season Totals (Advanced Statistics)
 
-* [`repl.it` Examples](https://repl.it/@jaebradley/PlayerAdvancedSeasonTotals#main.py)
-
 === "Python Data Structures"
     ```python
     from basketball_reference_web_scraper import client
@@ -334,8 +324,6 @@ or appended to the specified file path (or any of other the Python file mode opt
     ```
 
 ### Play-By-Play
-
-* [`repl.it` Examples](https://repl.it/@jaebradley/PlayByPlay#main.py)
 
 !!! note
     The structure of the API is due to the unique URL pattern that **Basketball Reference** has for getting play-by-play 
@@ -397,8 +385,6 @@ or appended to the specified file path (or any of other the Python file mode opt
     You can see this from their player page URL: https://www.basketball-reference.com/players/w/westbru01/gamelog/2020.
     
 
-* [`repl.it` Examples](https://repl.it/@jaebradley/RegularSeasonPlayerBoxScores#main.py)
-
 === "Python Data Structures"
     ```python
     from basketball_reference_web_scraper import client
@@ -458,8 +444,6 @@ or appended to the specified file path (or any of other the Python file mode opt
     You can see this from their player page URL: https://www.basketball-reference.com/players/w/westbru01/gamelog/2020.
     
 
-* [`repl.it` Examples](https://repl.it/@jaebradley/PlayoffPlayerBoxScores#main.py)
-
 === "Python Data Structures"
     ```python
     from basketball_reference_web_scraper import client
@@ -510,8 +494,6 @@ or appended to the specified file path (or any of other the Python file mode opt
     
 ### Search
 
-* [`repl.it` Examples](https://repl.it/@jaebradley/Search#main.py)
-
 === "Python Data Structures"
     ```python
     from basketball_reference_web_scraper import client
@@ -552,8 +534,6 @@ or appended to the specified file path (or any of other the Python file mode opt
     ```
 
 ### Standings
-
-* [`repl.it` Examples](https://repl.it/@jaebradley/Standings#main.py)
 
 === "Python Data Structures"
     ```python

@@ -4,14 +4,18 @@ import os
 import time
 from unittest import TestCase
 
-from src.client import player_box_scores, season_schedule, players_advanced_season_totals, \
-    play_by_play, players_season_totals
+from src.client import (
+    player_box_scores,
+    season_schedule,
+    players_advanced_season_totals,
+    play_by_play,
+    players_season_totals,
+)
 from src.data import Location, Outcome
 from src.data import OutputWriteOption, OutputType, Team, PeriodType
 
 
 class BaseEndToEndTest(TestCase):
-
     def setUp(self):
         # To avoid getting rate-limited
         time.sleep(20)
@@ -22,7 +26,6 @@ class BaseEndToEndTest(TestCase):
 
 
 class TestPlayerBoxScores(BaseEndToEndTest):
-
     def setUp(self):
         super().setUp()
 
@@ -32,35 +35,36 @@ class TestPlayerBoxScores(BaseEndToEndTest):
         self.assertIsNotNone(self.box_scores)
         self.assertNotEqual(0, len(self.box_scores))
         self.assertEqual(124, len(self.box_scores))
-        self.assertDictEqual({
-            "name": "Nikola Jokić",
-            "slug": "jokicni01",
-            "team": Team.DENVER_NUGGETS,
-            "opponent": Team.TORONTO_RAPTORS,
-            "location": Location.HOME,
-            "outcome": Outcome.WIN,
-            "seconds_played": 2286,
-            "made_field_goals": 14,
-            "attempted_field_goals": 26,
-            "made_three_point_field_goals": 1,
-            "attempted_three_point_field_goals": 3,
-            "made_free_throws": 6,
-            "attempted_free_throws": 6,
-            "offensive_rebounds": 6,
-            "defensive_rebounds": 11,
-            "assists": 12,
-            "steals": 6,
-            "blocks": 2,
-            "turnovers": 2,
-            "personal_fouls": 3,
-            "plus_minus": 13.0,
-            "game_score": 42.5,
-        },
-            self.box_scores[0])
+        self.assertDictEqual(
+            {
+                "name": "Nikola Jokić",
+                "slug": "jokicni01",
+                "team": Team.DENVER_NUGGETS,
+                "opponent": Team.TORONTO_RAPTORS,
+                "location": Location.HOME,
+                "outcome": Outcome.WIN,
+                "seconds_played": 2286,
+                "made_field_goals": 14,
+                "attempted_field_goals": 26,
+                "made_three_point_field_goals": 1,
+                "attempted_three_point_field_goals": 3,
+                "made_free_throws": 6,
+                "attempted_free_throws": 6,
+                "offensive_rebounds": 6,
+                "defensive_rebounds": 11,
+                "assists": 12,
+                "steals": 6,
+                "blocks": 2,
+                "turnovers": 2,
+                "personal_fouls": 3,
+                "plus_minus": 13.0,
+                "game_score": 42.5,
+            },
+            self.box_scores[0],
+        )
 
 
 class TestCsvPlayerBoxScores(BaseEndToEndTest):
-
     def test_csv_output(self):
         output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -81,11 +85,12 @@ class TestCsvPlayerBoxScores(BaseEndToEndTest):
                 os.path.join(
                     os.path.dirname(__file__),
                     "./output/expected/playerboxscores/2024/03/11.csv",
-                )))
+                ),
+            )
+        )
 
 
 class TestJsonPlayerBoxScores(BaseEndToEndTest):
-
     def test_json_output(self):
         output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -106,7 +111,9 @@ class TestJsonPlayerBoxScores(BaseEndToEndTest):
                 os.path.join(
                     os.path.dirname(__file__),
                     "./output/expected/playerboxscores/2024/03/11.json",
-                )))
+                ),
+            )
+        )
 
 
 class TestSeasonSchedule(BaseEndToEndTest):
@@ -157,7 +164,9 @@ class TestPlayByPlay(BaseEndToEndTest):
                 os.path.join(
                     os.path.dirname(__file__),
                     "./output/expected/2018_10_16_BOS_pbp.csv",
-                )))
+                ),
+            )
+        )
 
     def test_overtime_play_by_play(self):
         plays = play_by_play(
@@ -187,20 +196,22 @@ class TestPlayByPlay(BaseEndToEndTest):
         )
 
         self.assertTrue(
-            filecmp.cmp(output_file_path,
-                        os.path.join(
-                            os.path.dirname(__file__),
-                            "./output/expected/2018_10_22_POR_pbp.json",
-                        )))
+            filecmp.cmp(
+                output_file_path,
+                os.path.join(
+                    os.path.dirname(__file__),
+                    "./output/expected/2018_10_22_POR_pbp.json",
+                ),
+            )
+        )
 
 
 class TestPlayersSeasonTotals(TestCase):
-
     def test_2018(self):
         totals = players_season_totals(season_end_year=2018)
 
         for total in totals:
-            # TODO: @jaebradley turn this into a dataclass with validation
+            # TODO: @nickth3man turn this into a dataclass with validation
             self.assertIsNot("", total["name"])
             self.assertIsNot("League Average", total["name"])
             self.assertTrue(total["slug"])
@@ -211,11 +222,18 @@ class TestPlayersSeasonTotals(TestCase):
             self.assertGreaterEqual(total["games_started"], 0)
             self.assertGreaterEqual(total["minutes_played"], 0)
             self.assertGreaterEqual(total["made_field_goals"], 0)
-            self.assertGreaterEqual(total["attempted_field_goals"], total["made_field_goals"])
+            self.assertGreaterEqual(
+                total["attempted_field_goals"], total["made_field_goals"]
+            )
             self.assertGreaterEqual(total["made_three_point_field_goals"], 0)
-            self.assertGreaterEqual(total["attempted_three_point_field_goals"], total["made_three_point_field_goals"])
+            self.assertGreaterEqual(
+                total["attempted_three_point_field_goals"],
+                total["made_three_point_field_goals"],
+            )
             self.assertGreaterEqual(total["made_free_throws"], 0)
-            self.assertGreaterEqual(total["attempted_free_throws"], total["made_free_throws"])
+            self.assertGreaterEqual(
+                total["attempted_free_throws"], total["made_free_throws"]
+            )
             self.assertGreaterEqual(total["offensive_rebounds"], 0)
             self.assertGreaterEqual(total["defensive_rebounds"], 0)
             self.assertGreaterEqual(total["assists"], 0)

@@ -17,9 +17,9 @@ class FileOptions:
     def of(path=None, mode=None):
         if mode is None:
             return FileOptions(path=path, mode=OutputWriteOption.WRITE)
-        
+
         return FileOptions(path=path, mode=mode)
-    
+
     def __init__(self, path, mode):
         self.path = path
         self.mode = mode
@@ -48,7 +48,7 @@ class OutputOptions:
         elif output_type is None:
             return OutputOptions(file_options=None, formatting_options={}, output_type=None)
         else:
-            raise ValueError("Unknown output type: {output_type}".format(output_type=output_type))
+            raise ValueError(f"Unknown output type: {output_type}")
 
         return OutputOptions(
             file_options=file_options,
@@ -105,7 +105,7 @@ class JSONWriter(Writer):
 class CSVWriter(Writer):
     def rows(self, data):
         return [
-            dict((key, self.value_formatter(value)) for key, value in row.items())
+            {key: self.value_formatter(value) for key, value in row.items()}
             for row in data
         ]
 
@@ -128,7 +128,7 @@ class CSVWriter(Writer):
 class SearchCSVWriter(CSVWriter):
     def rows(self, data):
         return [
-            dict((key, self.value_formatter(value)) for key, value in row.items())
+            {key: self.value_formatter(value) for key, value in row.items()}
             for row in data["players"]
         ]
 

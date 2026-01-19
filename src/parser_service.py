@@ -1,18 +1,48 @@
-from src.data import TEAM_ABBREVIATIONS_TO_TEAM, LOCATION_ABBREVIATIONS_TO_POSITION, OUTCOME_ABBREVIATIONS_TO_OUTCOME, TEAM_NAME_TO_TEAM, \
-    POSITION_ABBREVIATIONS_TO_POSITION, LEAGUE_ABBREVIATIONS_TO_LEAGUE, Division, Team, DIVISIONS_TO_CONFERENCES
-from src.parsers import PositionAbbreviationParser, TeamAbbreviationParser, \
-    PlayerSeasonTotalsParser, TeamTotalsParser, LocationAbbreviationParser, OutcomeAbbreviationParser, \
-    SecondsPlayedParser, PlayerBoxScoresParser, PlayerAdvancedSeasonTotalsParser, PeriodDetailsParser, \
-    PeriodTimestampParser, ScoresParser, PlayByPlaysParser, TeamNameParser, ScheduledStartTimeParser, \
-    ScheduledGamesParser, PlayerBoxScoreOutcomeParser, PlayerSeasonBoxScoresParser, SearchResultNameParser, \
-    ResourceLocationParser, SearchResultsParser, LeagueAbbreviationParser, PlayerDataParser, DivisionNameParser, \
-    TeamStandingsParser, ConferenceDivisionStandingsParser
+from src.data import (
+    DIVISIONS_TO_CONFERENCES,
+    LEAGUE_ABBREVIATIONS_TO_LEAGUE,
+    LOCATION_ABBREVIATIONS_TO_POSITION,
+    OUTCOME_ABBREVIATIONS_TO_OUTCOME,
+    POSITION_ABBREVIATIONS_TO_POSITION,
+    TEAM_ABBREVIATIONS_TO_TEAM,
+    TEAM_NAME_TO_TEAM,
+    Division,
+    Team,
+)
+from src.parsers import (
+    ConferenceDivisionStandingsParser,
+    DivisionNameParser,
+    LeagueAbbreviationParser,
+    LocationAbbreviationParser,
+    OutcomeAbbreviationParser,
+    PeriodDetailsParser,
+    PeriodTimestampParser,
+    PlayByPlaysParser,
+    PlayerAdvancedSeasonTotalsParser,
+    PlayerBoxScoreOutcomeParser,
+    PlayerBoxScoresParser,
+    PlayerDataParser,
+    PlayerSeasonBoxScoresParser,
+    PlayerSeasonTotalsParser,
+    PositionAbbreviationParser,
+    ResourceLocationParser,
+    ScheduledGamesParser,
+    ScheduledStartTimeParser,
+    ScoresParser,
+    SearchResultNameParser,
+    SearchResultsParser,
+    SecondsPlayedParser,
+    TeamAbbreviationParser,
+    TeamNameParser,
+    TeamStandingsParser,
+    TeamTotalsParser,
+)
 
 
 class ParserService:
     PLAY_BY_PLAY_TIMESTAMP_FORMAT = "%M:%S.%f"
     PLAY_BY_PLAY_SCORES_REGEX = "(?P<away_team_score>[0-9]+)-(?P<home_team_score>[0-9]+)"
-    SEARCH_RESULT_RESOURCE_LOCATION_REGEX = '(https?:\/\/www\.basketball-reference\.com\/)?(?P<resource_type>.+?(?=\/)).*\/(?P<resource_identifier>.+).html'
+    SEARCH_RESULT_RESOURCE_LOCATION_REGEX = r'(https?:\/\/www\.basketball-reference\.com\/)?(?P<resource_type>.+?(?=\/)).*\/(?P<resource_identifier>.+).html'
 
     def __init__(self):
         self.team_abbreviation_parser = TeamAbbreviationParser(abbreviations_to_teams=TEAM_ABBREVIATIONS_TO_TEAM)

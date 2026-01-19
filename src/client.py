@@ -1,15 +1,27 @@
 import requests
 
-from src.errors import InvalidSeason, InvalidDate, InvalidPlayerAndSeason
+from src.errors import InvalidDate, InvalidPlayerAndSeason, InvalidSeason
 from src.http_service import HTTPService
-from src.output.columns import BOX_SCORE_COLUMN_NAMES, SCHEDULE_COLUMN_NAMES, \
-    PLAYER_SEASON_TOTALS_COLUMN_NAMES, \
-    PLAYER_ADVANCED_SEASON_TOTALS_COLUMN_NAMES, TEAM_BOX_SCORES_COLUMN_NAMES, PLAY_BY_PLAY_COLUMN_NAMES, \
-    PLAYER_SEASON_BOX_SCORE_COLUMN_NAMES, SEARCH_RESULTS_COLUMN_NAMES, STANDINGS_COLUMNS_NAMES
-from src.output.fields import format_value, BasketballReferenceJSONEncoder
+from src.output.columns import (
+    BOX_SCORE_COLUMN_NAMES,
+    PLAY_BY_PLAY_COLUMN_NAMES,
+    PLAYER_ADVANCED_SEASON_TOTALS_COLUMN_NAMES,
+    PLAYER_SEASON_BOX_SCORE_COLUMN_NAMES,
+    PLAYER_SEASON_TOTALS_COLUMN_NAMES,
+    SCHEDULE_COLUMN_NAMES,
+    SEARCH_RESULTS_COLUMN_NAMES,
+    STANDINGS_COLUMNS_NAMES,
+    TEAM_BOX_SCORES_COLUMN_NAMES,
+)
+from src.output.fields import BasketballReferenceJSONEncoder, format_value
 from src.output.service import OutputService
-from src.output.writers import CSVWriter, JSONWriter, FileOptions, OutputOptions, \
-    SearchCSVWriter
+from src.output.writers import (
+    CSVWriter,
+    FileOptions,
+    JSONWriter,
+    OutputOptions,
+    SearchCSVWriter,
+)
 from src.parser_service import ParserService
 
 
