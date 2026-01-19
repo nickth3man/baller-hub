@@ -94,17 +94,174 @@ async def _persist_box_scores(
 ):
     """Persist box scores to the database.
 
-    This is a stub that will be implemented when we have the full
-    lookup/upsert logic for players, teams, and games.
+    Flow:
+    1. Determine season from date
+    2. Group team box scores by game (home vs away)
+    3. Create/lookup teams, create games, create team box scores
+    4. For each player box score, lookup player, create player box score
     """
-    # For now, just log what we would persist
-    logger.info(
-        "Would persist box scores",
-        date=dt.isoformat(),
-        player_count=len(player_box_scores),
-        team_count=len(team_box_scores),
+    from app.ingestion.mappers import (
+        _extract_player_slug,
+        map_player_box_score,
     )
-    # TODO: Implement actual persistence
+    from app.ingestion.repositories import (
+        clear_caches,
+        get_or_create_box_score,
+        get_or_create_game,
+        get_or_create_player,
+        get_or_create_season,
+        get_or_create_team,
+        upsert_player_box_score,
+    )
+    from app.models.game import Location, Outcome
+
+    await clear_caches()
+
+    # Determine season (Oct-June = current year season, else previous)
+    season_end_year = dt.year if dt.month >= 10 else dt.year
+    if dt.month < 7:
+        season_end_year = dt.year
+    else:
+        season_end_year = dt.year + 1
+
+    season_id = await get_or_create_season(session, season_end_year)
+    logger.info("Using season", season_id=season_id, season_end_year=season_end_year)
+
+    # Process team box scores first to create games and team box scores
+    # Team box scores come in pairs (home and away for each game)
+    games_created: dict[tuple[int, int], tuple[int, dict[int, int]]] = {}
+
+    for tbs in team_box_scores:
+        team_abbrev = tbs.get("team")
+        if hasattr(team_abbrev, "value"):
+            team_abbrev = team_abbrev.value
+        if not team_abbrev:
+            continue
+
+        opponent_abbrev = tbs.get("opponent")
+        if hasattr(opponent_abbrev, "value"):
+            opponent_abbrev = opponent_abbrev.value
+
+        # Get or create teams
+        team_id = await get_or_create_team(session, str(team_abbrev))
+        opponent_id = await get_or_create_team(session, str(opponent_abbrev))
+
+        # Determine location and outcome
+        outcome_val = tbs.get("outcome")
+        if hasattr(outcome_val, "value"):
+            outcome_val = outcome_val.value
+        outcome = Outcome.WIN if outcome_val == "WIN" else Outcome.LOSS
+
+        location_val = tbs.get("location")
+        if hasattr(location_val, "value"):
+            location_val = location_val.value
+        location = Location.HOME if location_val == "HOME" else Location.AWAY
+
+        # Determine home/away for game creation
+        if location == Location.HOME:
+            home_team_id = team_id
+            away_team_id = opponent_id
+        else:
+            home_team_id = opponent_id
+            away_team_id = team_id
+
+        # Use consistent key ordering for game lookup
+        game_key = (min(home_team_id, away_team_id), max(home_team_id, away_team_id))
+
+        # Create game if not already created for this pair
+        if game_key not in games_created:
+            home_score = tbs.get("points") if location == Location.HOME else None
+            away_score = tbs.get("points") if location == Location.AWAY else None
+
+            game_id = await get_or_create_game(
+                session,
+                game_date=dt,
+                home_team_id=home_team_id,
+                away_team_id=away_team_id,
+                season_id=season_id,
+                home_score=home_score,
+                away_score=away_score,
+            )
+            games_created[game_key] = (game_id, {})
+
+        game_id, box_id_map = games_created[game_key]
+
+        # Create team box score
+        box_id = await get_or_create_box_score(
+            session,
+            game_id=game_id,
+            team_id=team_id,
+            opponent_team_id=opponent_id,
+            location=location,
+            outcome=outcome,
+            stats=tbs,
+        )
+        box_id_map[team_id] = box_id
+        games_created[game_key] = (game_id, box_id_map)
+
+    logger.info("Created games and team box scores", games_count=len(games_created))
+
+    # Now process player box scores
+    player_count = 0
+    for pbs in player_box_scores:
+        team_abbrev = pbs.get("team")
+        if hasattr(team_abbrev, "value"):
+            team_abbrev = team_abbrev.value
+        if not team_abbrev:
+            continue
+
+        opponent_abbrev = pbs.get("opponent")
+        if hasattr(opponent_abbrev, "value"):
+            opponent_abbrev = opponent_abbrev.value
+
+        team_id = await get_or_create_team(session, str(team_abbrev))
+        opponent_id = await get_or_create_team(session, str(opponent_abbrev))
+
+        # Get player
+        player_slug = pbs.get("slug") or _extract_player_slug(pbs.get("name"))
+        player_name = pbs.get("name")
+        player_id = await get_or_create_player(session, player_slug, player_name)
+
+        # Find the game and box score for this player
+        game_key = (min(team_id, opponent_id), max(team_id, opponent_id))
+        if game_key not in games_created:
+            logger.warning(
+                "No game found for player box score",
+                player=player_name,
+                team=team_abbrev,
+            )
+            continue
+
+        game_id, box_id_map = games_created[game_key]
+        if team_id not in box_id_map:
+            logger.warning(
+                "No box score found for team",
+                team=team_abbrev,
+                game_id=game_id,
+            )
+            continue
+
+        box_id = box_id_map[team_id]
+
+        # Create player box score
+        player_box = map_player_box_score(
+            raw=pbs,
+            player_id=player_id,
+            box_id=box_id,
+            game_id=game_id,
+            team_id=team_id,
+        )
+        await upsert_player_box_score(
+            session, player_id, box_id, game_id, team_id, player_box
+        )
+        player_count += 1
+
+    logger.info(
+        "Persisted box scores",
+        date=dt.isoformat(),
+        games=len(games_created),
+        players=player_count,
+    )
 
 
 @celery_app.task(
@@ -154,13 +311,55 @@ async def _persist_standings(
     season_end_year: int,
     standings: dict[str, Any],
 ):
-    """Persist standings to the database."""
-    logger.info(
-        "Would persist standings",
-        season_end_year=season_end_year,
-        divisions=list(standings.keys()) if isinstance(standings, dict) else "N/A",
+    """Persist standings to the database.
+
+    Standings data comes as a dict with division/conference keys.
+    Each entry contains team records.
+    """
+    from app.ingestion.mappers import map_standings
+    from app.ingestion.repositories import (
+        clear_caches,
+        get_or_create_season,
+        get_or_create_team,
+        upsert_team_season,
     )
-    # TODO: Implement actual persistence
+
+    await clear_caches()
+    season_id = await get_or_create_season(session, season_end_year)
+
+    teams_processed = 0
+
+    # Standings structure: {"EASTERN": [...], "WESTERN": [...]} or by division
+    for conference_or_division, team_records in standings.items():
+        if not isinstance(team_records, list):
+            continue
+
+        for record in team_records:
+            team_name = record.get("team")
+            if hasattr(team_name, "value"):
+                team_name = team_name.value
+            if not team_name:
+                continue
+
+            # Get team abbreviation from the team enum or string
+            team_abbrev = str(team_name)
+            # If it's a full team name, try to extract abbreviation
+            # For now, use the value as-is since scraper returns Team enums
+            team_id = await get_or_create_team(session, team_abbrev, team_name)
+
+            team_season = map_standings(
+                raw=record,
+                team_id=team_id,
+                season_id=season_id,
+            )
+            await upsert_team_season(session, team_season)
+            teams_processed += 1
+
+    logger.info(
+        "Persisted standings",
+        season_end_year=season_end_year,
+        teams=teams_processed,
+    )
 
 
 @celery_app.task(
@@ -232,15 +431,138 @@ async def _persist_season_data(
     advanced_totals: list[dict[str, Any]],
     standings: dict[str, Any],
 ):
-    """Persist all season data to the database."""
-    logger.info(
-        "Would persist season data",
-        season_end_year=season_end_year,
-        schedule_count=len(schedule),
-        player_totals_count=len(player_totals),
-        advanced_totals_count=len(advanced_totals),
+    """Persist all season data to the database.
+
+    This is the full sync that handles:
+    1. Schedule (games)
+    2. Player season totals
+    3. Player advanced stats
+    4. Standings
+    """
+    from app.ingestion.mappers import (
+        _extract_player_slug,
+        map_player_advanced_totals,
+        map_player_season_totals,
+        map_schedule_game,
     )
-    # TODO: Implement actual persistence
+    from app.ingestion.repositories import (
+        clear_caches,
+        get_or_create_game,
+        get_or_create_player,
+        get_or_create_season,
+        get_or_create_team,
+        upsert_player_season,
+        upsert_player_season_advanced,
+    )
+
+    await clear_caches()
+    season_id = await get_or_create_season(session, season_end_year)
+
+    # 1. Process schedule to create games
+    games_created = 0
+    for game_data in schedule:
+        home_team = game_data.get("home_team")
+        away_team = game_data.get("away_team")
+
+        if hasattr(home_team, "value"):
+            home_team = home_team.value
+        if hasattr(away_team, "value"):
+            away_team = away_team.value
+
+        if not home_team or not away_team:
+            continue
+
+        home_team_id = await get_or_create_team(session, str(home_team))
+        away_team_id = await get_or_create_team(session, str(away_team))
+
+        # Parse date from start_time
+        start_time = game_data.get("start_time")
+        if start_time is None:
+            continue
+
+        from datetime import datetime
+
+        if isinstance(start_time, datetime):
+            game_date = start_time.date()
+        elif isinstance(start_time, date):
+            game_date = start_time
+        else:
+            continue
+
+        await get_or_create_game(
+            session,
+            game_date=game_date,
+            home_team_id=home_team_id,
+            away_team_id=away_team_id,
+            season_id=season_id,
+            home_score=game_data.get("home_team_score"),
+            away_score=game_data.get("away_team_score"),
+        )
+        games_created += 1
+
+    logger.info("Persisted schedule", games=games_created)
+
+    # 2. Process player season totals
+    players_processed = 0
+    for pt in player_totals:
+        player_slug = pt.get("slug") or _extract_player_slug(pt.get("name"))
+        player_name = pt.get("name")
+        player_id = await get_or_create_player(session, player_slug, player_name)
+
+        # Get team if available
+        team_abbrev = pt.get("team")
+        if hasattr(team_abbrev, "value"):
+            team_abbrev = team_abbrev.value
+        team_id = None
+        if team_abbrev:
+            team_id = await get_or_create_team(session, str(team_abbrev))
+
+        player_season = map_player_season_totals(
+            raw=pt,
+            player_id=player_id,
+            season_id=season_id,
+            team_id=team_id,
+        )
+        await upsert_player_season(session, player_season)
+        players_processed += 1
+
+    logger.info("Persisted player totals", players=players_processed)
+
+    # 3. Process advanced stats
+    advanced_processed = 0
+    for at in advanced_totals:
+        player_slug = at.get("slug") or _extract_player_slug(at.get("name"))
+        player_name = at.get("name")
+        player_id = await get_or_create_player(session, player_slug, player_name)
+
+        team_abbrev = at.get("team")
+        if hasattr(team_abbrev, "value"):
+            team_abbrev = team_abbrev.value
+        team_id = None
+        if team_abbrev:
+            team_id = await get_or_create_team(session, str(team_abbrev))
+
+        player_advanced = map_player_advanced_totals(
+            raw=at,
+            player_id=player_id,
+            season_id=season_id,
+            team_id=team_id,
+        )
+        await upsert_player_season_advanced(session, player_advanced)
+        advanced_processed += 1
+
+    logger.info("Persisted advanced stats", players=advanced_processed)
+
+    # 4. Persist standings
+    await _persist_standings(session, season_end_year, standings)
+
+    logger.info(
+        "Completed full season sync",
+        season_end_year=season_end_year,
+        games=games_created,
+        player_totals=players_processed,
+        advanced_stats=advanced_processed,
+    )
 
 
 @celery_app.task(name="app.ingestion.tasks.ingest_player_game_log")
