@@ -18,12 +18,10 @@ basketball-reference-scraper/
 │   ├── parsers/            # Data extraction logic
 │   ├── output/             # JSON/CSV serialization
 │   └── data.py             # Enums & Constants
-├── tests/                  # Test suite
-│   ├── unit/               # Fast, mocked tests
-│   ├── integration/        # Fixture-based tests
-│   └── end to end/         # Live HTTP tests
-├── docs/                   # MkDocs documentation
-└── .github/                # CI workflows
+└── tests/                  # Test suite
+    ├── unit/               # Fast, mocked tests
+    ├── integration/        # Fixture-based tests
+    └── end to end/         # Live HTTP tests
 ```
 
 ## WHERE TO LOOK
