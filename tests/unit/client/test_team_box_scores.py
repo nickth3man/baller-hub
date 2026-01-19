@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch
 import requests
 from requests.exceptions import HTTPError
 
-import src.client as client
-from src.errors import InvalidDate
-from src.http_service import HTTPService
+import src.api.client as client
+from src.common.errors import InvalidDate
+from src.services.http import HTTPService
 
 
 class TestTeamBoxScores(TestCase):

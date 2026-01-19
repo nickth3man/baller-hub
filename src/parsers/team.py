@@ -1,12 +1,31 @@
-from src.data import Outcome
-from src.utilities import str_to_int
+"""Parsers for team data."""
+
+from src.common.data import Outcome
+from src.utils.casting import str_to_int
 
 
 class TeamTotalsParser:
+    """
+    Parses the final team-level totals from a box score.
+
+    Determines the game outcome (WIN/LOSS) by comparing scores
+    between the team and its opponent.
+    """
+
     def __init__(self, team_abbreviation_parser):
         self.team_abbreviation_parser = team_abbreviation_parser
 
     def parse(self, first_team_totals, second_team_totals):
+        """
+        Parse both teams' totals to determine outcome and stats.
+
+        Args:
+            first_team_totals (TeamTotal): Stats for team A.
+            second_team_totals (TeamTotal): Stats for team B.
+
+        Returns:
+            list[dict]: Two dictionaries, one for each team.
+        """
         return [
             self.parse_totals(
                 team_totals=first_team_totals,
@@ -19,6 +38,16 @@ class TeamTotalsParser:
         ]
 
     def parse_totals(self, team_totals, opposing_team_totals):
+        """
+        Create a stats dictionary for one team, determining outcome.
+
+        Args:
+            team_totals (TeamTotal): The team's stats.
+            opposing_team_totals (TeamTotal): The opponent's stats (needed for win/loss).
+
+        Returns:
+            dict: The parsed stats.
+        """
         current_team = self.team_abbreviation_parser.from_abbreviation(
             team_totals.team_abbreviation
         )

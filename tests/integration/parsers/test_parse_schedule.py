@@ -5,7 +5,7 @@ from unittest import TestCase
 import pytz
 from lxml import html
 
-from src.data import TEAM_NAME_TO_TEAM, Team
+from src.common.data import TEAM_NAME_TO_TEAM, Team
 from src.html import SchedulePage
 from src.parsers import ScheduledGamesParser, ScheduledStartTimeParser, TeamNameParser
 

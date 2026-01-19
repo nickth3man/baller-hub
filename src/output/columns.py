@@ -1,3 +1,5 @@
+"""Column name constants for CSV output."""
+
 # I wrote the explicit mapping of CSV values because there didn't seem to be a way of outputting the values of enums
 # without doing it this way
 
@@ -25,7 +27,12 @@ SHARED_COLUMN_NAMES = [
 
 BOX_SCORE_COLUMN_NAMES = ["slug", "name"] + SHARED_COLUMN_NAMES + ["plus_minus"]
 
-PLAYER_SEASON_BOX_SCORE_COLUMN_NAMES = ["active", "date", "points_scored", "plus_minus"] + SHARED_COLUMN_NAMES
+PLAYER_SEASON_BOX_SCORE_COLUMN_NAMES = [
+    "active",
+    "date",
+    "points_scored",
+    "plus_minus",
+] + SHARED_COLUMN_NAMES
 
 SCHEDULE_COLUMN_NAMES = [
     "start_time",
@@ -57,7 +64,7 @@ PLAYER_SEASON_TOTALS_COLUMN_NAMES = [
     "blocks",
     "turnovers",
     "personal_fouls",
-    "points"
+    "points",
 ]
 
 PLAYER_ADVANCED_SEASON_TOTALS_COLUMN_NAMES = [

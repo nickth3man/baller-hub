@@ -2,9 +2,9 @@ from unittest import TestCase, mock
 
 from requests import HTTPError, codes
 
-from src.client import player_box_scores
-from src.errors import InvalidDate
-from src.http_service import HTTPService
+from src.api.client import player_box_scores
+from src.common.errors import InvalidDate
+from src.services.http import HTTPService
 
 
 class TestPlayerBoxScores(TestCase):

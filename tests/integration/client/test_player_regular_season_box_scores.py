@@ -5,9 +5,9 @@ from unittest import TestCase
 
 import requests_mock
 
-from src.client import regular_season_player_box_scores
-from src.data import Outcome, OutputType, Team
-from src.errors import InvalidPlayerAndSeason
+from src.api.client import regular_season_player_box_scores
+from src.common.data import Outcome, OutputType, Team
+from src.common.errors import InvalidPlayerAndSeason
 
 
 class TestWestbrook2020(TestCase):

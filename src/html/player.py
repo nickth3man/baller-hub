@@ -1,11 +1,17 @@
+"""HTML wrappers for player profile pages."""
 
 
 class PlayerPageTotalsRow:
+    """
+    Single row in the player's 'Totals' table (stats per season).
+    """
+
     def __init__(self, html):
         self.html = html
 
     @property
     def league_abbreviation(self):
+        """str | None: League abbreviation (e.g. 'NBA', 'ABA') if present."""
         league_abbreviation_cells = self.html.xpath('.//td[@data-stat="lg_id"]')
 
         if len(league_abbreviation_cells) > 0:
@@ -20,11 +26,16 @@ class PlayerPageTotalsRow:
 
 
 class PlayerPageTotalsTable:
+    """
+    Wrapper for the 'Totals' table on a player page.
+    """
+
     def __init__(self, html):
         self.html = html
 
     @property
     def rows(self):
+        """list[PlayerPageTotalsRow]: List of season data rows."""
         return [
             PlayerPageTotalsRow(html=row_html)
             for row_html in self.html.xpath(".//tbody/tr")
@@ -37,11 +48,16 @@ class PlayerPageTotalsTable:
 
 
 class PlayerPage:
+    """
+    Wraps a player's profile page (e.g., /players/j/jamesle01.html).
+    """
+
     def __init__(self, html):
         self.html = html
 
     @property
     def name(self):
+        """str | None: The player's full name from the page header."""
         name_headers = self.html.xpath('.//h1[@itemprop="name"]')
 
         if len(name_headers) > 0:
@@ -51,6 +67,7 @@ class PlayerPage:
 
     @property
     def totals_table(self):
+        """PlayerPageTotalsTable | None: The 'Totals' table if it exists."""
         totals_tables = self.html.xpath('.//table[@id="per_game"]')
 
         if len(totals_tables) > 0:

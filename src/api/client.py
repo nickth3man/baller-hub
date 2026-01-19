@@ -12,8 +12,8 @@ Usage:
 
 import requests
 
-from src.errors import InvalidDate, InvalidPlayerAndSeason, InvalidSeason
-from src.http_service import HTTPService
+from src.common.errors import InvalidDate, InvalidPlayerAndSeason, InvalidSeason
+from src.services.http import HTTPService
 from src.output.columns import (
     BOX_SCORE_COLUMN_NAMES,
     PLAY_BY_PLAY_COLUMN_NAMES,
@@ -34,7 +34,11 @@ from src.output.writers import (
     OutputOptions,
     SearchCSVWriter,
 )
-from src.parser_service import ParserService
+from src.services.parsing import ParserService
+
+
+def _get_http_service():
+    return HTTPService(parser=ParserService())
 
 
 def standings(
@@ -47,6 +51,9 @@ def standings(
     """
     Get team standings for a specific season.
 
+    Retrieves division standings for both the Eastern and Western conferences.
+    Useful for analyzing playoff seeding and division rankings.
+
     Args:
         season_end_year (int): The year the season ends (e.g., 2024 for the 2023-24 season).
         output_type (OutputType, optional): Format to export (JSON or CSV). Defaults to None (return dict).
@@ -58,10 +65,10 @@ def standings(
         dict: A dictionary containing standings data if no output_type is specified.
     """
     try:
-        http_service = HTTPService(parser=ParserService())
+        http_service = _get_http_service()
         values = http_service.standings(season_end_year=season_end_year)
     except requests.exceptions.HTTPError as http_error:
-        if http_error.response.status_code == requests.codes.not_found:
+        if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
             raise InvalidSeason(season_end_year=season_end_year)
         else:
             raise http_error
@@ -90,6 +97,9 @@ def player_box_scores(
     """
     Get all player box scores for a specific date.
 
+    Returns stats for every player who played in any game on the specified day.
+    Equivalent to the "Daily Leaders" page.
+
     Args:
         day (int): Day of the month.
         month (int): Month number (1-12).
@@ -110,10 +120,10 @@ def player_box_scores(
     # 5. Parser converts raw HTML strings into Python types (int, float, Team enum)
     # 6. OutputService formats the result (JSON, CSV, or raw dict)
     try:
-        http_service = HTTPService(parser=ParserService())
+        http_service = _get_http_service()
         values = http_service.player_box_scores(day=day, month=month, year=year)
     except requests.exceptions.HTTPError as http_error:
-        if http_error.response.status_code == requests.codes.not_found:
+        if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
             raise InvalidDate(day=day, month=month, year=year)
         else:
             raise http_error
@@ -143,6 +153,8 @@ def regular_season_player_box_scores(
     """
     Get all regular season box scores for a specific player.
 
+    Fetches the game log for a single player in a specific season.
+
     Args:
         player_identifier (str): The unique player ID (e.g., 'jamesle01' for LeBron James).
             This ID can be found in the URL of the player's page.
@@ -154,7 +166,7 @@ def regular_season_player_box_scores(
         list[dict]: List of game logs.
     """
     try:
-        http_service = HTTPService(parser=ParserService())
+        http_service = _get_http_service()
         values = http_service.regular_season_player_box_scores(
             player_identifier=player_identifier,
             season_end_year=season_end_year,
@@ -162,8 +174,8 @@ def regular_season_player_box_scores(
         )
     except requests.exceptions.HTTPError as http_error:
         if (
-            http_error.response.status_code == requests.codes.internal_server_error
-            or http_error.response.status_code == requests.codes.not_found
+            http_error.response.status_code == requests.codes.internal_server_error  # ty: ignore[unresolved-attribute]
+            or http_error.response.status_code == requests.codes.not_found  # ty: ignore[unresolved-attribute]
         ):
             raise InvalidPlayerAndSeason(
                 player_identifier=player_identifier, season_end_year=season_end_year
@@ -195,6 +207,8 @@ def playoff_player_box_scores(
     """
     Get all playoff box scores for a specific player.
 
+    Similar to regular season logs, but for the post-season.
+
     Args:
         player_identifier (str): The unique player ID (e.g., 'jamesle01').
         season_end_year (int): The year the season ends.
@@ -204,7 +218,7 @@ def playoff_player_box_scores(
         list[dict]: List of playoff game logs.
     """
     try:
-        http_service = HTTPService(parser=ParserService())
+        http_service = _get_http_service()
         values = http_service.playoff_player_box_scores(
             player_identifier=player_identifier,
             season_end_year=season_end_year,
@@ -212,8 +226,8 @@ def playoff_player_box_scores(
         )
     except requests.exceptions.HTTPError as http_error:
         if (
-            http_error.response.status_code == requests.codes.internal_server_error
-            or http_error.response.status_code == requests.codes.not_found
+            http_error.response.status_code == requests.codes.internal_server_error  # ty: ignore[unresolved-attribute]
+            or http_error.response.status_code == requests.codes.not_found  # ty: ignore[unresolved-attribute]
         ):
             raise InvalidPlayerAndSeason(
                 player_identifier=player_identifier, season_end_year=season_end_year
@@ -244,6 +258,8 @@ def season_schedule(
     """
     Get the full schedule for a season.
 
+    Iterates through every month of the season to build a complete list of games.
+
     Note:
         This fetches the schedule for ALL months in the season.
         For the 2023-24 season, pass `season_end_year=2024`.
@@ -252,11 +268,11 @@ def season_schedule(
         list[dict]: List of games containing date, home/away teams, and scores (if played).
     """
     try:
-        http_service = HTTPService(parser=ParserService())
+        http_service = _get_http_service()
         values = http_service.season_schedule(season_end_year=season_end_year)
     except requests.exceptions.HTTPError as http_error:
         # https://github.com/requests/requests/blob/master/requests/status_codes.py#L58
-        if http_error.response.status_code == requests.codes.not_found:
+        if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
             raise InvalidSeason(season_end_year=season_end_year)
         else:
             raise http_error
@@ -284,6 +300,7 @@ def players_season_totals(
     Get aggregated season totals for all players.
 
     This scrapes the "Per Game" table (not "Totals") from the season summary page.
+    It returns averages (points per game, rebounds per game) rather than cumulative totals.
 
     Args:
         season_end_year (int): The year the season ends.
@@ -292,10 +309,10 @@ def players_season_totals(
         list[dict]: List of player totals (points, rebounds, assists, etc. per game).
     """
     try:
-        http_service = HTTPService(parser=ParserService())
+        http_service = _get_http_service()
         values = http_service.players_season_totals(season_end_year=season_end_year)
     except requests.exceptions.HTTPError as http_error:
-        if http_error.response.status_code == requests.codes.not_found:
+        if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
             raise InvalidSeason(season_end_year=season_end_year)
         else:
             raise http_error
@@ -323,6 +340,8 @@ def players_advanced_season_totals(
     """
     Get advanced stats (PER, TS%, Win Shares) for all players.
 
+    Includes efficiency metrics and advanced analytics not found in standard box scores.
+
     Args:
         season_end_year (int): The year the season ends.
         include_combined_values (bool): If True, for players who played for multiple teams,
@@ -332,12 +351,12 @@ def players_advanced_season_totals(
         list[dict]: List of advanced player stats.
     """
     try:
-        http_service = HTTPService(parser=ParserService())
+        http_service = _get_http_service()
         values = http_service.players_advanced_season_totals(
             season_end_year, include_combined_values=include_combined_values
         )
     except requests.exceptions.HTTPError as http_error:
-        if http_error.response.status_code == requests.codes.not_found:
+        if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
             raise InvalidSeason(season_end_year=season_end_year)
         else:
             raise http_error
@@ -366,6 +385,8 @@ def team_box_scores(
     """
     Get team-level stats for all games on a specific date.
 
+    Aggregates individual player stats to give team totals (FG%, Rebounds, etc.) for each game.
+
     Args:
         day (int): Day of the month.
         month (int): Month number (1-12).
@@ -375,10 +396,10 @@ def team_box_scores(
         list[dict]: List of team stats for that day's games.
     """
     try:
-        http_service = HTTPService(parser=ParserService())
+        http_service = _get_http_service()
         values = http_service.team_box_scores(day=day, month=month, year=year)
     except requests.exceptions.HTTPError as http_error:
-        if http_error.response.status_code == requests.codes.not_found:
+        if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
             raise InvalidDate(day=day, month=month, year=year)
         else:
             raise http_error
@@ -408,6 +429,8 @@ def play_by_play(
     """
     Get the full play-by-play log for a single game.
 
+    Returns every event (shot, foul, sub) with timestamps and scores.
+
     Args:
         home_team (Team): The Team enum for the HOME team (used to identify the game).
             Import `Team` from `src.data`.
@@ -419,12 +442,12 @@ def play_by_play(
         list[dict]: Chronological list of plays.
     """
     try:
-        http_service = HTTPService(parser=ParserService())
+        http_service = _get_http_service()
         values = http_service.play_by_play(
             home_team=home_team, day=day, month=month, year=year
         )
     except requests.exceptions.HTTPError as http_error:
-        if http_error.response.status_code == requests.codes.not_found:
+        if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
             raise InvalidDate(day=day, month=month, year=year)
         else:
             raise http_error
@@ -457,7 +480,7 @@ def search(
     Returns:
         dict: Search results containing players and teams matching the term.
     """
-    http_service = HTTPService(parser=ParserService())
+    http_service = _get_http_service()
     values = http_service.search(term=term)
     options = OutputOptions.of(
         file_options=FileOptions.of(path=output_file_path, mode=output_write_option),

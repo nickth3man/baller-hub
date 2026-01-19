@@ -3,9 +3,9 @@ from unittest.mock import MagicMock, patch
 
 from requests import HTTPError, codes
 
-from src.client import season_schedule
-from src.errors import InvalidSeason
-from src.http_service import HTTPService
+from src.api.client import season_schedule
+from src.common.errors import InvalidSeason
+from src.services.http import HTTPService
 
 
 class TestSeasonSchedule(TestCase):

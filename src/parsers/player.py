@@ -1,12 +1,29 @@
-from src.utilities import str_to_float, str_to_int
+"""Parsers for player data."""
+
+from src.utils.casting import str_to_float, str_to_int
 
 
 class PlayerAdvancedSeasonTotalsParser:
+    """
+    Parses rows from the Advanced Season Totals table.
+
+    Extracts metrics like PER, TS%, Win Shares, etc.
+    """
+
     def __init__(self, position_abbreviation_parser, team_abbreviation_parser):
         self.position_abbreviation_parser = position_abbreviation_parser
         self.team_abbreviation_parser = team_abbreviation_parser
 
     def parse(self, totals):
+        """
+        Parse a list of advanced stats rows into dictionaries.
+
+        Args:
+            totals (list[PlayerAdvancedSeasonTotalsRow]): Raw DOM wrappers.
+
+        Returns:
+            list[dict]: Cleaned advanced stats data.
+        """
         return [
             {
                 "slug": str(total.slug),
@@ -63,11 +80,26 @@ class PlayerAdvancedSeasonTotalsParser:
 
 
 class PlayerSeasonTotalsParser:
+    """
+    Parses rows from the Standard Season Totals table.
+
+    Extracts per-game stats like Points, Rebounds, Assists.
+    """
+
     def __init__(self, position_abbreviation_parser, team_abbreviation_parser):
         self.position_abbreviation_parser = position_abbreviation_parser
         self.team_abbreviation_parser = team_abbreviation_parser
 
     def parse(self, totals):
+        """
+        Parse a list of standard stats rows into dictionaries.
+
+        Args:
+            totals (list[PlayerSeasonTotalsRow]): Raw DOM wrappers.
+
+        Returns:
+            list[dict]: Cleaned standard stats data.
+        """
         return [
             {
                 "slug": str(total.slug),

@@ -13,11 +13,27 @@ from enum import Enum
 
 
 class Location(Enum):
+    """
+    Game location relative to a team.
+
+    Attributes:
+        HOME: Played at the team's home arena.
+        AWAY: Played at the opponent's arena.
+    """
+
     HOME = "HOME"
     AWAY = "AWAY"
 
 
 class Outcome(Enum):
+    """
+    Game outcome for a specific team.
+
+    Attributes:
+        WIN: The team scored more points than the opponent.
+        LOSS: The team scored fewer points than the opponent.
+    """
+
     WIN = "WIN"
     LOSS = "LOSS"
 
@@ -63,6 +79,8 @@ class Team(Enum):
     WASHINGTON_WIZARDS = "WASHINGTON WIZARDS"
 
     # DEPRECATED TEAMS
+    # These teams no longer exist but may appear in historical data.
+    # The API handles them gracefully, but users should prefer current team enums for new queries.
     KANSAS_CITY_KINGS = "KANSAS CITY KINGS"
     CHARLOTTE_BOBCATS = "CHARLOTTE BOBCATS"
     NEW_JERSEY_NETS = "NEW JERSEY NETS"
@@ -75,11 +93,25 @@ class Team(Enum):
 
 
 class OutputType(Enum):
+    """
+    Supported output formats for serialized data.
+    """
+
     JSON = "JSON"
     CSV = "CSV"
 
 
 class OutputWriteOption(Enum):
+    """
+    File mode options when writing output to a file.
+
+    Corresponds to standard Python file modes:
+    - WRITE: 'w' (Truncate and write)
+    - CREATE_AND_WRITE: 'w+' (Read/Write, truncate)
+    - APPEND: 'a' (Append to end)
+    - APPEND_AND_WRITE: 'a+' (Read/Append)
+    """
+
     WRITE = "w"
     CREATE_AND_WRITE = "w+"
     APPEND = "a"
@@ -87,6 +119,11 @@ class OutputWriteOption(Enum):
 
 
 class Position(Enum):
+    """
+    Standard basketball positions.
+    Used to normalize position data across different eras and formats.
+    """
+
     POINT_GUARD = "POINT GUARD"
     SHOOTING_GUARD = "SHOOTING GUARD"
     SMALL_FORWARD = "SMALL FORWARD"
@@ -97,22 +134,42 @@ class Position(Enum):
 
 
 class PeriodType(Enum):
+    """
+    Type of game period.
+
+    Attributes:
+        QUARTER: Standard regulation period (1st, 2nd, 3rd, 4th).
+        OVERTIME: Extra period played if score is tied after regulation.
+    """
+
     QUARTER = "QUARTER"
     OVERTIME = "OVERTIME"
 
 
 class League(Enum):
+    """
+    Professional basketball leagues covered by Basketball Reference.
+    """
+
     NATIONAL_BASKETBALL_ASSOCIATION = "NATIONAL_BASKETBALL_ASSOCIATION"
     AMERICAN_BASKETBALL_ASSOCIATION = "AMERICAN_BASKETBALL_ASSOCIATION"
     BASKETBALL_ASSOCIATION_OF_AMERICA = "BASKETBALL_ASSOCIATION_OF_AMERICA"
 
 
 class Conference(Enum):
+    """
+    NBA Conferences.
+    """
+
     EASTERN = "EASTERN"
     WESTERN = "WESTERN"
 
 
 class Division(Enum):
+    """
+    NBA Divisions.
+    """
+
     ATLANTIC = "ATLANTIC"
     CENTRAL = "CENTRAL"
     MIDWEST = "MIDWEST"
@@ -253,72 +310,103 @@ LEAGUE_ABBREVIATIONS_TO_LEAGUE = {
 
 
 class TeamTotal:
+    """
+    Data Transfer Object (DTO) representing a team's aggregate statistics for a single game.
+
+    This class is used to structure parsed data from box scores.
+    It exposes properties for common stats like FG, 3PT, Rebounds, etc.
+    """
+
     def __init__(self, team_abbreviation, totals):
         self.team_abbreviation = team_abbreviation
         self.totals = totals
 
     @property
     def minutes_played(self):
+        """Total minutes played by the team in this game."""
         return self.totals.minutes_played
 
     @property
     def made_field_goals(self):
+        """Number of field goals made."""
         return self.totals.made_field_goals
 
     @property
     def attempted_field_goals(self):
+        """Number of field goals attempted."""
         return self.totals.attempted_field_goals
 
     @property
     def made_three_point_field_goals(self):
+        """Number of 3-point field goals made."""
         return self.totals.made_three_point_field_goals
 
     @property
     def attempted_three_point_field_goals(self):
+        """Number of 3-point field goals attempted."""
         return self.totals.attempted_three_point_field_goals
 
     @property
     def made_free_throws(self):
+        """Number of free throws made."""
         return self.totals.made_free_throws
 
     @property
     def attempted_free_throws(self):
+        """Number of free throws attempted."""
         return self.totals.attempted_free_throws
 
     @property
     def offensive_rebounds(self):
+        """Number of offensive rebounds."""
         return self.totals.offensive_rebounds
 
     @property
     def defensive_rebounds(self):
+        """Number of defensive rebounds."""
         return self.totals.defensive_rebounds
 
     @property
     def assists(self):
+        """Number of assists."""
         return self.totals.assists
 
     @property
     def steals(self):
+        """Number of steals."""
         return self.totals.steals
 
     @property
     def blocks(self):
+        """Number of blocks."""
         return self.totals.blocks
 
     @property
     def turnovers(self):
+        """Number of turnovers."""
         return self.totals.turnovers
 
     @property
     def personal_fouls(self):
+        """Number of personal fouls."""
         return self.totals.personal_fouls
 
     @property
     def points(self):
+        """Total points scored."""
         return self.totals.points
 
 
 class PlayerData:
+    """
+    Data Transfer Object (DTO) for player search results and metadata.
+
+    Attributes:
+        name (str): The full name of the player.
+        resource_location (str): The URL path to the player's profile.
+        league_abbreviations (set): Set of leagues the player has played in (e.g., {'NBA', 'ABA'}).
+    """
+
     def __init__(self, name, resource_location, league_abbreviations):
         self.name = name
         self.resource_location = resource_location

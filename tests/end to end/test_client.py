@@ -2,18 +2,27 @@ import datetime
 import filecmp
 import os
 import time
+import pytest
 from unittest import TestCase
 
-from src.client import (
+from src.api.client import (
     play_by_play,
     player_box_scores,
     players_advanced_season_totals,
     players_season_totals,
     season_schedule,
 )
-from src.data import Location, Outcome, OutputType, OutputWriteOption, PeriodType, Team
+from src.common.data import (
+    Location,
+    Outcome,
+    OutputType,
+    OutputWriteOption,
+    PeriodType,
+    Team,
+)
 
 
+@pytest.mark.vcr
 class BaseEndToEndTest(TestCase):
     def setUp(self):
         # To avoid getting rate-limited
@@ -205,7 +214,7 @@ class TestPlayByPlay(BaseEndToEndTest):
         )
 
 
-class TestPlayersSeasonTotals(TestCase):
+class TestPlayersSeasonTotals(BaseEndToEndTest):
     def test_2018(self):
         totals = players_season_totals(season_end_year=2018)
 

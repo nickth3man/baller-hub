@@ -2,10 +2,10 @@ from unittest import TestCase, mock
 
 from requests import HTTPError, codes
 
-from src.client import play_by_play
-from src.data import Team
-from src.errors import InvalidDate
-from src.http_service import HTTPService
+from src.api.client import play_by_play
+from src.common.data import Team
+from src.common.errors import InvalidDate
+from src.services.http import HTTPService
 
 
 class TestPlayByPlay(TestCase):

@@ -4,8 +4,8 @@ import os
 from datetime import date
 from unittest import TestCase
 
-import src.client as client
-from src.data import Outcome, OutputType, OutputWriteOption, Team
+import src.api.client as client
+from src.common.data import Outcome, OutputType, OutputWriteOption, Team
 from tests.integration.client.utilities import ResponseMocker
 
 

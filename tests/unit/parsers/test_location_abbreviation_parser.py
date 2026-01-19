@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.data import LOCATION_ABBREVIATIONS_TO_POSITION, Location
+from src.common.data import LOCATION_ABBREVIATIONS_TO_POSITION, Location
 from src.parsers import LocationAbbreviationParser
 
 

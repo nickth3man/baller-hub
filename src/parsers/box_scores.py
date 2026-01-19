@@ -1,11 +1,17 @@
+"""Parsers for box score data."""
+
 import re
 from datetime import datetime
 
 from src.parsers.base import PLAYER_SEASON_BOX_SCORES_OUTCOME_REGEX
-from src.utilities import str_to_float, str_to_int
+from src.utils.casting import str_to_float, str_to_int
 
 
 class PlayerBoxScoreOutcomeParser:
+    """
+    Parses the game outcome from the box score string (e.g., 'W' or 'L').
+    """
+
     def __init__(
         self,
         outcome_abbreviation_parser,
@@ -19,14 +25,25 @@ class PlayerBoxScoreOutcomeParser:
         )
 
     def search_formatted_outcome(self, formatted_outcome):
+        """Regex match the outcome string (e.g. 'W, 110-95')."""
         return re.search(self.formatted_outcome_regex, formatted_outcome)
 
     def parse_outcome_abbreviation(self, formatted_outcome):
+        """Extract just the 'W' or 'L' from the string."""
         return self.search_formatted_outcome(formatted_outcome=formatted_outcome).group(
             self.outcome_abbreviation_regex_group_name
         )
 
     def parse_outcome(self, formatted_outcome):
+        """
+        Convert outcome string to Outcome enum.
+
+        Args:
+            formatted_outcome (str): e.g. "W, 105-100" or "L (OT)"
+
+        Returns:
+            Outcome: Outcome.WIN or Outcome.LOSS
+        """
         return self.outcome_abbreviation_parser.from_abbreviation(
             abbreviation=self.parse_outcome_abbreviation(
                 formatted_outcome=formatted_outcome
@@ -35,6 +52,13 @@ class PlayerBoxScoreOutcomeParser:
 
 
 class PlayerBoxScoresParser:
+    """
+    Parses raw data from 'Daily Leaders' tables into structured dictionaries.
+
+    This parser handles the specific format of the daily leaders page,
+    converting raw strings into ints, floats, and Enums.
+    """
+
     def __init__(
         self,
         team_abbreviation_parser,
@@ -48,6 +72,15 @@ class PlayerBoxScoresParser:
         self.seconds_played_parser = seconds_played_parser
 
     def parse(self, box_scores):
+        """
+        Parse list of box score rows into dicts.
+
+        Args:
+            box_scores (list[PlayerGameBoxScoreRow]): List of raw DOM wrappers.
+
+        Returns:
+            list[dict]: List of cleaned, type-converted stats dictionaries.
+        """
         return [
             {
                 "slug": str(box_score.slug),
@@ -92,6 +125,16 @@ class PlayerBoxScoresParser:
 
 
 class PlayerSeasonBoxScoresParser:
+    """
+    Parses a player's full season game log.
+
+    Handles two types of rows:
+    1. Active games (where stats exist).
+    2. Inactive games (DNP/Inactive), which contain None for stats.
+
+    The 'include_inactive_games' flag determines if type 2 rows are returned.
+    """
+
     def __init__(
         self,
         team_abbreviation_parser,
@@ -105,7 +148,19 @@ class PlayerSeasonBoxScoresParser:
         self.seconds_played_parser = seconds_played_parser
 
     def parse(self, box_scores, include_inactive_games=False):
+        """
+        Parse list of season box score rows.
+
+        Args:
+            box_scores (list[PlayerSeasonBoxScoresRow]): Rows to parse.
+            include_inactive_games (bool): If True, returns dicts with 'active': False
+                for games where the player didn't play. If False, these rows are skipped.
+
+        Returns:
+            list[dict]: List of game log entries.
+        """
         results = []
+
         for box_score in box_scores:
             common = {
                 "date": datetime.strptime(str(box_score.date), "%Y-%m-%d").date(),

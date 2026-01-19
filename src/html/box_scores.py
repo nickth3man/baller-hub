@@ -17,11 +17,20 @@ from .base_rows import BasicBoxScoreRow
 
 
 class BoxScoresPage:
+    """
+    Wraps the full HTML page of a game box score.
+
+    Identifies and provides access to all statistical tables on the page.
+    """
+
     def __init__(self, html):
         self.html = html
 
     @property
     def statistics_tables(self):
+        """
+        list[StatisticsTable]: All stat tables found on the page (Basic and Advanced).
+        """
         return [
             StatisticsTable(table_html)
             for table_html in self.html.xpath(
@@ -31,6 +40,9 @@ class BoxScoresPage:
 
     @property
     def basic_statistics_tables(self):
+        """
+        list[StatisticsTable]: Filter for only the 'Basic' stats tables (ignoring Advanced).
+        """
         return [
             table
             for table in self.statistics_tables
@@ -39,15 +51,25 @@ class BoxScoresPage:
 
 
 class StatisticsTable:
+    """
+    Wraps a single statistical table (e.g., 'Boston Celtics Basic Stats').
+    """
+
     def __init__(self, html):
         self.html = html
 
     @property
     def has_basic_statistics(self):
+        """bool: True if this table contains basic box score stats (PTS, REB, AST)."""
         return "game-basic" in self.html.attrib["id"]
 
     @property
     def team_abbreviation(self):
+        """
+        str: The 3-letter abbreviation of the team (e.g., 'BOS').
+
+        extracted from the table ID (e.g., 'box-BOS-game-basic').
+        """
         # Example id value is box-BOS-game-basic or box-BOS-game-advanced
         match = re.match("^box-(.+)-game", self.html.attrib["id"])
         if match:
@@ -56,6 +78,9 @@ class StatisticsTable:
 
     @property
     def team_totals(self):
+        """
+        BasicBoxScoreRow | None: The footer row containing team aggregate totals.
+        """
         # Team totals are stored as table footers
         footers = self.html.xpath("tfoot/tr")
         if len(footers) > 0:

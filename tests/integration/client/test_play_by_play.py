@@ -4,9 +4,9 @@ from unittest import TestCase
 
 import requests_mock
 
-from src.client import play_by_play
-from src.data import OutputType, OutputWriteOption, PeriodType, Team
-from src.errors import InvalidDate
+from src.api.client import play_by_play
+from src.common.data import OutputType, OutputWriteOption, PeriodType, Team
+from src.common.errors import InvalidDate
 
 
 class Test199911160ATLPlayByPlay(TestCase):

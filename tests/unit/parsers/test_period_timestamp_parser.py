@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.parser_service import ParserService
+from src.services.parsing import ParserService
 from src.parsers import PeriodTimestampParser
 
 

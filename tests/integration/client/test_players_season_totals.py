@@ -5,8 +5,8 @@ from unittest import TestCase
 
 import requests_mock
 
-from src import client
-from src.data import OutputType, Position, Team
+from src.api import client
+from src.common.data import OutputType, Position, Team
 
 
 class BaseCSVOutputTest(TestCase):

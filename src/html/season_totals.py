@@ -1,13 +1,23 @@
+"""HTML wrappers for season totals pages."""
 
 from .base_rows import PlayerIdentificationRow
 
 
 class PlayerAdvancedSeasonTotalsTable:
+    """
+    Wraps the 'Advanced' stats table (PER, Win Shares, BPM, etc.).
+    """
+
     def __init__(self, html):
         self.html = html
 
     @property
     def rows_query(self):
+        """
+        str: XPath query to select valid data rows.
+
+        Excludes header rows and 'League Average' rows (marked with 'norank').
+        """
         # Basketball Reference includes individual rows for players that played for multiple teams in a season.
         # It also includes a "League Average" row that has a class value of 'norank'.
         return """
@@ -22,6 +32,16 @@ class PlayerAdvancedSeasonTotalsTable:
         """
 
     def get_rows(self, include_combined_totals=False):
+        """
+        Parse rows from the table, optionally filtering combined 'TOT' rows.
+
+        Args:
+            include_combined_totals (bool): If True, includes rows representing
+                combined stats for players who played for multiple teams.
+
+        Returns:
+            list[PlayerAdvancedSeasonTotalsRow]: Parsed rows.
+        """
         player_advanced_season_totals_rows = []
         for row_html in self.html.xpath(self.rows_query):
             row = PlayerAdvancedSeasonTotalsRow(html=row_html)
@@ -37,11 +57,16 @@ class PlayerAdvancedSeasonTotalsTable:
 
 
 class PlayerSeasonTotalTable:
+    """
+    Wraps the standard 'Totals' or 'Per Game' table.
+    """
+
     def __init__(self, html):
         self.html = html
 
     @property
     def rows_query(self):
+        """str: XPath query for valid data rows."""
         # Basketball Reference includes individual rows for players that played for multiple teams in a season.
         # It also includes a "League Average" row that has a class value of 'norank'.
         return """
@@ -55,6 +80,9 @@ class PlayerSeasonTotalTable:
 
     @property
     def rows(self):
+        """
+        list[PlayerSeasonTotalsRow]: List of parsed rows, excluding combined 'TOT' rows.
+        """
         player_season_totals_rows = []
         for row_html in self.html.xpath(self.rows_query):
             row = PlayerSeasonTotalsRow(html=row_html)
@@ -68,6 +96,10 @@ class PlayerSeasonTotalTable:
 
 
 class PlayerAdvancedSeasonTotalsRow(PlayerIdentificationRow):
+    """
+    Row containing advanced analytics (PER, WS, etc.).
+    """
+
     def __init__(self, html):
         super().__init__(html=html)
 
@@ -330,6 +362,12 @@ class PlayerAdvancedSeasonTotalsRow(PlayerIdentificationRow):
 
 
 class PlayerSeasonTotalsRow:
+    """
+    Wraps a row from the standard 'Totals' or 'Per Game' table.
+
+    Maps table cells (td) to properties.
+    """
+
     def __init__(self, html):
         self.html = html
 

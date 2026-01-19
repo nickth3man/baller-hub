@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from src.utilities import merge_two_dicts, str_to_float, str_to_int
+from src.utils.casting import str_to_float, str_to_int
+from src.utils.dictionaries import merge_two_dicts
 
 
 class TestStrToInt(TestCase):
@@ -54,7 +55,12 @@ class TestMergeTwoDicts(TestCase):
         self.assertEqual({"jae": "baebae"}, merge_two_dicts({"jae": "baebae"}, {}))
 
     def test_merge_non_empty_dicts_with_unique_keys(self):
-        self.assertEqual({"jae": "baebae", "bae": "jadley"}, merge_two_dicts({"jae": "baebae"}, {"bae": "jadley"}))
+        self.assertEqual(
+            {"jae": "baebae", "bae": "jadley"},
+            merge_two_dicts({"jae": "baebae"}, {"bae": "jadley"}),
+        )
 
     def test_merge_non_empty_dicts_with_shared_keys(self):
-        self.assertEqual({"jae": "baebae2"}, merge_two_dicts({"jae": "baebae"}, {"jae": "baebae2"}))
+        self.assertEqual(
+            {"jae": "baebae2"}, merge_two_dicts({"jae": "baebae"}, {"jae": "baebae2"})
+        )

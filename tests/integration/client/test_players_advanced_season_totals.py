@@ -6,9 +6,9 @@ from unittest import TestCase
 
 import requests_mock
 
-from src.client import players_advanced_season_totals
-from src.data import OutputType, Position, Team
-from src.errors import InvalidSeason
+from src.api.client import players_advanced_season_totals
+from src.common.data import OutputType, Position, Team
+from src.common.errors import InvalidSeason
 
 
 class Test2019(TestCase):

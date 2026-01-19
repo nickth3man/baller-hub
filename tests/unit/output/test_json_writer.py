@@ -1,6 +1,6 @@
 from unittest import TestCase, mock
 
-from src.data import OutputWriteOption
+from src.common.data import OutputWriteOption
 from src.output.writers import JSONWriter
 
 

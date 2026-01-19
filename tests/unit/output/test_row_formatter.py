@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.data import Location, Outcome, Position, Team
+from src.common.data import Location, Outcome, Position, Team
 from src.output.fields import format_value
 
 

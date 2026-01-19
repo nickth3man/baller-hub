@@ -4,7 +4,7 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.data import (
+from src.common.data import (
     LOCATION_ABBREVIATIONS_TO_POSITION,
     OUTCOME_ABBREVIATIONS_TO_OUTCOME,
     TEAM_ABBREVIATIONS_TO_TEAM,

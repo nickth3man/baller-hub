@@ -3,9 +3,9 @@ from unittest.mock import MagicMock, patch
 
 from requests import HTTPError, codes
 
-from src.client import players_season_totals
-from src.errors import InvalidSeason
-from src.http_service import HTTPService
+from src.api.client import players_season_totals
+from src.common.errors import InvalidSeason
+from src.services.http import HTTPService
 
 
 class TestPlayerSeasonTotals(TestCase):
