@@ -1,3 +1,14 @@
+"""
+Domain constants, Enums, and data structures.
+
+This module is the SOURCE OF TRUTH for:
+1. Team identities (handling active vs deprecated franchises).
+2. URL mapping (Team Enum <-> URL abbreviation).
+3. Domain types (Position, Outcome, League).
+
+All code should reference these Enums rather than raw strings.
+"""
+
 from enum import Enum
 
 
@@ -12,7 +23,15 @@ class Outcome(Enum):
 
 
 class Team(Enum):
+    """
+    Canonical Team Enums.
+
+    Includes all 30 current NBA teams and historical/deprecated franchises.
+    Used throughout the library to ensure type safety over raw strings.
+    """
+
     ATLANTA_HAWKS = "ATLANTA HAWKS"
+
     BOSTON_CELTICS = "BOSTON CELTICS"
     BROOKLYN_NETS = "BROOKLYN NETS"
     CHARLOTTE_HORNETS = "CHARLOTTE HORNETS"
@@ -110,52 +129,51 @@ DIVISIONS_TO_CONFERENCES = {
     Division.MIDWEST: Conference.WESTERN,
     Division.PACIFIC: Conference.WESTERN,
     Division.SOUTHWEST: Conference.WESTERN,
-    Division.NORTHWEST : Conference.WESTERN
+    Division.NORTHWEST: Conference.WESTERN,
 }
 
 
 TEAM_ABBREVIATIONS_TO_TEAM = {
-    'ATL': Team.ATLANTA_HAWKS,
-    'BOS': Team.BOSTON_CELTICS,
-    'BRK': Team.BROOKLYN_NETS,
-    'CHI': Team.CHICAGO_BULLS,
-    'CHO': Team.CHARLOTTE_HORNETS,
-    'CLE': Team.CLEVELAND_CAVALIERS,
-    'DAL': Team.DALLAS_MAVERICKS,
-    'DEN': Team.DENVER_NUGGETS,
-    'DET': Team.DETROIT_PISTONS,
-    'GSW': Team.GOLDEN_STATE_WARRIORS,
-    'HOU': Team.HOUSTON_ROCKETS,
-    'IND': Team.INDIANA_PACERS,
-    'LAC': Team.LOS_ANGELES_CLIPPERS,
-    'LAL': Team.LOS_ANGELES_LAKERS,
-    'MEM': Team.MEMPHIS_GRIZZLIES,
-    'MIA': Team.MIAMI_HEAT,
-    'MIL': Team.MILWAUKEE_BUCKS,
-    'MIN': Team.MINNESOTA_TIMBERWOLVES,
-    'NOP': Team.NEW_ORLEANS_PELICANS,
-    'NYK': Team.NEW_YORK_KNICKS,
-    'OKC': Team.OKLAHOMA_CITY_THUNDER,
-    'ORL': Team.ORLANDO_MAGIC,
-    'PHI': Team.PHILADELPHIA_76ERS,
-    'PHO': Team.PHOENIX_SUNS,
-    'POR': Team.PORTLAND_TRAIL_BLAZERS,
-    'SAC': Team.SACRAMENTO_KINGS,
-    'SAS': Team.SAN_ANTONIO_SPURS,
-    'TOR': Team.TORONTO_RAPTORS,
-    'UTA': Team.UTAH_JAZZ,
-    'WAS': Team.WASHINGTON_WIZARDS,
-
+    "ATL": Team.ATLANTA_HAWKS,
+    "BOS": Team.BOSTON_CELTICS,
+    "BRK": Team.BROOKLYN_NETS,
+    "CHI": Team.CHICAGO_BULLS,
+    "CHO": Team.CHARLOTTE_HORNETS,
+    "CLE": Team.CLEVELAND_CAVALIERS,
+    "DAL": Team.DALLAS_MAVERICKS,
+    "DEN": Team.DENVER_NUGGETS,
+    "DET": Team.DETROIT_PISTONS,
+    "GSW": Team.GOLDEN_STATE_WARRIORS,
+    "HOU": Team.HOUSTON_ROCKETS,
+    "IND": Team.INDIANA_PACERS,
+    "LAC": Team.LOS_ANGELES_CLIPPERS,
+    "LAL": Team.LOS_ANGELES_LAKERS,
+    "MEM": Team.MEMPHIS_GRIZZLIES,
+    "MIA": Team.MIAMI_HEAT,
+    "MIL": Team.MILWAUKEE_BUCKS,
+    "MIN": Team.MINNESOTA_TIMBERWOLVES,
+    "NOP": Team.NEW_ORLEANS_PELICANS,
+    "NYK": Team.NEW_YORK_KNICKS,
+    "OKC": Team.OKLAHOMA_CITY_THUNDER,
+    "ORL": Team.ORLANDO_MAGIC,
+    "PHI": Team.PHILADELPHIA_76ERS,
+    "PHO": Team.PHOENIX_SUNS,
+    "POR": Team.PORTLAND_TRAIL_BLAZERS,
+    "SAC": Team.SACRAMENTO_KINGS,
+    "SAS": Team.SAN_ANTONIO_SPURS,
+    "TOR": Team.TORONTO_RAPTORS,
+    "UTA": Team.UTAH_JAZZ,
+    "WAS": Team.WASHINGTON_WIZARDS,
     # DEPRECATED TEAMS
-    'KCK': Team.KANSAS_CITY_KINGS,
-    'NJN': Team.NEW_JERSEY_NETS,
-    'NOH': Team.NEW_ORLEANS_HORNETS,
-    'NOK': Team.NEW_ORLEANS_OKLAHOMA_CITY_HORNETS,
-    'CHA': Team.CHARLOTTE_BOBCATS,
-    'CHH': Team.CHARLOTTE_HORNETS,
-    'SEA': Team.SEATTLE_SUPERSONICS,
-    'STL': Team.ST_LOUIS_HAWKS,
-    'VAN': Team.VANCOUVER_GRIZZLIES,
+    "KCK": Team.KANSAS_CITY_KINGS,
+    "NJN": Team.NEW_JERSEY_NETS,
+    "NOH": Team.NEW_ORLEANS_HORNETS,
+    "NOK": Team.NEW_ORLEANS_OKLAHOMA_CITY_HORNETS,
+    "CHA": Team.CHARLOTTE_BOBCATS,
+    "CHH": Team.CHARLOTTE_HORNETS,
+    "SEA": Team.SEATTLE_SUPERSONICS,
+    "STL": Team.ST_LOUIS_HAWKS,
+    "VAN": Team.VANCOUVER_GRIZZLIES,
     "WSB": Team.WASHINGTON_BULLETS,
 }
 
@@ -193,7 +211,6 @@ TEAM_NAME_TO_TEAM = {
     "TORONTO RAPTORS": Team.TORONTO_RAPTORS,
     "UTAH JAZZ": Team.UTAH_JAZZ,
     "WASHINGTON WIZARDS": Team.WASHINGTON_WIZARDS,
-
     # DEPRECATED TEAMS
     "CHARLOTTE BOBCATS": Team.CHARLOTTE_BOBCATS,
     "KANSAS CITY KINGS": Team.KANSAS_CITY_KINGS,

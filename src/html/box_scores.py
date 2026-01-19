@@ -1,3 +1,16 @@
+"""
+DOM Wrappers for Box Score pages.
+
+ARCHITECTURAL PATTERN:
+These classes wrap `lxml.html` elements to provide a Pythonic API over the DOM.
+They use XPath to locate data but DO NOT parse values (returning raw strings).
+
+Example:
+    page = BoxScoresPage(lxml_tree)
+    tables = page.basic_statistics_tables  # Returns StatisticsTable objects
+    row = tables[0].team_totals            # Returns BasicBoxScoreRow object
+"""
+
 import re
 
 from .base_rows import BasicBoxScoreRow
