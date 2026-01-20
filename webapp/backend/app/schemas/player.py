@@ -7,27 +7,13 @@ from pydantic import BaseModel
 
 
 class PlayerBase(BaseModel):
+    player_id: int
     slug: str
     first_name: str
     last_name: str
+    full_name: str
     position: str | None = None
     is_active: bool = True
-
-
-class PlayerSummary(PlayerBase):
-    player_id: int
-    team_abbreviation: str | None = None
-    points_per_game: float | None = None
-    rebounds_per_game: float | None = None
-    assists_per_game: float | None = None
-
-    class Config:
-        from_attributes = True
-
-
-class PlayerDetail(PlayerBase):
-    player_id: int
-    middle_name: str | None = None
     birth_date: date | None = None
     birth_place_city: str | None = None
     birth_place_country: str | None = None
@@ -39,6 +25,16 @@ class PlayerDetail(PlayerBase):
     draft_pick: int | None = None
     debut_year: int | None = None
     final_year: int | None = None
+    current_team: str | None = None
+
+
+class PlayerSummary(PlayerBase):
+    class Config:
+        from_attributes = True
+
+
+class PlayerDetail(PlayerBase):
+    middle_name: str | None = None
 
     class Config:
         from_attributes = True
@@ -86,23 +82,42 @@ class PlayerBoxScoreList(BaseModel):
     totals: dict
 
 
+class PlayerCareerStats(BaseModel):
+    player_id: int
+    slug: str
+    first_name: str
+    last_name: str
+    games_played: int
+    career_points: int
+    career_assists: int
+    career_rebounds: int
+    ppg: float
+    apg: float
+    rpg: float
+
+
 class PlayerSeasonStats(BaseModel):
+    season_id: int
     season_year: int
-    team_abbreviation: str | None = None
+    season_type: str
+    team_id: int | None = None
+    team_abbrev: str | None = None
     games_played: int
     games_started: int
-    minutes_per_game: float
-    points_per_game: float
-    rebounds_per_game: float
-    assists_per_game: float
-    steals_per_game: float
-    blocks_per_game: float
-    turnovers_per_game: float
-    field_goal_percentage: float | None = None
-    three_point_percentage: float | None = None
-    free_throw_percentage: float | None = None
-    player_efficiency_rating: float | None = None
-    win_shares: float | None = None
+    minutes_played: int
+    points: int
+    ppg: float
+    rebounds: int
+    assists: int
+    steals: int
+    blocks: int
+    turnovers: int
+    fg_made: int
+    fg_attempted: int
+    fg3_made: int
+    fg3_attempted: int
+    ft_made: int
+    ft_attempted: int
 
     class Config:
         from_attributes = True

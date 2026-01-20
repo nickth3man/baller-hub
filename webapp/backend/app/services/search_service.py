@@ -342,6 +342,7 @@ class SearchService:
             "player_id": player.player_id,
             "slug": player.slug,
             "full_name": player.full_name,
+            "name": player.full_name,
             "first_name": player.first_name,
             "last_name": player.last_name,
             "position": player.position.value if player.position else None,

@@ -1,14 +1,12 @@
 """Team service - business logic for team operations."""
 
-from datetime import date
-
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.game import BoxScore, Game, Location, Outcome
+from app.models.game import Game
 from app.models.player import Player, PlayerSeason
-from app.models.season import Division, Season
+from app.models.season import Conference, Division, Season
 from app.models.team import Franchise, Team, TeamSeason
 
 
@@ -20,6 +18,7 @@ class TeamService:
         self,
         is_active: bool = True,
         conference: str | None = None,
+        division: str | None = None,
     ) -> list[dict]:
         """List all teams with optional filtering.
 
@@ -35,21 +34,14 @@ class TeamService:
         if is_active is not None:
             query = query.where(Team.is_active == is_active)
 
-        if conference:
-            # Join through division to filter by conference
-            query = query.join(
-                Division, Team.division_id == Division.division_id
-            ).where(
-                Division.conference_id.in_(
-                    select(Division.conference_id).where(
-                        Division.division_type.in_(
-                            ["ATLANTIC", "CENTRAL", "SOUTHEAST"]
-                            if conference == "EASTERN"
-                            else ["NORTHWEST", "PACIFIC", "SOUTHWEST"]
-                        )
-                    )
-                )
-            )
+        if conference or division:
+            query = query.join(Division, Team.division_id == Division.division_id)
+            if conference:
+                query = query.join(
+                    Conference, Division.conference_id == Conference.conference_id
+                ).where(Conference.conference_type == conference.upper())
+            if division:
+                query = query.where(Division.division_type == division.upper())
 
         query = query.order_by(Team.name)
         result = await self.session.execute(query)
@@ -169,8 +161,12 @@ class TeamService:
 
         result = await self.session.execute(query)
         games = result.scalars().all()
+        team_map = await self._get_team_abbrev_map(
+            {game.home_team_id for game in games}
+            | {game.away_team_id for game in games}
+        )
 
-        return [self._game_to_dict(g, team_id) for g in games]
+        return [self._game_to_dict(g, team_id, team_map) for g in games]
 
     async def get_team_season_stats(
         self, abbreviation: str, season_year: int
@@ -295,15 +291,15 @@ class TeamService:
             "abbreviation": team.abbreviation,
             "city": team.city,
             "is_active": team.is_active,
+            "founded_year": team.founded_year,
+            "arena": team.arena,
+            "arena_capacity": team.arena_capacity,
         }
 
     def _team_detail_to_dict(self, team: Team) -> dict:
         """Convert Team to detailed dict."""
         return {
             **self._team_to_dict(team),
-            "founded_year": team.founded_year,
-            "arena": team.arena,
-            "arena_capacity": team.arena_capacity,
             "franchise": {
                 "name": team.franchise.name,
                 "founded_year": team.franchise.founded_year,
@@ -321,14 +317,26 @@ class TeamService:
             "position": player.position.value if player.position else None,
         }
 
-    def _game_to_dict(self, game: Game, team_id: int) -> dict:
+    async def _get_team_abbrev_map(self, team_ids: set[int]) -> dict[int, str]:
+        if not team_ids:
+            return {}
+        query = select(Team.team_id, Team.abbreviation).where(
+            Team.team_id.in_(team_ids)
+        )
+        result = await self.session.execute(query)
+        return {team_id: abbrev for team_id, abbrev in result.all()}
+
+    def _game_to_dict(
+        self, game: Game, team_id: int, team_abbrev_map: dict[int, str]
+    ) -> dict:
         """Convert Game to dict relative to a team."""
         is_home = game.home_team_id == team_id
+        opponent_id = game.away_team_id if is_home else game.home_team_id
         return {
             "game_id": game.game_id,
             "date": game.game_date.isoformat(),
-            "is_home": is_home,
-            "opponent_team_id": game.away_team_id if is_home else game.home_team_id,
+            "opponent_abbrev": team_abbrev_map.get(opponent_id, ""),
+            "location": "HOME" if is_home else "AWAY",
             "team_score": game.home_score if is_home else game.away_score,
             "opponent_score": game.away_score if is_home else game.home_score,
             "result": self._get_result(game, team_id),
@@ -349,16 +357,19 @@ class TeamService:
             "games_played": ts.games_played,
             "wins": ts.wins,
             "losses": ts.losses,
-            "win_pct": ts.win_percentage,
-            "home_record": f"{ts.home_wins}-{ts.home_losses}",
-            "road_record": f"{ts.road_wins}-{ts.road_losses}",
-            "ppg": float(ts.points_per_game) if ts.points_per_game else None,
-            "opp_ppg": float(ts.points_allowed_per_game)
+            "points_per_game": float(ts.points_per_game)
+            if ts.points_per_game
+            else None,
+            "points_allowed_per_game": float(ts.points_allowed_per_game)
             if ts.points_allowed_per_game
             else None,
             "pace": float(ts.pace) if ts.pace else None,
-            "off_rating": float(ts.offensive_rating) if ts.offensive_rating else None,
-            "def_rating": float(ts.defensive_rating) if ts.defensive_rating else None,
+            "offensive_rating": float(ts.offensive_rating)
+            if ts.offensive_rating
+            else None,
+            "defensive_rating": float(ts.defensive_rating)
+            if ts.defensive_rating
+            else None,
             "net_rating": float(ts.net_rating) if ts.net_rating else None,
             "playoff_seed": ts.playoff_seed,
             "made_playoffs": ts.made_playoffs,

@@ -15,6 +15,10 @@ function formatMinutes(seconds: number): string {
 function GameHeader({ boxScore }: { boxScore: BoxScoreResponse }) {
   const { game, home_team, away_team } = boxScore;
   const isFinal = game.is_final;
+  const awayLabel = away_team.team_abbrev ?? String(away_team.team_id);
+  const homeLabel = home_team.team_abbrev ?? String(home_team.team_id);
+  const awayName = away_team.team_name ?? 'Away';
+  const homeName = home_team.team_name ?? 'Home';
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -25,16 +29,16 @@ function GameHeader({ boxScore }: { boxScore: BoxScoreResponse }) {
           month: 'long',
           day: 'numeric',
         })}
-        {game.arena && ` • ${game.arena}`}
+        {game.arena && ` - ${game.arena}`}
       </div>
 
       <div className="flex items-center justify-center gap-8">
         {/* Away Team */}
         <div className="text-center flex-1">
           <div className="w-20 h-20 mx-auto bg-gray-200 rounded-lg flex items-center justify-center text-2xl font-bold text-gray-600 mb-2">
-            {away_team.team_id}
+            {awayLabel}
           </div>
-          <p className="text-lg font-semibold text-gray-900">Away</p>
+          <p className="text-lg font-semibold text-gray-900">{awayName}</p>
           <p className={`text-4xl font-bold ${!isFinal ? 'text-gray-400' : away_team.score! > home_team.score! ? 'text-green-600' : 'text-gray-900'}`}>
             {away_team.score ?? '-'}
           </p>
@@ -50,9 +54,9 @@ function GameHeader({ boxScore }: { boxScore: BoxScoreResponse }) {
         {/* Home Team */}
         <div className="text-center flex-1">
           <div className="w-20 h-20 mx-auto bg-gray-200 rounded-lg flex items-center justify-center text-2xl font-bold text-gray-600 mb-2">
-            {home_team.team_id}
+            {homeLabel}
           </div>
-          <p className="text-lg font-semibold text-gray-900">Home</p>
+          <p className="text-lg font-semibold text-gray-900">{homeName}</p>
           <p className={`text-4xl font-bold ${!isFinal ? 'text-gray-400' : home_team.score! > away_team.score! ? 'text-green-600' : 'text-gray-900'}`}>
             {home_team.score ?? '-'}
           </p>
@@ -75,7 +79,7 @@ function GameHeader({ boxScore }: { boxScore: BoxScoreResponse }) {
             </thead>
             <tbody>
               <tr>
-                <td className="px-4 py-1 font-medium">Away</td>
+                <td className="px-4 py-1 font-medium">{awayLabel}</td>
                 <td className="px-3 py-1 text-center">{away_team.box_score?.quarter_scores?.['1'] ?? '-'}</td>
                 <td className="px-3 py-1 text-center">{away_team.box_score?.quarter_scores?.['2'] ?? '-'}</td>
                 <td className="px-3 py-1 text-center">{away_team.box_score?.quarter_scores?.['3'] ?? '-'}</td>
@@ -83,7 +87,7 @@ function GameHeader({ boxScore }: { boxScore: BoxScoreResponse }) {
                 <td className="px-3 py-1 text-center font-bold">{away_team.score ?? '-'}</td>
               </tr>
               <tr>
-                <td className="px-4 py-1 font-medium">Home</td>
+                <td className="px-4 py-1 font-medium">{homeLabel}</td>
                 <td className="px-3 py-1 text-center">{home_team.box_score?.quarter_scores?.['1'] ?? '-'}</td>
                 <td className="px-3 py-1 text-center">{home_team.box_score?.quarter_scores?.['2'] ?? '-'}</td>
                 <td className="px-3 py-1 text-center">{home_team.box_score?.quarter_scores?.['3'] ?? '-'}</td>
@@ -220,12 +224,12 @@ export default async function GamePage({ params }: PageProps) {
         <div className="grid grid-cols-1 gap-6">
           <PlayerStatsTable 
             players={boxScore.away_team.players} 
-            teamLabel={`Away Team (${boxScore.away_team.team_id})`}
+            teamLabel={boxScore.away_team.team_name || boxScore.away_team.team_abbrev || 'Away'}
           />
           
           <PlayerStatsTable 
             players={boxScore.home_team.players} 
-            teamLabel={`Home Team (${boxScore.home_team.team_id})`}
+            teamLabel={boxScore.home_team.team_name || boxScore.home_team.team_abbrev || 'Home'}
           />
         </div>
       </div>

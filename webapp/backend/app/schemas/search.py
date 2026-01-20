@@ -4,14 +4,17 @@ from pydantic import BaseModel
 
 
 class SearchResultPlayer(BaseModel):
+    player_id: int
     slug: str
-    name: str
+    full_name: str
+    name: str | None = None
     position: str | None = None
     years_active: str | None = None
     is_active: bool
 
 
 class SearchResultTeam(BaseModel):
+    team_id: int
     abbreviation: str
     name: str
     city: str | None = None

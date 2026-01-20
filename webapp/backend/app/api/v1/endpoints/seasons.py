@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
-from app.schemas.season import SeasonDetail, SeasonList, SeasonLeaders
+from app.schemas.season import Season, SeasonDetail, SeasonLeaders, SeasonSchedule
 from app.services.season_service import SeasonService
 
 router = APIRouter()
 
 
-@router.get("/", response_model=SeasonList)
+@router.get("/", response_model=list[Season])
 async def list_seasons(
     league: str = "NBA",
     limit: int = Query(20, ge=1, le=100),
@@ -43,7 +43,7 @@ async def get_season(
     return season
 
 
-@router.get("/{season_year}/schedule")
+@router.get("/{season_year}/schedule", response_model=SeasonSchedule)
 async def get_season_schedule(
     season_year: int,
     month: int | None = None,

@@ -18,7 +18,8 @@ class Settings(BaseSettings):
     debug: bool = False
 
     database_url: str = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/basketball_reference"
+        "postgresql+asyncpg://supabase_admin:password@supabase-db:5432/"
+        "basketball_reference"
     )
     database_echo: bool = False
 

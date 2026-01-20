@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getTeam, getTeamRoster, Team, RosterPlayer } from '@/lib/api';
+import { getTeam, getTeamRoster, getTeamSchedule, getTeamStats, Team, RosterPlayer, TeamSeasonStats, TeamScheduleGame } from '@/lib/api';
 
 interface PageProps {
   params: Promise<{ abbrev: string }>;
@@ -23,11 +23,11 @@ function TeamHeader({ team }: { team: Team }) {
           </h1>
           <p className="text-blue-200">
             {team.arena && `${team.arena}`}
-            {team.arena_capacity && ` • Capacity: ${team.arena_capacity.toLocaleString()}`}
+            {team.arena_capacity && ` - Capacity: ${team.arena_capacity.toLocaleString()}`}
           </p>
           <p className="text-blue-200 text-sm mt-1">
             Est. {team.founded_year}
-            {team.franchise && ` • ${team.franchise.name} Franchise`}
+            {team.franchise && ` - ${team.franchise.name} Franchise`}
           </p>
         </div>
       </div>
@@ -35,7 +35,7 @@ function TeamHeader({ team }: { team: Team }) {
   );
 }
 
-function RosterTable({ roster, teamAbbrev }: { roster: RosterPlayer[]; teamAbbrev: string }) {
+function RosterTable({ roster }: { roster: RosterPlayer[] }) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
       <div className="px-6 py-4 bg-gray-800 text-white flex justify-between items-center">
@@ -58,7 +58,7 @@ function RosterTable({ roster, teamAbbrev }: { roster: RosterPlayer[]; teamAbbre
             {roster.map((player, idx) => (
               <tr 
                 key={player.player_id}
-                className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
+                className={`${idx % 2 === 0 - 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
               >
                 <td className="px-4 py-3">
                   <Link 
@@ -69,11 +69,11 @@ function RosterTable({ roster, teamAbbrev }: { roster: RosterPlayer[]; teamAbbre
                   </Link>
                 </td>
                 <td className="px-3 py-3 text-center text-gray-600">
-                  {player.position?.replace('_', ' ').split(' ').map(w => w[0]).join('') || '-'}
+                  {player.position-.replace('_', ' ').split(' ').map(w => w[0]).join('') || '-'}
                 </td>
                 <td className="px-3 py-3 text-center">{player.games_played}</td>
                 <td className="px-3 py-3 text-center">{player.games_started}</td>
-                <td className="px-3 py-3 text-center font-medium">{player.ppg?.toFixed(1) || '-'}</td>
+                <td className="px-3 py-3 text-center font-medium">{player.ppg-.toFixed(1) || '-'}</td>
               </tr>
             ))}
             {roster.length === 0 && (
@@ -90,27 +90,70 @@ function RosterTable({ roster, teamAbbrev }: { roster: RosterPlayer[]; teamAbbre
   );
 }
 
-function TeamStats() {
+function TeamStats({ stats }: { stats: TeamSeasonStats | null }) {
+  if (!stats) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Season Stats</h2>
+        <p className="text-sm text-gray-500">Stats unavailable for this season.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Season Stats</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-2xl font-bold text-blue-900">-</p>
+          <p className="text-2xl font-bold text-blue-900">{stats.wins}</p>
           <p className="text-sm text-gray-500">Wins</p>
         </div>
         <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-2xl font-bold text-blue-900">-</p>
+          <p className="text-2xl font-bold text-blue-900">{stats.losses}</p>
           <p className="text-sm text-gray-500">Losses</p>
         </div>
         <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-2xl font-bold text-blue-900">-</p>
+          <p className="text-2xl font-bold text-blue-900">
+            {stats.points_per_game?.toFixed(1) ?? '-'}
+          </p>
           <p className="text-sm text-gray-500">PPG</p>
         </div>
         <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-2xl font-bold text-blue-900">-</p>
+          <p className="text-2xl font-bold text-blue-900">
+            {stats.points_allowed_per_game?.toFixed(1) ?? '-'}
+          </p>
           <p className="text-sm text-gray-500">Opp PPG</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function RecentGames({ games }: { games: TeamScheduleGame[] }) {
+  const recentGames = games.slice(-5).reverse();
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Games</h2>
+      <div className="space-y-3">
+        {recentGames.map((game) => (
+          <div
+            key={game.game_id}
+            className="flex items-center justify-between text-sm"
+          >
+            <div className="font-medium text-gray-900">
+              {game.location === 'HOME' ? 'vs' : '@'} {game.opponent_abbrev}
+            </div>
+            <div className="text-gray-500">
+              {game.team_score !== null && game.team_score !== undefined
+                ? `${game.team_score}-${game.opponent_score}`
+                : 'TBD'}
+            </div>
+            <div className="text-gray-400">{game.result ?? '-'}</div>
+          </div>
+        ))}
+        {recentGames.length === 0 && (
+          <p className="text-sm text-gray-500">Schedule data will appear here.</p>
+        )}
       </div>
     </div>
   );
@@ -120,16 +163,24 @@ export default async function TeamPage({ params }: PageProps) {
   const { abbrev } = await params;
   
   let team: Team;
-  let roster: RosterPlayer[];
-  
   try {
-    [team, roster] = await Promise.all([
-      getTeam(abbrev),
-      getTeamRoster(abbrev, currentYear),
-    ]);
+    team = await getTeam(abbrev);
   } catch {
     notFound();
   }
+
+  const [rosterResult, statsResult, scheduleResult] = await Promise.allSettled([
+    getTeamRoster(abbrev, currentYear),
+    getTeamStats(abbrev, currentYear),
+    getTeamSchedule(abbrev, currentYear),
+  ]);
+
+  const roster =
+    rosterResult.status === 'fulfilled' ? rosterResult.value : [];
+  const stats =
+    statsResult.status === 'fulfilled' ? statsResult.value : null;
+  const schedule =
+    scheduleResult.status === 'fulfilled' ? scheduleResult.value : [];
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -147,16 +198,12 @@ export default async function TeamPage({ params }: PageProps) {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <RosterTable roster={roster} teamAbbrev={abbrev} />
+            <RosterTable roster={roster} />
           </div>
           
           <div>
-            <TeamStats />
-            
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Games</h2>
-              <p className="text-gray-500 text-sm">Schedule data will appear here</p>
-            </div>
+            <TeamStats stats={stats} />
+            <RecentGames games={schedule} />
           </div>
         </div>
       </div>

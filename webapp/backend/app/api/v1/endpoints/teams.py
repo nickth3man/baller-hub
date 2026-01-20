@@ -1,22 +1,16 @@
 """Teams API endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
-from app.schemas.team import (
-    TeamDetail,
-    TeamList,
-    TeamRoster,
-    TeamSchedule,
-    TeamSeasonStats,
-)
+from app.schemas.team import RosterPlayer, ScheduleGame, Team, TeamSeasonStats
 from app.services.team_service import TeamService
 
 router = APIRouter()
 
 
-@router.get("/", response_model=TeamList)
+@router.get("/", response_model=list[Team])
 async def list_teams(
     is_active: bool | None = True,
     conference: str | None = None,
@@ -31,7 +25,7 @@ async def list_teams(
     )
 
 
-@router.get("/{team_abbrev}", response_model=TeamDetail)
+@router.get("/{team_abbrev}", response_model=Team)
 async def get_team(
     team_abbrev: str,
     session: AsyncSession = Depends(get_session),
@@ -43,7 +37,7 @@ async def get_team(
     return team
 
 
-@router.get("/{team_abbrev}/roster/{season_year}", response_model=TeamRoster)
+@router.get("/{team_abbrev}/roster/{season_year}", response_model=list[RosterPlayer])
 async def get_team_roster(
     team_abbrev: str,
     season_year: int,
@@ -53,7 +47,9 @@ async def get_team_roster(
     return await service.get_team_roster(team_abbrev.upper(), season_year)
 
 
-@router.get("/{team_abbrev}/schedule/{season_year}", response_model=TeamSchedule)
+@router.get(
+    "/{team_abbrev}/schedule/{season_year}", response_model=list[ScheduleGame]
+)
 async def get_team_schedule(
     team_abbrev: str,
     season_year: int,

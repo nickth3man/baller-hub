@@ -116,7 +116,7 @@ function CareerStatsTable({ stats }: { stats: PlayerSeasonStats[] }) {
                   key={`${season.season_id}-${season.season_type}`}
                   className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
                 >
-                  <td className="px-3 py-2 font-medium">{season.season_id}</td>
+                  <td className="px-3 py-2 font-medium">{season.season_year}</td>
                   <td className="px-3 py-2 text-center">{season.games_played}</td>
                   <td className="px-3 py-2 text-center">{season.games_started}</td>
                   <td className="px-3 py-2 text-center">{(season.minutes_played / gp).toFixed(1)}</td>
@@ -153,6 +153,8 @@ export default async function PlayerPage({ params }: PageProps) {
     notFound();
   }
 
+  const latestSeason = careerStats[0]?.season_year;
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -175,7 +177,16 @@ export default async function PlayerPage({ params }: PageProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Games</h2>
-            <p className="text-gray-500 text-sm">Game log data will appear here</p>
+            {latestSeason ? (
+              <Link
+                href={`/players/${player.slug}/game-log/${latestSeason}`}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                View {latestSeason} game log
+              </Link>
+            ) : (
+              <p className="text-gray-500 text-sm">Game log data will appear here</p>
+            )}
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-6">

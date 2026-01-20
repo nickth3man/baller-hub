@@ -4,6 +4,7 @@ These functions transform the raw dictionaries returned by the scraper
 into SQLModel instances that can be persisted to the database.
 """
 
+import re
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
@@ -67,15 +68,134 @@ def _safe_date(value: Any) -> date | None:
 
 def _seconds_from_minutes_str(minutes_str: str | None) -> int:
     """Convert 'MM:SS' or 'M:SS' format to total seconds."""
-    if not minutes_str:
+    if minutes_str is None:
         return 0
+    if isinstance(minutes_str, (int, float)):
+        return int(minutes_str)
     try:
-        parts = str(minutes_str).split(":")
+        value = str(minutes_str).strip()
+        if value == "":
+            return 0
+        parts = value.split(":")
         if len(parts) == 2:
             return int(parts[0]) * 60 + int(parts[1])
-        return int(float(parts[0]) * 60)
+        if value.replace(".", "", 1).isdigit():
+            return int(float(value))
     except (ValueError, TypeError):
         return 0
+    return 0
+
+
+def _classify_play_type(description: str) -> PlayType:
+    """Classify play type based on the description text."""
+    desc = description.lower()
+    if "start of" in desc:
+        return PlayType.PERIOD_START
+    if "end of" in desc:
+        return PlayType.PERIOD_END
+    if "jump ball" in desc:
+        return PlayType.JUMP_BALL
+    if "substitution" in desc or "enters the game for" in desc:
+        return PlayType.SUBSTITUTION
+    if "timeout" in desc:
+        return PlayType.TIMEOUT
+    if "turnover" in desc:
+        return PlayType.TURNOVER
+    if "offensive rebound" in desc:
+        return PlayType.REBOUND_OFFENSIVE
+    if "defensive rebound" in desc:
+        return PlayType.REBOUND_DEFENSIVE
+    if "foul" in desc:
+        if "technical" in desc:
+            return PlayType.FOUL_TECHNICAL
+        if "flagrant" in desc:
+            return PlayType.FOUL_FLAGRANT
+        return PlayType.FOUL_PERSONAL
+    if "violation" in desc:
+        return PlayType.VIOLATION
+    if "makes free throw" in desc:
+        return PlayType.FREE_THROW_MADE
+    if "misses free throw" in desc:
+        return PlayType.FREE_THROW_MISSED
+    if "makes 3-pt" in desc:
+        return PlayType.FIELD_GOAL_MADE
+    if "misses 3-pt" in desc:
+        return PlayType.FIELD_GOAL_MISSED
+    if "makes 2-pt" in desc or "makes layup" in desc:
+        return PlayType.FIELD_GOAL_MADE
+    if "misses 2-pt" in desc or "misses layup" in desc:
+        return PlayType.FIELD_GOAL_MISSED
+    return PlayType.VIOLATION
+
+
+def _infer_points_from_description(description: str) -> int:
+    """Fallback points inference when score deltas are unavailable."""
+    desc = description.lower()
+    if "free throw" in desc:
+        return 1 if "makes free throw" in desc else 0
+    if "3-pt" in desc:
+        return 3 if "makes 3-pt" in desc else 0
+    if "makes 2-pt" in desc or "makes layup" in desc:
+        return 2
+    return 0
+
+
+def map_play_by_play(
+    raw: dict[str, Any],
+    game_id: int,
+    team_id: int | None,
+    previous_scores: tuple[int | None, int | None],
+) -> PlayByPlay:
+    """Map a play-by-play dict to a PlayByPlay model."""
+    description = str(raw.get("description") or "").strip()
+    play_type = _classify_play_type(description)
+    away_score = raw.get("away_score")
+    home_score = raw.get("home_score")
+
+    points_scored = 0
+    prev_away, prev_home = previous_scores
+    if away_score is not None and home_score is not None:
+        if team_id and raw.get("relevant_team") is not None:
+            if away_score != prev_away or home_score != prev_home:
+                points_scored = max(
+                    away_score - (prev_away or 0), home_score - (prev_home or 0)
+                )
+    if points_scored == 0:
+        points_scored = _infer_points_from_description(description)
+
+    shot_distance = None
+    shot_type = None
+    distance_match = re.search(r"from (\\d+) ft", description.lower())
+    if distance_match:
+        shot_distance = int(distance_match.group(1))
+    shot_type_match = re.search(r"(makes|misses) (.+?) from", description.lower())
+    if shot_type_match:
+        shot_type = shot_type_match.group(2)
+
+    period_type_value = raw.get("period_type")
+    if hasattr(period_type_value, "value"):
+        period_type_value = period_type_value.value
+
+    return PlayByPlay(
+        game_id=game_id,
+        period=raw.get("period", 0),
+        period_type=PeriodType(period_type_value or "QUARTER"),
+        seconds_remaining=int(raw.get("remaining_seconds_in_period") or 0),
+        away_score=away_score,
+        home_score=home_score,
+        team_id=team_id,
+        play_type=play_type,
+        player_involved_id=None,
+        assist_player_id=None,
+        block_player_id=None,
+        description=description,
+        shot_distance_ft=shot_distance,
+        shot_type=shot_type,
+        foul_type=None,
+        points_scored=points_scored,
+        is_fast_break="fast break" in description.lower(),
+        is_second_chance="second chance" in description.lower(),
+    )
 
 
 def _map_position(position_value: str | list[str] | None) -> Position | None:

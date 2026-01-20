@@ -58,6 +58,7 @@ class Player(SQLModel, table=True):
     seasons_advanced: list["PlayerSeasonAdvanced"] = Relationship(
         back_populates="player"
     )
+    shooting_splits: list["PlayerShooting"] = Relationship(back_populates="player")
 
     @property
     def full_name(self) -> str:
@@ -220,3 +221,16 @@ class PlayerSeasonAdvanced(SQLModel, table=True):
     is_combined_totals: bool = Field(default=False)
 
     player: Player = Relationship(back_populates="seasons_advanced")
+
+
+class PlayerShooting(SQLModel, table=True):
+    __tablename__ = "player_shooting"
+
+    player_id: int = Field(foreign_key="player.player_id", primary_key=True)
+    season_id: int = Field(foreign_key="season.season_id", primary_key=True)
+    distance_range: str = Field(primary_key=True, max_length=20)
+    fg_made: int = Field(default=0)
+    fg_attempted: int = Field(default=0)
+    fg_percentage: Decimal | None = Field(default=None, decimal_places=3, max_digits=5)
+
+    player: Player = Relationship(back_populates="shooting_splits")

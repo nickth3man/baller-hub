@@ -1,29 +1,44 @@
-"use client";
-
 import Link from "next/link";
+import { getSeasons, getStandings, StandingsTeam } from "@/lib/api";
 
-export function StandingsPreview() {
+export async function StandingsPreview() {
+  const seasons = await getSeasons();
+  const current = seasons.find((season) => season.is_active) || seasons[0];
+
+  if (!current) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-sm text-gray-500">
+        Standings unavailable.
+      </div>
+    );
+  }
+
+  const standings = await getStandings(current.year);
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold text-gray-900">Standings</h2>
-        <Link href="/standings" className="text-sm text-primary-600 hover:underline">
+        <Link
+          href="/standings"
+          className="text-sm text-primary-600 hover:underline"
+        >
           Full Standings
         </Link>
       </div>
-      
+
       <div className="space-y-6">
-        <ConferenceStandings conference="Eastern" teams={EAST_TEAMS} />
-        <ConferenceStandings conference="Western" teams={WEST_TEAMS} />
+        <ConferenceStandings
+          conference="Eastern"
+          teams={standings.eastern || []}
+        />
+        <ConferenceStandings
+          conference="Western"
+          teams={standings.western || []}
+        />
       </div>
     </div>
   );
-}
-
-interface TeamStanding {
-  abbrev: string;
-  wins: number;
-  losses: number;
 }
 
 function ConferenceStandings({
@@ -31,7 +46,7 @@ function ConferenceStandings({
   teams,
 }: {
   conference: string;
-  teams: TeamStanding[];
+  teams: StandingsTeam[];
 }) {
   return (
     <div>
@@ -47,41 +62,33 @@ function ConferenceStandings({
         </thead>
         <tbody>
           {teams.slice(0, 5).map((team, i) => (
-            <tr key={team.abbrev} className="border-b border-gray-100 last:border-0">
+            <tr
+              key={team.abbreviation}
+              className="border-b border-gray-100 last:border-0"
+            >
               <td className="py-1">
                 <span className="text-gray-400 mr-2">{i + 1}</span>
                 <Link
-                  href={`/teams/${team.abbrev}`}
+                  href={`/teams/${team.abbreviation}`}
                   className="font-medium hover:text-primary-600"
                 >
-                  {team.abbrev}
+                  {team.abbreviation}
                 </Link>
               </td>
               <td className="text-right">{team.wins}</td>
               <td className="text-right">{team.losses}</td>
-              <td className="text-right">
-                {((team.wins / (team.wins + team.losses)) * 100).toFixed(1)}%
-              </td>
+              <td className="text-right">{(team.win_pct * 100).toFixed(1)}%</td>
             </tr>
           ))}
+          {teams.length === 0 && (
+            <tr>
+              <td colSpan={4} className="py-3 text-center text-xs text-gray-400">
+                No standings data.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
   );
 }
-
-const EAST_TEAMS: TeamStanding[] = [
-  { abbrev: "BOS", wins: 35, losses: 10 },
-  { abbrev: "CLE", wins: 34, losses: 11 },
-  { abbrev: "NYK", wins: 30, losses: 15 },
-  { abbrev: "MIL", wins: 28, losses: 17 },
-  { abbrev: "ORL", wins: 27, losses: 18 },
-];
-
-const WEST_TEAMS: TeamStanding[] = [
-  { abbrev: "OKC", wins: 36, losses: 9 },
-  { abbrev: "HOU", wins: 32, losses: 13 },
-  { abbrev: "MEM", wins: 31, losses: 14 },
-  { abbrev: "LAC", wins: 29, losses: 16 },
-  { abbrev: "DEN", wins: 28, losses: 17 },
-];

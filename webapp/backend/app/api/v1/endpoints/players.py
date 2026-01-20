@@ -8,6 +8,7 @@ from app.schemas.player import (
     PlayerDetail,
     PlayerList,
     PlayerBoxScoreList,
+    PlayerCareerStats,
     PlayerSeasonStats,
 )
 from app.services.player_service import PlayerService
@@ -22,6 +23,8 @@ async def list_players(
     is_active: bool | None = None,
     position: str | None = None,
     search: str | None = None,
+    season: int | None = None,
+    team: str | None = None,
     session: AsyncSession = Depends(get_session),
 ):
     service = PlayerService(session)
@@ -31,6 +34,8 @@ async def list_players(
         is_active=is_active,
         position=position,
         search=search,
+        season_year=season,
+        team_abbrev=team,
     )
 
 
@@ -54,11 +59,14 @@ async def get_player_game_log(
     session: AsyncSession = Depends(get_session),
 ):
     service = PlayerService(session)
-    return await service.get_player_game_log(
+    game_log = await service.get_player_game_log(
         player_slug=player_slug,
         season_year=season_year,
         season_type=season_type,
     )
+    if game_log is None:
+        raise HTTPException(status_code=404, detail="Player or season not found")
+    return game_log
 
 
 @router.get("/{player_slug}/career-stats", response_model=list[PlayerSeasonStats])
@@ -68,6 +76,18 @@ async def get_player_career_stats(
 ):
     service = PlayerService(session)
     return await service.get_player_career_stats(player_slug)
+
+
+@router.get("/{player_slug}/career", response_model=PlayerCareerStats)
+async def get_player_career(
+    player_slug: str,
+    session: AsyncSession = Depends(get_session),
+):
+    service = PlayerService(session)
+    career = await service.get_player_career(player_slug)
+    if not career:
+        raise HTTPException(status_code=404, detail="Player not found")
+    return career
 
 
 @router.get("/{player_slug}/splits/{season_year}")

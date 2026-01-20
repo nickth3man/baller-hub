@@ -14,9 +14,14 @@ router = APIRouter()
 async def get_standings(
     season_year: int,
     view: str = Query("conference", pattern="^(conference|division|league)$"),
+    date: str | None = None,
     session: AsyncSession = Depends(get_session),
 ):
     service = StandingsService(session)
+    if date:
+        return await service.get_standings_as_of_date(
+            season_year, date, view=view
+        )
     return await service.get_standings(season_year, view=view)
 
 

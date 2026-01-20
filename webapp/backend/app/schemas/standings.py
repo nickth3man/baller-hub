@@ -3,40 +3,26 @@
 from pydantic import BaseModel
 
 
-class TeamStanding(BaseModel):
+class StandingsTeam(BaseModel):
     team_id: int
-    team_abbrev: str
-    team_name: str
+    name: str
+    abbreviation: str
     wins: int
     losses: int
     win_pct: float
     games_back: float
-    home_record: str
-    road_record: str
-    last_10: str
-    streak: str
-    points_per_game: float
-    points_allowed_per_game: float
+    conference_rank: int | None = None
+    points_per_game: float | None = None
+    points_allowed_per_game: float | None = None
     net_rating: float | None = None
-
-
-class DivisionStandings(BaseModel):
-    division_name: str
-    teams: list[TeamStanding]
-
-
-class ConferenceStandings(BaseModel):
-    conference_name: str
-    divisions: list[DivisionStandings] | None = None
-    teams: list[TeamStanding]
 
 
 class StandingsResponse(BaseModel):
     season_year: int
     view: str
-    eastern: ConferenceStandings | None = None
-    western: ConferenceStandings | None = None
-    league: list[TeamStanding] | None = None
+    eastern: list[StandingsTeam] | None = None
+    western: list[StandingsTeam] | None = None
+    league: list[StandingsTeam] | None = None
 
 
 class PlayoffSeries(BaseModel):

@@ -4,7 +4,6 @@ from datetime import date, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.models.game import BoxScore, Game, Location, Outcome, PlayByPlay
 from app.models.player import Player, PlayerBoxScore
@@ -20,7 +19,7 @@ class GameService:
         self,
         start_date: date | None = None,
         end_date: date | None = None,
-        team_id: int | None = None,
+        team_abbrev: str | None = None,
         season_year: int | None = None,
         season_type: str = "REGULAR",
         page: int = 1,
@@ -46,10 +45,18 @@ class GameService:
             query = query.where(Game.game_date >= start_date)
         if end_date:
             query = query.where(Game.game_date <= end_date)
-        if team_id:
-            query = query.where(
-                (Game.home_team_id == team_id) | (Game.away_team_id == team_id)
+        if team_abbrev:
+            team_query = select(Team.team_id).where(
+                Team.abbreviation == team_abbrev.upper()
             )
+            team_result = await self.session.execute(team_query)
+            team_id = team_result.scalar_one_or_none()
+            if team_id:
+                query = query.where(
+                    (Game.home_team_id == team_id) | (Game.away_team_id == team_id)
+                )
+            else:
+                query = query.where(Game.game_id == -1)
         if season_year:
             # Get season id for year
             season_subq = select(Season.season_id).where(Season.year == season_year)
@@ -71,9 +78,13 @@ class GameService:
 
         result = await self.session.execute(query)
         games = result.scalars().all()
+        team_map = await self._get_team_abbrev_map(
+            {game.home_team_id for game in games}
+            | {game.away_team_id for game in games}
+        )
 
         return {
-            "items": [self._game_to_dict(g) for g in games],
+            "items": [self._game_to_dict(g, team_map) for g in games],
             "total": total,
             "page": page,
             "per_page": per_page,
@@ -98,8 +109,25 @@ class GameService:
 
         result = await self.session.execute(query)
         games = result.scalars().all()
+        team_map = await self._get_team_abbrev_map(
+            {game.home_team_id for game in games}
+            | {game.away_team_id for game in games}
+        )
 
-        return [self._game_to_dict(g) for g in games]
+        return [self._game_to_dict(g, team_map) for g in games]
+
+    async def get_games_by_date(self, game_date: date) -> list[dict]:
+        """Get games for a specific date."""
+        query = (
+            select(Game).where(Game.game_date == game_date).order_by(Game.game_time)
+        )
+        result = await self.session.execute(query)
+        games = result.scalars().all()
+        team_map = await self._get_team_abbrev_map(
+            {game.home_team_id for game in games}
+            | {game.away_team_id for game in games}
+        )
+        return [self._game_to_dict(game, team_map) for game in games]
 
     async def get_games_by_date_range(
         self, start_date: date, end_date: date
@@ -122,8 +150,12 @@ class GameService:
 
         result = await self.session.execute(query)
         games = result.scalars().all()
+        team_map = await self._get_team_abbrev_map(
+            {game.home_team_id for game in games}
+            | {game.away_team_id for game in games}
+        )
 
-        return [self._game_to_dict(g) for g in games]
+        return [self._game_to_dict(g, team_map) for g in games]
 
     async def get_game_by_id(self, game_id: int) -> dict | None:
         """Get game details by ID.
@@ -134,11 +166,7 @@ class GameService:
         Returns:
             Game details or None.
         """
-        query = (
-            select(Game)
-            .options(selectinload(Game.box_scores))
-            .where(Game.game_id == game_id)
-        )
+        query = select(Game).where(Game.game_id == game_id)
 
         result = await self.session.execute(query)
         game = result.scalar_one_or_none()
@@ -146,7 +174,10 @@ class GameService:
         if game is None:
             return None
 
-        return self._game_detail_to_dict(game)
+        team_map = await self._get_team_abbrev_map(
+            {game.home_team_id, game.away_team_id}
+        )
+        return self._game_to_dict(game, team_map)
 
     async def get_box_score(self, game_id: int) -> dict | None:
         """Get full box score for a game.
@@ -164,6 +195,13 @@ class GameService:
 
         if game is None:
             return None
+
+        team_info = await self._get_team_info_map(
+            {game.home_team_id, game.away_team_id}
+        )
+        team_abbrevs = {
+            team_id: info.get("abbrev") for team_id, info in team_info.items()
+        }
 
         # Get team box scores
         team_bs_query = select(BoxScore).where(BoxScore.game_id == game_id)
@@ -192,9 +230,11 @@ class GameService:
                 away_players.append(player_data)
 
         return {
-            "game": self._game_to_dict(game),
+            "game": self._game_to_dict(game, team_abbrevs),
             "home_team": {
                 "team_id": game.home_team_id,
+                "team_abbrev": team_info.get(game.home_team_id, {}).get("abbrev"),
+                "team_name": team_info.get(game.home_team_id, {}).get("name"),
                 "score": game.home_score,
                 "box_score": next(
                     (
@@ -208,6 +248,8 @@ class GameService:
             },
             "away_team": {
                 "team_id": game.away_team_id,
+                "team_abbrev": team_info.get(game.away_team_id, {}).get("abbrev"),
+                "team_name": team_info.get(game.away_team_id, {}).get("name"),
                 "score": game.away_score,
                 "box_score": next(
                     (
@@ -221,25 +263,34 @@ class GameService:
             },
         }
 
-    async def get_play_by_play(self, game_id: int) -> list[dict]:
-        """Get play-by-play data for a game.
+    async def get_play_by_play(
+        self, game_id: int, period: int | None = None
+    ) -> dict | None:
+        """Get play-by-play data for a game."""
+        game_query = select(Game).where(Game.game_id == game_id)
+        game_result = await self.session.execute(game_query)
+        game = game_result.scalar_one_or_none()
+        if game is None:
+            return None
 
-        Args:
-            game_id: Database game ID.
-
-        Returns:
-            List of plays in chronological order.
-        """
-        query = (
-            select(PlayByPlay)
-            .where(PlayByPlay.game_id == game_id)
-            .order_by(PlayByPlay.period, PlayByPlay.seconds_remaining.desc())
-        )
+        query = select(PlayByPlay).where(PlayByPlay.game_id == game_id)
+        if period is not None:
+            query = query.where(PlayByPlay.period == period)
+        query = query.order_by(PlayByPlay.period, PlayByPlay.seconds_remaining.desc())
 
         result = await self.session.execute(query)
         plays = result.scalars().all()
 
-        return [self._play_to_dict(p) for p in plays]
+        team_map = await self._get_team_abbrev_map(
+            {game.home_team_id, game.away_team_id}
+        )
+        return {
+            "game_id": game.game_id,
+            "home_team_abbrev": team_map.get(game.home_team_id, ""),
+            "away_team_abbrev": team_map.get(game.away_team_id, ""),
+            "plays": [self._play_to_dict(play, team_map) for play in plays],
+            "period_filter": period,
+        }
 
     async def get_games_week(self, reference_date: date | None = None) -> dict:
         """Get games for a week around a reference date.
@@ -273,27 +324,58 @@ class GameService:
             "games_by_date": games_by_date,
         }
 
+    async def _get_team_abbrev_map(self, team_ids: set[int]) -> dict[int, str]:
+        if not team_ids:
+            return {}
+        query = select(Team.team_id, Team.abbreviation).where(
+            Team.team_id.in_(team_ids)
+        )
+        result = await self.session.execute(query)
+        return {team_id: abbrev for team_id, abbrev in result.all()}
+
+    async def _get_team_info_map(
+        self, team_ids: set[int]
+    ) -> dict[int, dict[str, str]]:
+        if not team_ids:
+            return {}
+        query = select(Team.team_id, Team.abbreviation, Team.name).where(
+            Team.team_id.in_(team_ids)
+        )
+        result = await self.session.execute(query)
+        return {
+            team_id: {"abbrev": abbrev, "name": name}
+            for team_id, abbrev, name in result.all()
+        }
+
     # Helper methods
-    def _game_to_dict(self, game: Game) -> dict:
+    def _game_to_dict(
+        self, game: Game, team_abbrev_map: dict[int, str] | None = None
+    ) -> dict:
         """Convert Game to basic dict."""
+        home_abbrev = team_abbrev_map.get(game.home_team_id) if team_abbrev_map else None
+        away_abbrev = team_abbrev_map.get(game.away_team_id) if team_abbrev_map else None
         return {
             "game_id": game.game_id,
             "date": game.game_date.isoformat(),
             "time": game.game_time.isoformat() if game.game_time else None,
             "home_team_id": game.home_team_id,
             "away_team_id": game.away_team_id,
+            "home_team_abbrev": home_abbrev,
+            "away_team_abbrev": away_abbrev,
             "home_score": game.home_score,
             "away_score": game.away_score,
             "season_type": game.season_type,
             "is_final": game.home_score is not None,
-        }
-
-    def _game_detail_to_dict(self, game: Game) -> dict:
-        """Convert Game to detailed dict."""
-        return {
-            **self._game_to_dict(game),
             "arena": game.arena,
             "attendance": game.attendance,
+        }
+
+    def _game_detail_to_dict(
+        self, game: Game, team_abbrev_map: dict[int, str] | None = None
+    ) -> dict:
+        """Convert Game to detailed dict."""
+        return {
+            **self._game_to_dict(game, team_abbrev_map),
             "duration_minutes": game.duration_minutes,
             "officials": game.officials,
             "playoff_round": game.playoff_round,
@@ -302,6 +384,11 @@ class GameService:
 
     def _team_box_score_to_dict(self, bs: BoxScore) -> dict:
         """Convert team BoxScore to dict."""
+        total_rebounds = (
+            bs.total_rebounds
+            if bs.total_rebounds is not None
+            else bs.offensive_rebounds + bs.defensive_rebounds
+        )
         return {
             "points": bs.points_scored,
             "fg_made": bs.made_fg,
@@ -321,7 +408,7 @@ class GameService:
             else None,
             "offensive_rebounds": bs.offensive_rebounds,
             "defensive_rebounds": bs.defensive_rebounds,
-            "total_rebounds": bs.total_rebounds,
+            "total_rebounds": total_rebounds,
             "assists": bs.assists,
             "steals": bs.steals,
             "blocks": bs.blocks,
@@ -338,7 +425,7 @@ class GameService:
             "name": player.full_name,
             "position": pbs.position.value if pbs.position else None,
             "is_starter": pbs.is_starter,
-            "minutes": pbs.minutes_played,
+            "minutes": pbs.seconds_played,
             "points": pbs.points_scored,
             "rebounds": pbs.total_rebounds,
             "offensive_rebounds": pbs.offensive_rebounds,
@@ -358,7 +445,9 @@ class GameService:
             "game_score": float(pbs.game_score) if pbs.game_score else None,
         }
 
-    def _play_to_dict(self, play: PlayByPlay) -> dict:
+    def _play_to_dict(
+        self, play: PlayByPlay, team_abbrev_map: dict[int, str]
+    ) -> dict:
         """Convert PlayByPlay to dict."""
         minutes = play.seconds_remaining // 60
         seconds = play.seconds_remaining % 60
@@ -366,12 +455,13 @@ class GameService:
         return {
             "play_id": play.play_id,
             "period": play.period,
-            "period_type": play.period_type.value,
             "time": f"{minutes}:{seconds:02d}",
             "seconds_remaining": play.seconds_remaining,
             "home_score": play.home_score,
             "away_score": play.away_score,
-            "team_id": play.team_id,
+            "team_abbrev": team_abbrev_map.get(play.team_id)
+            if play.team_id
+            else None,
             "play_type": play.play_type.value,
             "description": play.description,
             "player_id": play.player_involved_id,
