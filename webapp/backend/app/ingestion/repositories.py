@@ -15,6 +15,11 @@ from app.models.game import BoxScore, Game, Location, Outcome
 from app.models.player import Player, PlayerBoxScore, PlayerSeason, PlayerSeasonAdvanced
 from app.models.season import League, LeagueType, Season
 from app.models.team import Franchise, Team, TeamSeason
+from src.common.data import (
+    TEAM_ABBREVIATIONS_TO_TEAM,
+    TEAM_NAME_TO_TEAM,
+    TEAM_TO_TEAM_ABBREVIATION,
+)
 
 # Cache for frequently accessed entities to avoid repeated queries
 _team_cache: dict[str, int] = {}
@@ -96,16 +101,30 @@ async def get_or_create_team(
     Returns:
         The team_id.
     """
-    if abbreviation in _team_cache:
-        return _team_cache[abbreviation]
+    normalized = abbreviation.strip().upper()
+    team_name = name
+    team_abbrev = normalized
+    if normalized in TEAM_ABBREVIATIONS_TO_TEAM:
+        team_enum = TEAM_ABBREVIATIONS_TO_TEAM[normalized]
+        team_name = team_name or team_enum.value
+    elif normalized in TEAM_NAME_TO_TEAM:
+        team_enum = TEAM_NAME_TO_TEAM[normalized]
+        team_abbrev = TEAM_TO_TEAM_ABBREVIATION.get(team_enum, normalized[:3])
+        team_name = team_name or team_enum.value
+    else:
+        team_abbrev = normalized[:3]
+        team_name = team_name or abbreviation
 
-    query = select(Team).where(Team.abbreviation == abbreviation)
+    if team_abbrev in _team_cache:
+        return _team_cache[team_abbrev]
+
+    query = select(Team).where(Team.abbreviation == team_abbrev)
     result = await session.execute(query)
     team = result.scalar_one_or_none()
 
     if team is None:
         # Need to create franchise first
-        franchise_name = name or abbreviation
+        franchise_name = team_name or team_abbrev
         franchise = Franchise(
             name=franchise_name,
             founded_year=1946,  # Default
@@ -114,8 +133,8 @@ async def get_or_create_team(
         await session.flush()
 
         team = Team(
-            name=name or abbreviation,
-            abbreviation=abbreviation,
+            name=team_name or team_abbrev,
+            abbreviation=team_abbrev,
             founded_year=1946,
             franchise_id=franchise.franchise_id,
             is_active=True,
@@ -123,7 +142,7 @@ async def get_or_create_team(
         session.add(team)
         await session.flush()
 
-    _team_cache[abbreviation] = team.team_id
+    _team_cache[team_abbrev] = team.team_id
     return team.team_id
 
 

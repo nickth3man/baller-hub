@@ -33,7 +33,7 @@ pyvenv.cfg
 .pytest_cache/
 **/*/__pycache__/
 
-.opencode/
-.codex/
-.claude
-.kilocode/
+/.opencode
+/.codex
+/.kilocode
+/.claude

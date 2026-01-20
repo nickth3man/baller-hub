@@ -78,10 +78,17 @@ def _seconds_from_minutes_str(minutes_str: str | None) -> int:
         return 0
 
 
-def _map_position(position_str: str | None) -> Position | None:
+def _map_position(position_value: str | list[str] | None) -> Position | None:
     """Map position string to Position enum."""
-    if not position_str:
+    if not position_value:
         return None
+    if isinstance(position_value, list):
+        for entry in position_value:
+            mapped = _map_position(entry)
+            if mapped:
+                return mapped
+        return None
+    position_str = str(position_value)
     pos_map = {
         "PG": Position.POINT_GUARD,
         "SG": Position.SHOOTING_GUARD,

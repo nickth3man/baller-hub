@@ -4,6 +4,7 @@ from datetime import date, time
 from decimal import Decimal
 from enum import Enum
 
+from sqlalchemy import JSON
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -60,9 +61,7 @@ class Game(SQLModel, table=True):
     arena: str | None = Field(default=None, max_length=100)
     attendance: int | None = None
     duration_minutes: int | None = None
-    officials: list[str] | None = Field(
-        default=None, sa_type_kwargs={"native_json": True}
-    )
+    officials: list[str] | None = Field(default=None, sa_type=JSON)
 
     playoff_round: str | None = Field(default=None, max_length=50)
     playoff_game_number: int | None = None
@@ -114,9 +113,7 @@ class BoxScore(SQLModel, table=True):
     free_throw_percentage: Decimal | None = Field(
         default=None, decimal_places=3, max_digits=5
     )
-    quarter_scores: dict | None = Field(
-        default=None, sa_type_kwargs={"native_json": True}
-    )
+    quarter_scores: dict | None = Field(default=None, sa_type=JSON)
 
     game: Game = Relationship(back_populates="box_scores")
 

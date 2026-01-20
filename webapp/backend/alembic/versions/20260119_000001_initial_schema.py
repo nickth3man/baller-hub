@@ -176,7 +176,7 @@ def upgrade() -> None:
                 "CENTER",
                 "GUARD",
                 "FORWARD",
-                name="position",
+                name="player_position",
             ),
             nullable=True,
         ),
@@ -312,7 +312,7 @@ def upgrade() -> None:
                 "CENTER",
                 "GUARD",
                 "FORWARD",
-                name="position",
+                name="player_position",
             ),
             nullable=True,
         ),
@@ -374,7 +374,7 @@ def upgrade() -> None:
                 "CENTER",
                 "GUARD",
                 "FORWARD",
-                name="position",
+                name="player_position",
             ),
             nullable=True,
         ),
@@ -733,7 +733,7 @@ def upgrade() -> None:
                 "CENTER",
                 "GUARD",
                 "FORWARD",
-                name="position",
+                name="player_position",
             ),
             nullable=True,
         ),
@@ -769,7 +769,7 @@ def downgrade() -> None:
     op.drop_table("league")
 
     # Drop enums
-    sa.Enum(name="position").drop(op.get_bind(), checkfirst=True)
+    sa.Enum(name="player_position").drop(op.get_bind(), checkfirst=True)
     sa.Enum(name="seasontype").drop(op.get_bind(), checkfirst=True)
     sa.Enum(name="location").drop(op.get_bind(), checkfirst=True)
     sa.Enum(name="outcome").drop(op.get_bind(), checkfirst=True)

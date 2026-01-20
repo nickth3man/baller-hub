@@ -3,6 +3,7 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
+from sqlalchemy import JSON
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -36,9 +37,7 @@ class Team(SQLModel, table=True):
     city: str | None = Field(default=None, max_length=100)
     arena: str | None = Field(default=None, max_length=100)
     arena_capacity: int | None = None
-    relocation_history: dict | None = Field(
-        default=None, sa_type_kwargs={"native_json": True}
-    )
+    relocation_history: dict | None = Field(default=None, sa_type=JSON)
 
     franchise: Franchise = Relationship(back_populates="teams")
     seasons: list["TeamSeason"] = Relationship(back_populates="team")

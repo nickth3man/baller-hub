@@ -17,7 +17,8 @@ services:
       meilisearch:
         condition: service_started
     volumes:
-      - ./backend:/app
+      - ../:/app
+    working_dir: /app/webapp/backend
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
@@ -77,6 +78,9 @@ services:
     depends_on:
       - backend
       - redis
+    volumes:
+      - ../:/app
+    working_dir: /app/webapp/backend
     command: celery -A app.celery_app worker --loglevel=info
 
   celery-beat:
@@ -87,6 +91,9 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/1
     depends_on:
       - celery-worker
+    volumes:
+      - ../:/app
+    working_dir: /app/webapp/backend
     command: celery -A app.celery_app beat --loglevel=info
 
 volumes:

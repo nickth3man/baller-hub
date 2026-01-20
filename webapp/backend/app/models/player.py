@@ -4,6 +4,7 @@ from datetime import date
 from decimal import Decimal
 from enum import Enum
 
+from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -15,6 +16,9 @@ class Position(str, Enum):
     CENTER = "CENTER"
     GUARD = "GUARD"
     FORWARD = "FORWARD"
+
+
+POSITION_ENUM = SAEnum(Position, name="player_position")
 
 
 class SeasonType(str, Enum):
@@ -38,7 +42,7 @@ class Player(SQLModel, table=True):
     death_date: date | None = None
     height_inches: Decimal | None = Field(default=None, decimal_places=2, max_digits=5)
     weight_lbs: int | None = None
-    position: Position | None = None
+    position: Position | None = Field(default=None, sa_type=POSITION_ENUM)
     high_school: str | None = Field(default=None, max_length=100)
     college: str | None = Field(default=None, max_length=100)
     draft_year: int | None = None
@@ -72,7 +76,7 @@ class PlayerBoxScore(SQLModel, table=True):
 
     player_slug: str | None = Field(default=None, max_length=20)
     player_name: str | None = None
-    position: Position | None = None
+    position: Position | None = Field(default=None, sa_type=POSITION_ENUM)
     is_starter: bool = Field(default=False)
     seconds_played: int = Field(default=0)
     made_fg: int = Field(default=0)
@@ -112,7 +116,7 @@ class PlayerSeason(SQLModel, table=True):
     team_id: int | None = Field(default=None, foreign_key="team.team_id")
 
     player_age: int | None = None
-    position: Position | None = None
+    position: Position | None = Field(default=None, sa_type=POSITION_ENUM)
     games_played: int = Field(default=0)
     games_started: int = Field(default=0)
     minutes_played: int = Field(default=0)

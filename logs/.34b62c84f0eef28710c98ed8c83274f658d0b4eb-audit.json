@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/mnt/c/Users/nicolas/Documents/GitHub/basketball-reference-scraper/logs/.34b62c84f0eef28710c98ed8c83274f658d0b4eb-audit.json",
+    "files": [
+        {
+            "date": 1768891389682,
+            "name": "/mnt/c/Users/nicolas/Documents/GitHub/basketball-reference-scraper/logs/application-2026-01-20.log",
+            "hash": "d47bd5b98b86ff35e51d41d2ec2548a253ae4e7c0d676158e6227b5c17cf6027"
+        }
+    ],
+    "hashType": "sha256"
+}

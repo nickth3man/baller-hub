@@ -20,13 +20,10 @@ import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-# Add the backend directory to path
-backend_dir = Path(__file__).parent.parent
-sys.path.insert(0, str(backend_dir))
-
-# Add the scraper root to path
+# Add the backend and scraper root directories to path
+backend_dir = Path(__file__).resolve().parent.parent / "backend"
 scraper_root = backend_dir.parent.parent
-sys.path.insert(0, str(scraper_root))
+sys.path[:0] = [str(backend_dir), str(scraper_root)]
 
 
 async def seed_season(season_end_year: int) -> None:
@@ -61,7 +58,17 @@ async def seed_season(season_end_year: int) -> None:
 
     print("\nFetching standings...")
     standings = await scraper.get_standings(season_end_year)
-    standings_count = sum(len(v) for v in standings.values() if isinstance(v, list))
+    if isinstance(standings, dict):
+        standings_count = sum(
+            len(v) for v in standings.values() if isinstance(v, list)
+        )
+        standings_payload = standings
+    elif isinstance(standings, list):
+        standings_count = len(standings)
+        standings_payload = {"ALL": standings}
+    else:
+        standings_count = 0
+        standings_payload = {}
     print(f"  Found {standings_count} team standings")
 
     # Persist to database
@@ -73,7 +80,7 @@ async def seed_season(season_end_year: int) -> None:
             schedule,
             player_totals,
             advanced_totals,
-            standings,
+            standings_payload,
         )
         await session.commit()
 

@@ -4,7 +4,7 @@ from datetime import date
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.models.player import Position
+from app.models.player import POSITION_ENUM, Position
 
 
 class Draft(SQLModel, table=True):
@@ -38,6 +38,6 @@ class DraftPick(SQLModel, table=True):
     college: str | None = Field(default=None, max_length=100)
     height_in: int | None = None
     weight_lbs: int | None = None
-    position: Position | None = None
+    position: Position | None = Field(default=None, sa_type=POSITION_ENUM)
 
     draft: Draft = Relationship(back_populates="picks")

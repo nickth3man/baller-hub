@@ -504,7 +504,19 @@ async def _persist_season_data(
 
     # 2. Process player season totals
     players_processed = 0
-    for pt in player_totals:
+    def _select_player_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        selected: dict[str, dict[str, Any]] = {}
+        for record in records:
+            player_slug = record.get("slug") or _extract_player_slug(record.get("name"))
+            if not player_slug:
+                continue
+            if record.get("is_combined_totals", False):
+                selected[player_slug] = record
+            else:
+                selected.setdefault(player_slug, record)
+        return list(selected.values())
+
+    for pt in _select_player_records(player_totals):
         player_slug = pt.get("slug") or _extract_player_slug(pt.get("name"))
         player_name = pt.get("name")
         player_id = await get_or_create_player(session, player_slug, player_name)
@@ -530,7 +542,7 @@ async def _persist_season_data(
 
     # 3. Process advanced stats
     advanced_processed = 0
-    for at in advanced_totals:
+    for at in _select_player_records(advanced_totals):
         player_slug = at.get("slug") or _extract_player_slug(at.get("name"))
         player_name = at.get("name")
         player_id = await get_or_create_player(session, player_slug, player_name)
