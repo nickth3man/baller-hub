@@ -329,7 +329,7 @@ class TestTeamBoxScoresInMemoryJSON(TestCase):
             year=2018,
             output_type=OutputType.JSON,
         )
-        with open(self.expected_output_file_path, encoding="utf8") as expected_output_file:
+        with open(self.expected_output_file_path, encoding="utf-8") as expected_output_file:
             self.assertEqual(
                 json.loads(results),
                 json.load(expected_output_file),

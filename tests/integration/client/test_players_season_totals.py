@@ -18,7 +18,7 @@ class BaseCSVOutputTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        )) as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input: self._html = file_input.read()
 
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -58,7 +58,7 @@ class BaseJSONOutputTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        )) as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input: self._html = file_input.read()
 
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -98,7 +98,7 @@ class BaseInMemoryJSONOutputTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        )) as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input: self._html = file_input.read()
 
         self.expected_output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -115,7 +115,7 @@ class BaseInMemoryJSONOutputTest(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(self.expected_output_file_path, encoding="utf8") as expected_output_file:
+        with open(self.expected_output_file_path, encoding="utf-8") as expected_output_file:
             self.assertEqual(
                 json.loads(results),
                 json.load(expected_output_file),
@@ -617,7 +617,7 @@ class BaseInMemoryTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        )) as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input: self._html = file_input.read()
 
 
 @requests_mock.Mocker()

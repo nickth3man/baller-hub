@@ -26,11 +26,11 @@ from src.common.data import (
 class BaseEndToEndTest(TestCase):
     def setUp(self):
         # To avoid getting rate-limited
-        time.sleep(20)
+        time.sleep(3)
 
     def tearDown(self):
         # To avoid getting rate-limited
-        time.sleep(20)
+        time.sleep(3)
 
 
 class TestPlayerBoxScores(BaseEndToEndTest):

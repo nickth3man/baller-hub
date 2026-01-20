@@ -30,7 +30,7 @@ class ResponseMocker:
                         raise ValueError(
                             f"Unexpected prefix for {filename}. Expected all files in to end with .html.")
 
-                    with open(filename) as file_input:
+                    with open(filename, encoding="utf-8") as file_input:
                         m.get(f"https://www.basketball-reference.com/{basketball_reference_path}",
                               text=file_input.read(),
                               status_code=200)

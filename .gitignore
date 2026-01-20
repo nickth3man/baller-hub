@@ -38,3 +38,4 @@ pyvenv.cfg
 /.kilocode
 /.claude
 /.cursor
+/.cache
