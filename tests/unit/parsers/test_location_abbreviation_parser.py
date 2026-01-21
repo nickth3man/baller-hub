@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from src.data import Location, LOCATION_ABBREVIATIONS_TO_POSITION
-from src.parsers import LocationAbbreviationParser
+from src.scraper.common.data import LOCATION_ABBREVIATIONS_TO_POSITION, Location
+from src.scraper.parsers import LocationAbbreviationParser
 
 
 class TestLocationAbbreviationParser(TestCase):

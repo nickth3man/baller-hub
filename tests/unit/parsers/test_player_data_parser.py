@@ -1,8 +1,12 @@
 from unittest import TestCase
 
-from src.data import LEAGUE_ABBREVIATIONS_TO_LEAGUE, PlayerData, League
-from src.parser_service import ParserService
-from src.parsers import PlayerDataParser, ResourceLocationParser, LeagueAbbreviationParser
+from src.scraper.common.data import LEAGUE_ABBREVIATIONS_TO_LEAGUE, League, PlayerData
+from src.scraper.parsers import (
+    LeagueAbbreviationParser,
+    PlayerDataParser,
+    ResourceLocationParser,
+)
+from src.scraper.services.parsing import ParserService
 
 
 class TestPlayerDataParser(TestCase):

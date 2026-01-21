@@ -7,8 +7,8 @@ from unittest import TestCase
 import pytz
 import requests_mock
 
-from src.client import season_schedule
-from src.data import OutputType, Team
+from src.scraper.api.client import season_schedule
+from src.scraper.common.data import OutputType, Team
 from tests.integration.client.utilities import SeasonScheduleMocker
 
 
@@ -56,12 +56,13 @@ class TestFutureSeasonSchedule(TestCase):
     def setUp(self):
         with open(os.path.join(
                 os.path.dirname(__file__),
-                f"../files/schedule/not-found.html",
-        ), 'r') as file_input: self._html = file_input.read()
+                "../files/schedule/not-found.html",
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_future_season_schedule_returns_empty_list(self, m):
-        m.get(url=f"https://www.basketball-reference.com/leagues/NBA_2026_games.html", text=self._html, status_code=200)
+        m.get(url="https://www.basketball-reference.com/leagues/NBA_2026_games.html", text=self._html, status_code=200)
         result = season_schedule(season_end_year=2026)
         self.assertEqual([], result)
 
@@ -140,7 +141,7 @@ class Test2018SeasonScheduleInMemoryJson(TestCase):
 
     def test_in_memory_json(self):
         schedule = season_schedule(season_end_year=2018, output_type=OutputType.JSON)
-        with open(self.expected_output_file_path, "r", encoding="utf8") as f:
+        with open(self.expected_output_file_path, encoding="utf-8") as f:
             self.assertEqual(
                 json.load(f),
                 json.loads(schedule),
@@ -183,7 +184,7 @@ class Test2001SeasonScheduleCsvOutput(TestCase):
     ),
     season_end_year=2001
 )
-class Test2018SeasonScheduleJsonOutput(TestCase):
+class Test2001SeasonScheduleJsonOutput(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -212,7 +213,7 @@ class Test2018SeasonScheduleJsonOutput(TestCase):
     ),
     season_end_year=2001
 )
-class Test2018SeasonScheduleInMemoryJson(TestCase):
+class Test2001SeasonScheduleInMemoryJson(TestCase):
     def setUp(self):
         self.expected_output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -221,7 +222,7 @@ class Test2018SeasonScheduleInMemoryJson(TestCase):
 
     def test_in_memory_json(self):
         schedule = season_schedule(season_end_year=2001, output_type=OutputType.JSON)
-        with open(self.expected_output_file_path, "r", encoding="utf8") as f:
+        with open(self.expected_output_file_path, encoding="utf-8") as f:
             self.assertEqual(
                 json.load(f),
                 json.loads(schedule),

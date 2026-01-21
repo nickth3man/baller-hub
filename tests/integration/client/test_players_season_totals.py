@@ -5,8 +5,8 @@ from unittest import TestCase
 
 import requests_mock
 
-from src import client
-from src.data import Position, Team, OutputType
+from src.scraper.api import client
+from src.scraper.common.data import OutputType, Position, Team
 
 
 class BaseCSVOutputTest(TestCase):
@@ -18,15 +18,16 @@ class BaseCSVOutputTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
-            "./output/generated/players_season_totals/{year}.csv".format(year=self.year),
+            f"./output/generated/players_season_totals/{self.year}.csv",
         )
         self.expected_output_file_path = os.path.join(
             os.path.dirname(__file__),
-            "./output/expected/players_season_totals/{year}.csv".format(year=self.year),
+            f"./output/expected/players_season_totals/{self.year}.csv",
         )
 
     def tearDown(self):
@@ -58,15 +59,16 @@ class BaseJSONOutputTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
-            "./output/generated/players_season_totals/{year}.json".format(year=self.year),
+            f"./output/generated/players_season_totals/{self.year}.json",
         )
         self.expected_output_file_path = os.path.join(
             os.path.dirname(__file__),
-            "./output/expected/players_season_totals/{year}.json".format(year=self.year),
+            f"./output/expected/players_season_totals/{self.year}.json",
         )
 
     def tearDown(self):
@@ -98,11 +100,12 @@ class BaseInMemoryJSONOutputTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
         self.expected_output_file_path = os.path.join(
             os.path.dirname(__file__),
-            "./output/expected/players_season_totals/{year}.json".format(year=self.year),
+            f"./output/expected/players_season_totals/{self.year}.json",
         )
 
     @requests_mock.Mocker()
@@ -115,7 +118,7 @@ class BaseInMemoryJSONOutputTest(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(self.expected_output_file_path, "r", encoding="utf8") as expected_output_file:
+        with open(self.expected_output_file_path, encoding="utf-8") as expected_output_file:
             self.assertEqual(
                 json.loads(results),
                 json.load(expected_output_file),
@@ -617,7 +620,8 @@ class BaseInMemoryTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
 
 @requests_mock.Mocker()
@@ -638,7 +642,7 @@ class Test2001InMemoryTotals(BaseInMemoryTest):
               status_code=200)
         players_season_totals = client.players_season_totals(season_end_year=self.year)
         self.assertEqual(
-            next(filter(lambda totals: "abdulma02" == totals["slug"], players_season_totals)),
+            next(filter(lambda totals: totals["slug"] == "abdulma02", players_season_totals)),
             {
                 "slug": "abdulma02",
                 "name": "Mahmoud Abdul-Rauf",

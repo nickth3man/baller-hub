@@ -1,7 +1,7 @@
 from unittest import TestCase, mock
 
-from src.data import OutputWriteOption
-from src.output.writers import CSVWriter, FileOptions, OutputOptions, OutputType
+from src.scraper.common.data import OutputWriteOption
+from src.scraper.output.writers import CSVWriter, FileOptions, OutputOptions, OutputType
 
 
 class TestCSVWriter(TestCase):
@@ -52,7 +52,7 @@ class TestCSVWriter(TestCase):
                     output_type=OutputType.CSV,
                 ),
             )
-            mock_csv_dict_writer.assert_called_with(mock_file(), fieldnames=self.COLUMN_NAMES)
+            mock_csv_dict_writer.assert_called_with(mock_file(), fieldnames=self.COLUMN_NAMES, lineterminator="\n")
 
     @mock.patch("csv.DictWriter")
     def test_header_is_written(self, mock_csv_dict_writer):

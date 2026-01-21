@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from src.html import ScheduleRow
+from src.scraper.html import ScheduleRow
 
 
 class TestScheduleRow(TestCase):

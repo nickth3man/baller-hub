@@ -1,8 +1,7 @@
 from unittest import TestCase
-from unittest.mock import MagicMock, PropertyMock
-from unittest.mock import patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
-from src.html import PlayerAdvancedSeasonTotalsRow, PlayerAdvancedSeasonTotalsTable
+from src.scraper.html import PlayerAdvancedSeasonTotalsRow, PlayerAdvancedSeasonTotalsTable
 
 
 class TestPlayerAdvancedSeasonTotalsTable(TestCase):
@@ -16,7 +15,7 @@ class TestPlayerAdvancedSeasonTotalsTable(TestCase):
             /tbody
             /tr[
                 (
-                    not(contains(@class, 'thead')) and 
+                    not(contains(@class, 'thead')) and
                     not(contains(@class, 'norank'))
                 )
             ]
@@ -40,4 +39,4 @@ class TestPlayerAdvancedSeasonTotalsTable(TestCase):
         self.html.xpath = MagicMock(return_value=html_rows)
 
         rows = PlayerAdvancedSeasonTotalsTable(self.html).get_rows()
-        self.assertTrue(0 == len(rows))
+        self.assertTrue(len(rows) == 0)

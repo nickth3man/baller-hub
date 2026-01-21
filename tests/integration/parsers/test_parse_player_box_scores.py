@@ -4,13 +4,21 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.data import TEAM_ABBREVIATIONS_TO_TEAM, LOCATION_ABBREVIATIONS_TO_POSITION, \
-    OUTCOME_ABBREVIATIONS_TO_OUTCOME
-from src.data import Team, Outcome
-from src.html import DailyLeadersPage
-from src.parsers import TeamAbbreviationParser, \
-    LocationAbbreviationParser, OutcomeAbbreviationParser, \
-    SecondsPlayedParser, PlayerBoxScoresParser
+from src.scraper.common.data import (
+    LOCATION_ABBREVIATIONS_TO_POSITION,
+    OUTCOME_ABBREVIATIONS_TO_OUTCOME,
+    TEAM_ABBREVIATIONS_TO_TEAM,
+    Outcome,
+    Team,
+)
+from src.scraper.html import DailyLeadersPage
+from src.scraper.parsers import (
+    LocationAbbreviationParser,
+    OutcomeAbbreviationParser,
+    PlayerBoxScoresParser,
+    SecondsPlayedParser,
+    TeamAbbreviationParser,
+)
 
 
 class BaseBoxScoresTestCase(TestCase):
@@ -22,7 +30,8 @@ class BaseBoxScoresTestCase(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/player_box_scores/{year}/{month}/{day}.html",
-        ), 'r') as file_input: _html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            _html = file_input.read()
         cls._parsed_results = PlayerBoxScoresParser(
             team_abbreviation_parser=TeamAbbreviationParser(
                 abbreviations_to_teams=TEAM_ABBREVIATIONS_TO_TEAM

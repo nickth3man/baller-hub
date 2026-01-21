@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from src.parser_service import ParserService
-from src.parsers import ResourceLocationParser
+from src.scraper.parsers import ResourceLocationParser
+from src.scraper.services.parsing import ParserService
 
 
 class TestResourceLocationParser(TestCase):

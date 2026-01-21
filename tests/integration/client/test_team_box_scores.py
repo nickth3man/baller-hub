@@ -4,8 +4,8 @@ import os
 from datetime import date
 from unittest import TestCase
 
-import src.client as client
-from src.data import OutputWriteOption, OutputType, Team, Outcome
+import src.scraper.api.client as client
+from src.scraper.common.data import Outcome, OutputType, OutputWriteOption, Team
 from tests.integration.client.utilities import ResponseMocker
 
 
@@ -27,7 +27,7 @@ class BoxScoresResponseMocker(ResponseMocker):
             if filename.startswith("index"):
                 key = f"boxscores/?day={day}&month={month}&year={year}"
             else:
-                key = f"/boxscores/{filename}"
+                key = f"boxscores/{filename}"
             basketball_reference_paths_by_filename[os.path.join(boxscores_directory, filename)] = key
 
         super().__init__(basketball_reference_paths_by_filename=basketball_reference_paths_by_filename)
@@ -329,7 +329,7 @@ class TestTeamBoxScoresInMemoryJSON(TestCase):
             year=2018,
             output_type=OutputType.JSON,
         )
-        with open(self.expected_output_file_path, "r", encoding="utf8") as expected_output_file:
+        with open(self.expected_output_file_path, encoding="utf-8") as expected_output_file:
             self.assertEqual(
                 json.loads(results),
                 json.load(expected_output_file),

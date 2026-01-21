@@ -1,12 +1,12 @@
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import requests
 from requests.exceptions import HTTPError
 
-import src.client as client
-from src.errors import InvalidDate
-from src.http_service import HTTPService
+import src.scraper.api.client as client
+from src.scraper.common.errors import InvalidDate
+from src.scraper.services.http import HTTPService
 
 
 class TestTeamBoxScores(TestCase):

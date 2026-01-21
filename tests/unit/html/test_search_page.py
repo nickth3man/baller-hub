@@ -1,7 +1,7 @@
 from unittest import TestCase
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import MagicMock, PropertyMock, patch
 
-from src.html import SearchPage, PlayerSearchResult
+from src.scraper.html import PlayerSearchResult, SearchPage
 
 
 class TestSearchPage(TestCase):

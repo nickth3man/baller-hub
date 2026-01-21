@@ -1,0 +1,5 @@
+raw-data/misc-csv/csv_1/PlayerStatistics.csv filter=lfs diff=lfs merge=lfs -text
+
+# Force LF line endings for test fixtures to ensure consistent binary comparison
+tests/**/*.json text eol=lf
+tests/**/*.csv text eol=lf

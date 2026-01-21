@@ -3,9 +3,9 @@ from unittest.mock import MagicMock, patch
 
 from requests import HTTPError, codes
 
-from src.client import regular_season_player_box_scores
-from src.errors import InvalidPlayerAndSeason
-from src.http_service import HTTPService
+from src.scraper.api.client import regular_season_player_box_scores
+from src.scraper.common.errors import InvalidPlayerAndSeason
+from src.scraper.services.http import HTTPService
 
 
 class TestPlayerRegularSeasonBoxScores(TestCase):

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.parsers import SearchResultNameParser
+from src.scraper.parsers import SearchResultNameParser
 
 
 class TestSearchResultNameParser(TestCase):

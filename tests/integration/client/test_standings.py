@@ -6,8 +6,8 @@ from unittest import TestCase
 
 import requests_mock
 
-from src.client import standings
-from src.data import Team, Division, Conference, OutputWriteOption, OutputType
+from src.scraper.api.client import standings
+from src.scraper.common.data import Conference, Division, OutputType, OutputWriteOption, Team
 
 
 class StandingsMocker:
@@ -21,7 +21,7 @@ class StandingsMocker:
                 continue
 
             attr = getattr(klass, attr_name)
-            if not hasattr(attr, '__call__'):
+            if not callable(attr):
                 continue
 
             setattr(klass, attr_name, self.mock(attr))
@@ -32,19 +32,29 @@ class StandingsMocker:
         @functools.wraps(callable)
         def inner(*args, **kwargs):
             html_files_directory = os.path.join(self._schedules_directory, str(self._season_end_year))
-            for file in os.listdir(os.fsencode(html_files_directory)):
-                filename = os.fsdecode(file)
-                if not filename.endswith(".html"):
-                    raise ValueError(
-                        f"Unexpected prefix for {filename}. Expected all files in {html_files_directory} to end with .html.")
 
-                with open(os.path.join(html_files_directory, filename), 'r') as file_input:
-                    if filename.startswith(str(self._season_end_year)):
-                        key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}_games.html"
-                        with requests_mock.Mocker() as m:
-                            m.get(key, text=file_input.read(), status_code=200)
+            # Create a single mock context for all files
+            with requests_mock.Mocker() as m:
+                for file in os.listdir(os.fsencode(html_files_directory)):
+                    filename = os.fsdecode(file)
+                    if not filename.endswith(".html"):
+                        raise ValueError(
+                            f"Unexpected prefix for {filename}. Expected all files in {html_files_directory} to end with .html.")
 
-            return callable(*args, **kwargs)
+                    filepath = os.path.join(html_files_directory, filename)
+                    with open(filepath, encoding="utf-8") as file_input:
+                        file_content = file_input.read()
+                        # Mock the standings URL (NBA_YEAR.html, not NBA_YEAR_games.html)
+                        if filename.startswith(str(self._season_end_year)):
+                            key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
+                            m.get(key, text=file_content, status_code=200)
+                        else:
+                            # Mock schedule URLs for monthly files
+                            key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}_games-{filename}"
+                            m.get(key, text=file_content, status_code=200)
+
+                # Execute the test within the mock context
+                return callable(*args, **kwargs)
 
         return inner
 
@@ -336,7 +346,7 @@ class TestInMemoryJSONStandings2001(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(self.expected_output_file_path, "r", encoding="utf8") as expected_output_file:
+        with open(self.expected_output_file_path, encoding="utf-8") as expected_output_file:
             self.assertEqual(
                 json.loads(box_scores),
                 json.load(expected_output_file)
@@ -432,7 +442,7 @@ class TestInMemoryJSONStandings2019(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(self.expected_output_file_path, "r", encoding="utf8") as expected_output_file:
+        with open(self.expected_output_file_path, encoding="utf-8") as expected_output_file:
             self.assertEqual(
                 json.loads(box_scores),
                 json.load(expected_output_file)

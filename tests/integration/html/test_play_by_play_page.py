@@ -1,15 +1,17 @@
 import os
 from unittest import TestCase
 
-from src.html import PlayByPlayPage
 from lxml import html
+
+from src.scraper.html import PlayByPlayPage
 
 
 class TestPlayByPlayPage(TestCase):
     def setUp(self):
         with open(
                 os.path.join(os.path.dirname(__file__),
-                             '../files/play_by_play/199911160ATL.html')
+                             '../files/play_by_play/199911160ATL.html'),
+                encoding="utf-8",
         ) as f:
             self._1999_11_16_ATL_html = f.read()
 

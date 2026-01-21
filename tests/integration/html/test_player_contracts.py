@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.html import PlayerContractsRow
+from src.scraper.html import PlayerContractsRow
 
 
 class TestPlayerContractsRow(TestCase):
@@ -63,7 +63,7 @@ class TestPlayerContractsRow(TestCase):
     def test_player_with_single_year_team_option(self):
         row = PlayerContractsRow(html=html.fromstring(
             """
-            <tr><th scope="row" class="right " data-stat="ranker" csk="128">128</th><td class="left " data-append-csv="wisemja01" data-stat="player"><a href="/players/w/wisemja01.html"></a><a href="/players/w/wisemja01.html">James Wiseman</a></td><td class="left " data-stat="team_id"><a href="/contracts/DET.html">DET</a></td><td class="right salary-tm" data-stat="y1" csk="12119440">$12,119,440</td><td class="right iz" data-stat="y2"></td><td class="right iz" data-stat="y3"></td><td class="right iz" data-stat="y4"></td><td class="right iz" data-stat="y5"></td><td class="right iz" data-stat="y6"></td><td class="right " data-stat="remain_gtd" csk="12119440">$12,119,440</td></tr>        
+            <tr><th scope="row" class="right " data-stat="ranker" csk="128">128</th><td class="left " data-append-csv="wisemja01" data-stat="player"><a href="/players/w/wisemja01.html"></a><a href="/players/w/wisemja01.html">James Wiseman</a></td><td class="left " data-stat="team_id"><a href="/contracts/DET.html">DET</a></td><td class="right salary-tm" data-stat="y1" csk="12119440">$12,119,440</td><td class="right iz" data-stat="y2"></td><td class="right iz" data-stat="y3"></td><td class="right iz" data-stat="y4"></td><td class="right iz" data-stat="y5"></td><td class="right iz" data-stat="y6"></td><td class="right " data-stat="remain_gtd" csk="12119440">$12,119,440</td></tr>
             """
         ))
         self.assertEqual("James Wiseman", row.player_name)

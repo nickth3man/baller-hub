@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 249, 250, 251;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+}
+
+@layer utilities {
+  .stat-table {
+    @apply w-full text-sm;
+  }
+
+  .stat-table th {
+    @apply text-left font-medium text-gray-500 uppercase tracking-wider py-2 px-3 bg-gray-50 border-b border-gray-200;
+  }
+
+  .stat-table td {
+    @apply py-2 px-3 border-b border-gray-100;
+  }
+
+  .stat-table tr:hover td {
+    @apply bg-gray-50;
+  }
+
+  .stat-highlight {
+    @apply font-semibold text-primary-600;
+  }
+}

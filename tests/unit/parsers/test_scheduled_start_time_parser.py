@@ -3,7 +3,7 @@ from unittest import TestCase
 
 import pytz
 
-from src.parsers import ScheduledStartTimeParser
+from src.scraper.parsers import ScheduledStartTimeParser
 
 
 class TestScheduledStartTimeParser(TestCase):

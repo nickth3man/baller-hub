@@ -5,8 +5,8 @@ from unittest import TestCase
 
 import requests_mock
 
-from src import client
-from src.data import OutputType, OutputWriteOption
+from src.scraper.api import client
+from src.scraper.common.data import OutputType, OutputWriteOption
 
 
 @requests_mock.Mocker()
@@ -15,39 +15,48 @@ class TestJa(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/ja/0.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/ja/1.html"
-        ), 'r') as file_input: self._1_html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._1_html = file_input.read()
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/ja/2.html"
-        ), 'r') as file_input: self._2_html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._2_html = file_input.read()
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/ja/3.html"
-        ), 'r') as file_input: self._3_html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._3_html = file_input.read()
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/ja/4.html"
-        ), 'r') as file_input: self._4_html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._4_html = file_input.read()
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/ja/5.html"
-        ), 'r') as file_input: self._5_html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._5_html = file_input.read()
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/ja/6.html"
-        ), 'r') as file_input: self._6_html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._6_html = file_input.read()
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/ja/7.html"
-        ), 'r') as file_input: self._7_html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._7_html = file_input.read()
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/ja/8.html"
-        ), 'r') as file_input: self._8_html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._8_html = file_input.read()
 
     def test_length(self, m):
         m.get("https://www.basketball-reference.com/search/search.fcgi?search=ja",
@@ -92,10 +101,11 @@ class TestAlonzoMourning(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/Alonzo Mourning.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     def test_result(self, m):
-        m.get(f"https://www.basketball-reference.com/search/search.fcgi?search=Alonzo+Mourning",
+        m.get("https://www.basketball-reference.com/search/search.fcgi?search=Alonzo+Mourning",
               text=self._html,
               status_code=200)
         results = client.search(term="Alonzo Mourning")
@@ -118,10 +128,11 @@ class TestDominiqueWilkins(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/Dominique Wilkins.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     def test_result(self, m):
-        m.get(f"https://www.basketball-reference.com/search/search.fcgi?search=Dominique+Wilkins",
+        m.get("https://www.basketball-reference.com/search/search.fcgi?search=Dominique+Wilkins",
               text=self._html,
               status_code=200)
         results = client.search(term="Dominique Wilkins")
@@ -143,10 +154,11 @@ class TestRickBarry(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/Rick Barry.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     def test_result(self, m):
-        m.get(f"https://www.basketball-reference.com/search/search.fcgi?search=Rick+Barry",
+        m.get("https://www.basketball-reference.com/search/search.fcgi?search=Rick+Barry",
               text=self._html,
               status_code=200)
         results = client.search(term="Rick Barry")
@@ -168,10 +180,11 @@ class TestJaebaebae(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/jaebaebae.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     def test_result(self, m):
-        m.get(f"https://www.basketball-reference.com/search/search.fcgi?search=jaebaebae",
+        m.get("https://www.basketball-reference.com/search/search.fcgi?search=jaebaebae",
               text=self._html,
               status_code=200)
         results = client.search(term="jaebaebae")
@@ -187,10 +200,11 @@ class TestKobeBryant(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/kobe bryant.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     def test_result(self, m):
-        m.get(f"https://www.basketball-reference.com/search/search.fcgi?search=kobe+bryant",
+        m.get("https://www.basketball-reference.com/search/search.fcgi?search=kobe+bryant",
               text=self._html,
               status_code=200)
         results = client.search(term="kobe bryant")
@@ -212,10 +226,11 @@ class TestKobe(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/kobe.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     def test_result(self, m):
-        m.get(f"https://www.basketball-reference.com/search/search.fcgi?search=kobe",
+        m.get("https://www.basketball-reference.com/search/search.fcgi?search=kobe",
               text=self._html,
               status_code=200)
         results = client.search(term="kobe")
@@ -267,7 +282,8 @@ class TestSearchJSONFileOutput(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/kobe.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
             "./output/generated/search/kobe.json",
@@ -281,7 +297,7 @@ class TestSearchJSONFileOutput(TestCase):
         os.remove(self.output_file_path)
 
     def test_file_output(self, m):
-        m.get(f"https://www.basketball-reference.com/search/search.fcgi?search=kobe",
+        m.get("https://www.basketball-reference.com/search/search.fcgi?search=kobe",
               text=self._html,
               status_code=200)
 
@@ -303,7 +319,8 @@ class TestSearchJSONInMemoryOutput(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/kobe.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
             "./output/generated/search/kobe.json",
@@ -314,7 +331,7 @@ class TestSearchJSONInMemoryOutput(TestCase):
         )
 
     def test_in_memory_output(self, m):
-        m.get(f"https://www.basketball-reference.com/search/search.fcgi?search=kobe",
+        m.get("https://www.basketball-reference.com/search/search.fcgi?search=kobe",
               text=self._html,
               status_code=200)
 
@@ -322,7 +339,7 @@ class TestSearchJSONInMemoryOutput(TestCase):
             term="kobe",
             output_type=OutputType.JSON,
         )
-        with open(self.expected_output_file_path, "r", encoding="utf8") as expected_output_file:
+        with open(self.expected_output_file_path, encoding="utf-8") as expected_output_file:
             self.assertEqual(
                 json.loads(results),
                 json.load(expected_output_file),
@@ -335,7 +352,8 @@ class TestSearchCSVOutput(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/search/kobe.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
             "./output/generated/search/kobe.csv",
@@ -349,7 +367,7 @@ class TestSearchCSVOutput(TestCase):
         os.remove(self.output_file_path)
 
     def test_file_output(self, m):
-        m.get(f"https://www.basketball-reference.com/search/search.fcgi?search=kobe",
+        m.get("https://www.basketball-reference.com/search/search.fcgi?search=kobe",
               text=self._html,
               status_code=200)
 

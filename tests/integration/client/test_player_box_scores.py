@@ -5,9 +5,9 @@ from unittest import TestCase
 
 import requests_mock
 
-from src.client import player_box_scores
-from src.data import OutputType, OutputWriteOption
-from src.errors import InvalidDate
+from src.scraper.api.client import player_box_scores
+from src.scraper.common.data import OutputType, OutputWriteOption
+from src.scraper.common.errors import InvalidDate
 
 
 class Test20180101(TestCase):
@@ -15,7 +15,8 @@ class Test20180101(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_box_scores/2018/1/1.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_player_box_scores_length(self, m):
@@ -31,7 +32,8 @@ class Test20010101(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_box_scores/2001/1/1.html"
-        ), 'r') as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_2001_01_01_player_box_scores_length(self, m):
@@ -83,7 +85,7 @@ class Test20010101(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "./output/expected/player_box_scores/2001/1/1.json",
-        ), "r", encoding="utf8") as expected_output_file:
+        ), encoding="utf-8") as expected_output_file:
             self.assertEqual(
                 json.loads(box_scores),
                 json.load(expected_output_file),

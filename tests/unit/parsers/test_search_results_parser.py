@@ -1,10 +1,14 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from src.data import LEAGUE_ABBREVIATIONS_TO_LEAGUE, League
-from src.parser_service import ParserService
-from src.parsers import SearchResultsParser, SearchResultNameParser, \
-    ResourceLocationParser, LeagueAbbreviationParser
+from src.scraper.common.data import LEAGUE_ABBREVIATIONS_TO_LEAGUE, League
+from src.scraper.parsers import (
+    LeagueAbbreviationParser,
+    ResourceLocationParser,
+    SearchResultNameParser,
+    SearchResultsParser,
+)
+from src.scraper.services.parsing import ParserService
 
 
 class TestSearchResultsParser(TestCase):
