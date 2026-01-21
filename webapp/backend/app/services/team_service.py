@@ -324,7 +324,7 @@ class TeamService:
             Team.team_id.in_(team_ids)
         )
         result = await self.session.execute(query)
-        return {team_id: abbrev for team_id, abbrev in result.all()}
+        return dict(result.all())
 
     def _game_to_dict(
         self, game: Game, team_id: int, team_abbrev_map: dict[int, str]

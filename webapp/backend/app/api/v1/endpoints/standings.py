@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
-from app.schemas.standings import StandingsResponse, PlayoffBracket
+from app.schemas.standings import PlayoffBracket, StandingsResponse
 from app.services.standings_service import StandingsService
 
 router = APIRouter()

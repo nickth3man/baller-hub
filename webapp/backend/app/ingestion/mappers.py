@@ -5,29 +5,24 @@ into SQLModel instances that can be persisted to the database.
 """
 
 import re
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
 from app.models.game import (
-    BoxScore,
     Game,
-    Location,
-    Outcome,
+    PeriodType,
     PlayByPlay,
     PlayType,
-    PeriodType,
 )
 from app.models.player import (
-    Player,
     PlayerBoxScore,
     PlayerSeason,
     PlayerSeasonAdvanced,
     Position,
     SeasonType,
 )
-from app.models.season import Season
-from app.models.team import Team, TeamSeason
+from app.models.team import TeamSeason
 
 
 def _safe_decimal(value: Any, default: Decimal | None = None) -> Decimal | None:

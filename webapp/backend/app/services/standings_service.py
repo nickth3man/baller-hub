@@ -34,7 +34,7 @@ class StandingsService:
 
         standings = [self._row_to_team_dict(ts, team) for ts, team, _ in rows]
         conference_map = {}
-        for (ts, team, conference_type), entry in zip(rows, standings, strict=True):
+        for (_ts, _team, conference_type), entry in zip(rows, standings, strict=True):
             key = (
                 conference_type.value
                 if hasattr(conference_type, "value")

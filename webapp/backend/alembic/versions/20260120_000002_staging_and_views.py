@@ -6,17 +6,18 @@ Create Date: 2026-01-20
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 import sqlmodel
+
 from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "20260120_000002"
-down_revision: Union[str, None] = "20260119_000001"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "20260119_000001"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 STAGING_TABLES: dict[str, list[str]] = {
@@ -467,7 +468,7 @@ def downgrade() -> None:
     op.execute("DROP MATERIALIZED VIEW IF EXISTS team_season_standings;")
     op.execute("DROP MATERIALIZED VIEW IF EXISTS player_career_stats;")
 
-    for table_name in STAGING_TABLES.keys():
+    for table_name in STAGING_TABLES:
         op.execute(f"DROP TABLE IF EXISTS {table_name};")
 
     op.drop_table("player_shooting")

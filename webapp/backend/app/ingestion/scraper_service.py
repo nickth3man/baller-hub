@@ -5,13 +5,12 @@ library, handling rate limiting and caching at the ingestion layer.
 """
 
 import asyncio
-from datetime import date
-from typing import Any
-
-import structlog
 
 # Import from the existing scraper
 import sys
+from typing import Any
+
+import structlog
 
 sys.path.insert(0, str(__file__).split("webapp")[0])
 

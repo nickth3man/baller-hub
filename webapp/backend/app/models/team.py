@@ -7,7 +7,7 @@ from sqlalchemy import JSON
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from app.models.season import Division
+    pass
 
 
 class Franchise(SQLModel, table=True):

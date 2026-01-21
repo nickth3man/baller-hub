@@ -1,7 +1,7 @@
 """Rate limiting service."""
 
-import time
 import threading
+import time
 
 
 class RateLimiter:

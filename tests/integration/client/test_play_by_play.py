@@ -14,7 +14,8 @@ class Test199911160ATLPlayByPlay(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/199911160ATL.html",
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_length(self, m):
@@ -28,7 +29,8 @@ class Test201810270MILPlayByPlay(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/201810270MIL.html",
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_length(self, m):
@@ -79,7 +81,8 @@ class Test201901010DEN(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/201901010DEN.html",
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_total_play_by_play_length_for_single_digit_month_and_day(self, m):
@@ -131,7 +134,8 @@ class Test201901010SAC(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/201901010SAC.html",
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_last_play_by_play_for_overtime_game(self, m):
@@ -158,7 +162,8 @@ class Test201810160GSW(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/201810160GSW.html",
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_non_unicode_matches(self, m):
@@ -193,7 +198,8 @@ class TestPlayByPlayCSVOutput(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/200310290TOR.html",
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     def tearDown(self):
         os.remove(self.output_file_path)
@@ -225,7 +231,8 @@ class TestPlayByPlayJSONOutput(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/play_by_play/200310290TOR.html",
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     def tearDown(self):
         os.remove(self.output_file_path)

@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from app.models.game import Game
-from app.models.player import Player, PlayerSeason, PlayerSeasonAdvanced, Position, SeasonType
+from app.models.player import (
+    Player,
+    PlayerSeason,
+    PlayerSeasonAdvanced,
+    Position,
+    SeasonType,
+)
 from app.models.season import League, Season
 from app.models.team import Team
 
@@ -44,7 +50,7 @@ class SeasonService:
             select(Season, champion.name, runner_up.name)
             .outerjoin(champion, Season.champion_team_id == champion.team_id)
             .outerjoin(runner_up, Season.runner_up_team_id == runner_up.team_id)
-            .where(Season.is_active == True)
+            .where(Season.is_active)
         )
         result = await self.session.execute(query)
         row = result.first()

@@ -32,7 +32,6 @@ async def seed_season(season_end_year: int) -> None:
     from app.ingestion.scraper_service import ScraperService
     from app.ingestion.tasks import (
         _persist_season_data,
-        _persist_standings,
     )
 
     print(f"\n{'=' * 60}")
@@ -237,10 +236,7 @@ async def main():
         current_year = date.today().year
         # If we're before June, current season ends this year
         # If after June, current season ends next year
-        if date.today().month >= 7:
-            end_year = current_year + 1
-        else:
-            end_year = current_year
+        end_year = current_year + 1 if date.today().month >= 7 else current_year
 
         for year in range(2020, end_year + 1):
             await seed_season(year)

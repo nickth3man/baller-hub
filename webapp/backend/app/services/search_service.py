@@ -242,6 +242,7 @@ class SearchService:
             List of game dictionaries.
         """
         from datetime import date
+
         from app.models.game import Game
 
         query = select(Game)
@@ -305,7 +306,7 @@ class SearchService:
         )
 
         if active_only:
-            player_query = player_query.where(Player.is_active == True)
+            player_query = player_query.where(Player.is_active)
         if position:
             player_query = player_query.where(Player.position == position)
 
@@ -329,7 +330,7 @@ class SearchService:
         )
 
         if active_only:
-            team_query = team_query.where(Team.is_active == True)
+            team_query = team_query.where(Team.is_active)
 
         team_query = team_query.limit(limit)
         result = await self.session.execute(team_query)

@@ -14,7 +14,7 @@ class ResponseMocker:
                 continue
 
             attr = getattr(klass, attr_name)
-            if not hasattr(attr, '__call__'):
+            if not callable(attr):
                 continue
 
             setattr(klass, attr_name, self.mock(attr))

@@ -1,8 +1,8 @@
 """Disk-based caching service."""
 
+import contextlib
 import hashlib
 import json
-import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -28,11 +28,9 @@ class FileCache:
 
         # Ensure cache directory exists
         if not self._cache_dir.exists():
-            try:
-                self._cache_dir.mkdir(parents=True, exist_ok=True)
-            except OSError:
+            with contextlib.suppress(OSError):
                 # If we can't create the cache dir, we just won't cache
-                pass
+                self._cache_dir.mkdir(parents=True, exist_ok=True)
 
     def _key(self, url):
         """Generate a stable key for a URL."""

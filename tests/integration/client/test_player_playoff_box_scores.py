@@ -16,7 +16,8 @@ class TestRussellWestbrook2019(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_box_scores/2019/westbru01.html"
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_length(self, m):
@@ -63,7 +64,8 @@ class RussellWestbrook2020IncludingInactiveGames(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_box_scores/2020/westbru01.html"
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
         self.expected_output_json_file_path = os.path.join(
             os.path.dirname(__file__),
             "./output/expected/playoff_player_box_scores/2020/westbru01/include_inactive.json",
@@ -149,7 +151,8 @@ class TestNonExistentPlayerPlayoffBoxScores(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_box_scores/2020/foobar.html"
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_get_season_box_scores_for_player_that_does_not_exist_raises_exception(self, m):
@@ -174,7 +177,8 @@ class Giannis2020(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/player_box_scores/2020/antetgi01.html"
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
     @requests_mock.Mocker()
     def test_inactive_games_are_removed_by_default(self, m):
@@ -188,7 +192,7 @@ class Giannis2020(TestCase):
         self.assertEqual(9, len(results))
 
         d = datetime.strptime("2020-09-08", "%Y-%m-%d").date()
-        self.assertTrue(all([bs["date"] != d and bs["active"] for bs in results]))
+        self.assertTrue(all(bs["date"] != d and bs["active"] for bs in results))
 
     @requests_mock.Mocker()
     def test_inactive_games_are_included_when_option_is_explicitly_selected(self, m):

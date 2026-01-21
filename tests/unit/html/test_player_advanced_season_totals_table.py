@@ -15,7 +15,7 @@ class TestPlayerAdvancedSeasonTotalsTable(TestCase):
             /tbody
             /tr[
                 (
-                    not(contains(@class, 'thead')) and 
+                    not(contains(@class, 'thead')) and
                     not(contains(@class, 'norank'))
                 )
             ]

@@ -44,5 +44,5 @@ class URLBuilder:
         return f"{URLBuilder.BASE_URL}/boxscores/?month={month}&day={day}&year={year}"
 
     @staticmethod
-    def search(term):
+    def search(_term):
         return f"{URLBuilder.BASE_URL}/search/search.fcgi"

@@ -18,7 +18,8 @@ class BaseTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/schedule/{cls._path_from_schedule_directory}",
-        ), encoding="utf-8") as file_input: _html = file_input.read()
+        ), encoding="utf-8") as file_input:
+        _html = file_input.read()
         cls._page = SchedulePage(html=html.fromstring(_html))
 
         super().setUpClass()
@@ -31,7 +32,8 @@ class BaseParserTest(BaseTest):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/schedule/{cls._path_from_schedule_directory}",
-        ), encoding="utf-8") as file_input: _html = file_input.read()
+        ), encoding="utf-8") as file_input:
+        _html = file_input.read()
         cls._parsed_results = ScheduledGamesParser(
             start_time_parser=ScheduledStartTimeParser(),
             team_name_parser=TeamNameParser(team_names_to_teams=TEAM_NAME_TO_TEAM),

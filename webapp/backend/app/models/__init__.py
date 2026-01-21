@@ -1,5 +1,8 @@
 """Database models package."""
 
+from app.models.award import Award, AwardRecipient
+from app.models.draft import Draft, DraftPick
+from app.models.game import BoxScore, Game, PlayByPlay
 from app.models.player import (
     Player,
     PlayerBoxScore,
@@ -7,11 +10,8 @@ from app.models.player import (
     PlayerSeasonAdvanced,
     PlayerShooting,
 )
-from app.models.team import Team, TeamSeason, Franchise
-from app.models.game import Game, BoxScore, PlayByPlay
-from app.models.season import Season, League, Conference, Division
-from app.models.award import Award, AwardRecipient
-from app.models.draft import Draft, DraftPick
+from app.models.season import Conference, Division, League, Season
+from app.models.team import Franchise, Team, TeamSeason
 
 __all__ = [
     "Player",

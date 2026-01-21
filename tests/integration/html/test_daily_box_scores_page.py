@@ -11,7 +11,8 @@ class TestDailyBoxScoresPage(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 "../files/boxscores/2017/1/1.html"
-        ), encoding="utf-8") as file_input: self.january_01_2017_box_scores = file_input.read()
+        ), encoding="utf-8") as file_input:
+        self.january_01_2017_box_scores = file_input.read()
 
     def test_game_url_paths_query(self):
         page = DailyBoxScoresPage(html=html.fromstring(self.january_01_2017_box_scores))

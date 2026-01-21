@@ -1,6 +1,6 @@
-import pytest
-import time
 from unittest.mock import patch
+
+import pytest
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -13,7 +13,7 @@ def vcr_config():
 
 
 @pytest.fixture(autouse=True)
-def speed_up_tests(request):
+def speed_up_tests(_request):
     """
     Patch time.sleep to do nothing unless we are in recording mode.
     """

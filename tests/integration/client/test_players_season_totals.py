@@ -18,7 +18,8 @@ class BaseCSVOutputTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -58,7 +59,8 @@ class BaseJSONOutputTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -98,7 +100,8 @@ class BaseInMemoryJSONOutputTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
         self.expected_output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -617,7 +620,8 @@ class BaseInMemoryTest(TestCase):
         with open(os.path.join(
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{self.year}.html",
-        ), encoding="utf-8") as file_input: self._html = file_input.read()
+        ), encoding="utf-8") as file_input:
+            self._html = file_input.read()
 
 
 @requests_mock.Mocker()

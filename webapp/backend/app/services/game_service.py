@@ -5,7 +5,7 @@ from datetime import date, timedelta
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.game import BoxScore, Game, Location, Outcome, PlayByPlay
+from app.models.game import BoxScore, Game, Location, PlayByPlay
 from app.models.player import Player, PlayerBoxScore
 from app.models.season import Season
 from app.models.team import Team
@@ -331,7 +331,7 @@ class GameService:
             Team.team_id.in_(team_ids)
         )
         result = await self.session.execute(query)
-        return {team_id: abbrev for team_id, abbrev in result.all()}
+        return dict(result.all())
 
     async def _get_team_info_map(
         self, team_ids: set[int]

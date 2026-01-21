@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
 from app.schemas.player import (
-    PlayerDetail,
-    PlayerList,
     PlayerBoxScoreList,
     PlayerCareerStats,
+    PlayerDetail,
+    PlayerList,
     PlayerSeasonStats,
 )
 from app.services.player_service import PlayerService

@@ -2,8 +2,9 @@ import datetime
 import filecmp
 import os
 import time
-import pytest
 from unittest import TestCase
+
+import pytest
 
 from src.api.client import (
     play_by_play,
