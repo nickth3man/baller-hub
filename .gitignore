@@ -104,3 +104,7 @@ tests/end to end/output/generated/**.csv
 # Test cache directories
 tests/.cache/
 webapp/.cache/
+
+# Test fixtures (HTML files are intentionally untracked)
+tests/integration/files/**/*.html
+!tests/integration/files/**/.gitkeep
