@@ -352,7 +352,7 @@ class HTTPService:
         """
         Performs a search for players or teams.
         """
-        url = URLBuilder.search(term=term)
+        url = URLBuilder.search(_term=term)
         response = self._fetch(url=url, params={"search": term})
 
         player_results = []
