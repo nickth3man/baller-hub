@@ -8,7 +8,10 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-from src.utils.fixture_validation import validate_fixture_html
+from src.scraper.utils.fixture_validation import (
+    build_validation_context,
+    validate_fixture_html,
+)
 
 DEFAULT_MANIFEST = Path("scripts/fixture_manifest.json")
 
@@ -27,6 +30,12 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
         default=[],
         help="Validator key to include (repeatable).",
     )
+    parser.add_argument(
+        "--phase",
+        action="append",
+        default=[],
+        help="Fixture phase to include (repeatable).",
+    )
     return parser.parse_args(list(argv))
 
 
@@ -35,12 +44,16 @@ def main(argv: Iterable[str]) -> int:
     data = json.loads(args.manifest.read_text(encoding="utf-8"))
     base_dir = Path(data.get("output_dir", "tests/integration/files"))
     validator_filter = set(args.validator)
+    phase_filter = set(args.phase)
 
     failures: list[str] = []
     fixtures = data.get("fixtures", [])
     for fixture in fixtures:
         validator_key = fixture.get("validator")
+        fixture_phase = fixture.get("phase")
         if validator_filter and validator_key not in validator_filter:
+            continue
+        if phase_filter and fixture_phase not in phase_filter:
             continue
 
         fixture_path = base_dir / fixture["fixture_path"]
@@ -55,9 +68,11 @@ def main(argv: Iterable[str]) -> int:
 
         errors = validate_fixture_html(content, validator_key)
         if errors:
+            context = build_validation_context(content, validator_key)
             failures.append(
                 f"{fixture_path.as_posix()}: " + "; ".join(errors)
             )
+            failures.append(f"{fixture_path.as_posix()}: context={context}")
 
     if failures:
         print("Fixture validation failed:", file=sys.stderr)
