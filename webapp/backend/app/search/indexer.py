@@ -63,12 +63,12 @@ class SearchIndexer:
             index.update_settings(settings)
             logger.info("Updated index settings", index=index_name)
 
-    async def index_players(self, session: AsyncSession, batch_size: int = 1000) -> int:
+    async def index_players(self, session: AsyncSession, _batch_size: int = 1000) -> int:
         """Index all players from the database.
 
         Args:
             session: Database session.
-            batch_size: Number of records per batch.
+            _batch_size: Number of records per batch (reserved for future use).
 
         Returns:
             Total number of indexed documents.
@@ -116,14 +116,14 @@ class SearchIndexer:
         self,
         session: AsyncSession,
         season_year: int | None = None,
-        batch_size: int = 1000,
+        _batch_size: int = 1000,
     ) -> int:
         """Index games from the database.
 
         Args:
             session: Database session.
             season_year: Optional filter by season.
-            batch_size: Number of records per batch.
+            _batch_size: Number of records per batch (reserved for future use).
 
         Returns:
             Total number of indexed documents.

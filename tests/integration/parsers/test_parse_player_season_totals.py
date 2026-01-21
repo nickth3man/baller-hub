@@ -26,7 +26,7 @@ class BasePlayerSeasonTotalsTestCase(TestCase):
                 os.path.dirname(__file__),
                 f"../files/players_season_totals/{cls._season_end_year}.html",
         ), encoding="utf-8") as file_input:
-        _html = file_input.read()
+            _html = file_input.read()
         cls._parsed_season_totals = PlayerSeasonTotalsParser(
             position_abbreviation_parser=PositionAbbreviationParser(
                 abbreviations_to_positions=POSITION_ABBREVIATIONS_TO_POSITION

@@ -149,12 +149,16 @@ def map_play_by_play(
 
     points_scored = 0
     prev_away, prev_home = previous_scores
-    if away_score is not None and home_score is not None:
-        if team_id and raw.get("relevant_team") is not None:
-            if away_score != prev_away or home_score != prev_home:
-                points_scored = max(
-                    away_score - (prev_away or 0), home_score - (prev_home or 0)
-                )
+    if (
+        away_score is not None
+        and home_score is not None
+        and team_id
+        and raw.get("relevant_team") is not None
+        and (away_score != prev_away or home_score != prev_home)
+    ):
+        points_scored = max(
+            away_score - (prev_away or 0), home_score - (prev_home or 0)
+        )
     if points_scored == 0:
         points_scored = _infer_points_from_description(description)
 
