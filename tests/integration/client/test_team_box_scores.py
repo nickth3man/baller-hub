@@ -27,7 +27,7 @@ class BoxScoresResponseMocker(ResponseMocker):
             if filename.startswith("index"):
                 key = f"boxscores/?day={day}&month={month}&year={year}"
             else:
-                key = f"/boxscores/{filename}"
+                key = f"boxscores/{filename}"
             basketball_reference_paths_by_filename[os.path.join(boxscores_directory, filename)] = key
 
         super().__init__(basketball_reference_paths_by_filename=basketball_reference_paths_by_filename)

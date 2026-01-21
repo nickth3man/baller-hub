@@ -103,7 +103,7 @@ class Test2018SeasonScheduleCsvOutput(TestCase):
     ),
     season_end_year=2018
 )
-class Test2001SeasonScheduleJsonOutput(TestCase):
+class Test2018SeasonScheduleJsonOutput(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -132,7 +132,7 @@ class Test2001SeasonScheduleJsonOutput(TestCase):
     ),
     season_end_year=2018
 )
-class Test2001SeasonScheduleInMemoryJson(TestCase):
+class Test2018SeasonScheduleInMemoryJson(TestCase):
     def setUp(self):
         self.expected_output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -184,7 +184,7 @@ class Test2001SeasonScheduleCsvOutput(TestCase):
     ),
     season_end_year=2001
 )
-class Test2018SeasonScheduleJsonOutput(TestCase):
+class Test2001SeasonScheduleJsonOutput(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -213,7 +213,7 @@ class Test2018SeasonScheduleJsonOutput(TestCase):
     ),
     season_end_year=2001
 )
-class Test2018SeasonScheduleInMemoryJson(TestCase):
+class Test2001SeasonScheduleInMemoryJson(TestCase):
     def setUp(self):
         self.expected_output_file_path = os.path.join(
             os.path.dirname(__file__),
