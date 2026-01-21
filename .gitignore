@@ -32,6 +32,8 @@ pyvenv.cfg
 # caches
 .pytest_cache/
 **/*/__pycache__/
+scraper_checkpoint.json
+*.unvalidated
 
 /.opencode
 /.codex

@@ -1,428 +1,810 @@
-# Basketball-Reference Clone Pivot Plan
+---
+name: Comprehensive Basketball-Reference Fixture Rebuild
+overview: Archive 102 outdated fixtures and build comprehensive test infrastructure with 500+ new fixtures across 50+ page types (players, teams, coaches, executives, draft, awards, playoffs, leaders) spanning BAA (1946-1949), ABA (1967-1976), and NBA (1949-2025) eras with resilient scraping and 100% test coverage.
+todos:
+  - id: research-complete-sitemap
+    content: Catalog all 50+ page types discovered via Tavily/Exa/Perplexity research
+    status: completed
+  - id: design-architecture
+    content: Design chaos-engineered scraper with resilience, checkpointing, validation
+    status: pending
+  - id: quick-fix-conftest
+    content: Fix conftest.py _request typo (resolves 11 test failures in 2 min)
+    status: pending
+  - id: archive-old-fixtures
+    content: Move 102 existing fixtures to timestamped archive directory
+    status: pending
+  - id: implement-scraper-core
+    content: Build extensible scraper framework with rate limiting and retry logic
+    status: pending
+  - id: implement-new-parsers
+    content: Create 40+ new page type parsers for discovered page types
+    status: pending
+  - id: scrape-phase1-critical
+    content: Scrape critical fixtures (standings, 2018 season totals) - fixes current test failures
+    status: pending
+  - id: scrape-phase2-existing
+    content: Scrape 180 fixtures for 12 existing page types
+    status: pending
+  - id: scrape-phase3-new
+    content: Scrape 320+ fixtures for newly implemented page types
+    status: pending
+  - id: create-test-suite
+    content: Build comprehensive test suite achieving 100% parser coverage
+    status: pending
+  - id: validate-all-fixtures
+    content: Validate 500+ fixtures against HTML structure rules
+    status: pending
+  - id: update-documentation
+    content: Document fixture manifest, maintenance procedures, scraping guides
+    status: pending
+isProject: true
+---
 
-## Raw Data Inventory (`raw-data/`)
+# Comprehensive Basketball-Reference Fixture Rebuild
 
-### SQLite Database
+## Executive Summary
 
-- **`database/sqlite/nba.sqlite`** - Pre-existing NBA database (likely from nba_api)
+Transform test infrastructure from 102 outdated fixtures to 500+ comprehensive fixtures covering 50+ page types across BAA/ABA/NBA history (1946-2025). Implement chaos-engineered scraping infrastructure with resilience, validation, and full test coverage.
 
-### CSV Dataset 1 (`misc-csv/csv_1/`) - Core entities
+**Scale**: 102 → 500+ fixtures | 12 → 50+ page types | 20 failures → 0 failures
 
-| File | Records | Maps To |
-
-|------|---------|---------|
-
-| `Players.csv` | ~6,700 players | `player` table |
-
-| `Games.csv` | Game records | `game` table |
-
-| `LeagueSchedule24_25.csv` | 2024-25 schedule | `game` table |
-
-| `LeagueSchedule25_26.csv` | 2025-26 schedule | `game` table |
-
-| `PlayerStatistics.csv` | Player stats | `player_season` table |
-
-| `TeamHistories.csv` | Franchise history | `franchise`, `team` tables |
-
-| `TeamStatistics.csv` | Team stats | `team_season` table |
-
-### CSV Dataset 2 (`misc-csv/csv_2/`) - Detailed stats (Basketball-Reference format)
-
-| File | Maps To |
-
-|------|---------|
-
-| `Player Totals.csv` (~33K rows) | `player_season` table |
-
-| `Advanced.csv` | `player_season_advanced` table |
-
-| `Player Per Game.csv` | Derived views |
-
-| `Player Shooting.csv` | Shot chart data (new table needed) |
-
-| `Player Play By Play.csv` | `play_by_play` enrichment |
-
-| `Draft Pick History.csv` | `draft`, `draft_pick` tables |
-
-| `All-Star Selections.csv` | `award_recipient` table |
-
-| `End of Season Teams.csv` | `award_recipient` (All-NBA) |
-
-| `Team Totals.csv` | `team_season` table |
-
-| `Team Summaries.csv` | `team_season` enrichment |
-
-### CSV Dataset 3 (`misc-csv/csv_3/`) - NBA API format
-
-| File | Maps To |
-
-|------|---------|
-
-| `game.csv` (~30K rows) | `game`, `box_score` tables |
-
-| `player.csv` | `player` table (alternate source) |
-
-| `play_by_play.csv` | `play_by_play` table |
-
-| `team.csv`, `team_details.csv` | `team` table |
-
-| `draft_history.csv` | `draft_pick` table |
-
-| `line_score.csv` | `box_score` quarter_scores |
-
-### CSV Dataset 4 (`misc-csv/csv_4/`) - Supplementary
-
-| File | Maps To |
-
-|------|---------|
-
-| `nba_championships.csv` | `season.champion_team_id` |
-
-| `nba_players.csv` | `player` deduplication source |
+**Time Estimate**: 80-120 hours across multiple work sessions
 
 ---
 
-## Phase 1: Strategic Thinking (Docs Audit + Blueprint)
+## Discovered Page Types (50+ Total)
 
-### 1.1 Documentation Audit
+### Currently Implemented (12 types)
 
-- Consolidate existing docs, remove aspirational/outdated content (target 40-50% reduction)
-- Single source of truth for: schema, API endpoints, UI components
+1. Player profile pages
+2. Player game logs (regular + playoff)
+3. Player season totals
+4. Player advanced season totals
+5. Season standings
+6. Season schedules (full + monthly)
+7. Daily box scores index
+8. Game box scores
+9. Play-by-play
+10. Daily leaders
+11. Search results
+12. (Contracts - wrapper exists but not integrated)
 
-### 1.2 Strategic Blueprint (7 Questions)
+### Newly Discovered (40+ types)
 
-1. **What problem?** - Provide free, queryable NBA statistics with modern UI
-2. **For whom?** - Basketball analysts, fans, developers building apps
-3. **Why now?** - Existing scraped data + raw CSVs ready for production use
-4. **What's the MVP?** - Read-only browse: Players, Teams, Games, Standings, Seasons
-5. **What's NOT MVP?** - User accounts, favorites, comments, predictions, live data
-6. **Success metric?** - 100% of Basketball-Reference core pages replicated
-7. **Tech stack?** - PostgreSQL + FastAPI + Next.js 15 (existing webapp structure)
+**Coaches & Personnel:**
 
-### 1.3 Architecture Decision Records (ADRs)
+- `/coaches/{coachid}.html` - Coach profile and record
+- `/executives/{executiveid}/` - Executive/GM pages
+- `/referees/` - Referee directory and pages
 
-- **ADR-001**: PostgreSQL as primary data store (already decided)
-- **ADR-002**: Hybrid ingestion (scraper + CSV/SQLite imports)
-- **ADR-003**: Staging tables for bulk CSV import with validation
-- **ADR-004**: Materialized views for career/season aggregates
-- **ADR-005**: Season-based partitioning for games/box_scores (future optimization)
+**Draft:**
+
+- `/draft/NBA_{year}.html` - Annual draft results
+- `/draft/combine/{year}.html` - Draft combine measurements
+- `/draft/lottery_{year}.html` - Draft lottery results
+- `/draft/` - Draft history index
+
+**Awards:**
+
+- `/awards/mvp.html` - MVP history
+- `/awards/dpoy.html` - Defensive Player of Year
+- `/awards/roy.html` - Rookie of the Year
+- `/awards/smoy.html` - Sixth Man of the Year
+- `/awards/mip.html` - Most Improved Player
+- `/awards/coy.html` - Coach of the Year
+- `/awards/all_nba.html` - All-NBA teams
+- `/awards/all_rookie.html` - All-Rookie teams
+- `/awards/all_defensive.html` - All-Defensive teams
+- `/awards/hof.html` - Hall of Fame
+
+**Playoffs:**
+
+- `/playoffs/NBA_{year}.html` - Playoff bracket/results
+- `/playoffs/{year}-nba-{round}-{teams}.html` - Series pages (e.g., "2013-nba-eastern-conference-finals-pacers-vs-heat")
+- `/playoffs/NBA_{year}_per_game.html` - Playoff stats
+
+**All-Star:**
+
+- `/allstar/NBA_{year}.html` - All-Star Game results
+- `/allstar/` - All-Star Game history
+
+**Leaders:**
+
+- `/leaders/` - Leaders index
+- `/leaders/career_{stat}.html` - Career leaders
+- `/leaders/active_{stat}.html` - Active player leaders
+- `/trailers/{stat}_yearly_p.html` - Progressive/trailing leaders
+
+**Team Pages:**
+
+- `/teams/{team}/` - Franchise history
+- `/teams/{team}/{year}.html` - Season page (roster, stats)
+- `/teams/{team}/{year}_schedule.html` - Team schedule
+- `/teams/{team}/{year}_gamelog.html` - Team game log
+- `/teams/{team}/draft.html` - Team draft history
+
+**League Statistics Variants:**
+
+- `/leagues/NBA_{year}_per_game.html` - Per-game stats
+- `/leagues/NBA_{year}_per_minute.html` - Per-36-minute stats
+- `/leagues/NBA_{year}_per_poss.html` - Per-100-possession stats
+- `/leagues/NBA_{year}_shooting.html` - Shooting stats
+- `/leagues/NBA_{year}_adj_shooting.html` - Adjusted shooting
+- `/leagues/NBA_{year}_opponent.html` - Opponent stats
+- `/leagues/NBA_{year}_team.html` - Team stats
+- `/leagues/NBA_{year}_team_opponent.html` - Team opponent stats
+- `/leagues/NBA_{year}_leaders.html` - Season leaders
+- `/leagues/NBA_{year}_rookies.html` - Rookie stats
+- `/leagues/NBA_{year}_standings_by_date.html` - Historical standings
+
+**Player Sub-pages:**
+
+- `/players/{l}/{id}/splits/{year}` - Situational splits
+- `/players/{l}/{id}/shooting/{year}` - Shooting zones/charts
+- `/players/{l}/{id}/advanced/{year}` - Advanced stats
+- `/players/{l}/{id}/per_minute/{year}` - Per-36 stats
+- `/players/{l}/{id}/per_poss/{year}` - Per-100-possession stats
+
+**Historical Leagues:**
+
+- `/leagues/BAA_{year}.html` - BAA seasons (1946-1949)
+- `/leagues/ABA_{year}.html` - ABA seasons (1967-1976)
+- `/nbl/` - NBL (pre-BAA) pages
+
+**Other Leagues:**
+
+- `/gleague/` - G-League pages
+- `/wnba/` - WNBA pages
+- `/international/` - International basketball
+
+**Box Score Variants:**
+
+- `/boxscores/{gameid}_shooting.html` - Game shooting charts
+- `/boxscores/{gameid}_advanced.html` - Advanced box score
+- `/boxscores/{gameid}_four_factors.html` - Four factors analysis
 
 ---
 
-## Phase 2: Implementation Specs
+## Complete URL Manifest (500+ Pages)
 
-### 2.1 Data Model Enhancements
+### Phase 1: Critical Fixes (8 pages, 30 min)
 
-#### New Tables Needed
+**Fixes 4 test failures + 11 conftest failures**
 
-```sql
--- Shooting data (from csv_2/Player Shooting.csv)
-CREATE TABLE player_shooting (
-    player_id INTEGER REFERENCES player(player_id),
-    season_id INTEGER REFERENCES season(season_id),
-    distance_range VARCHAR(20),  -- '0-3 ft', '3-10 ft', '10-16 ft', '16-3P', '3P'
-    fg_made INTEGER,
-    fg_attempted INTEGER,
-    fg_percentage NUMERIC(5,3),
-    PRIMARY KEY (player_id, season_id, distance_range)
-);
+```
+# Fix conftest.py typo first (2 min)
+tests/end to end/conftest.py:16 - request parameter
 
--- Staging tables for CSV import
-CREATE UNLOGGED TABLE staging_players (
-    row_id SERIAL PRIMARY KEY,
-    person_id TEXT,
-    first_name TEXT,
-    last_name TEXT,
-    birthdate TEXT,
-    country TEXT,
-    height TEXT,
-    weight TEXT,
-    -- All TEXT for flexible import, validate later
-    import_batch_id UUID,
-    validation_errors JSONB
-);
+# Then scrape these:
+/leagues/NBA_2000.html → standings/2000.html
+/leagues/NBA_2001.html → standings/2001.html
+/leagues/NBA_2002.html → standings/2002.html
+/leagues/NBA_2005.html → standings/2005.html
+/leagues/NBA_2018.html → standings/2018.html
+/leagues/NBA_2019.html → standings/2019.html
+/leagues/NBA_2020.html → standings/2020.html
+/leagues/NBA_2018_totals.html → players_season_totals/2018.html (data drift fix)
 ```
 
-#### Materialized Views
+### Phase 2: Existing Types - Historical Coverage (180 pages, 9 hours)
 
-```sql
-CREATE MATERIALIZED VIEW player_career_stats AS
-SELECT
-    p.player_id, p.first_name, p.last_name,
-    COUNT(DISTINCT pbs.game_id) AS games_played,
-    SUM(pbs.points_scored) AS career_points,
-    ROUND(AVG(pbs.points_scored)::NUMERIC, 1) AS ppg,
-    ROUND(AVG(pbs.assists)::NUMERIC, 1) AS apg,
-    ROUND(AVG(pbs.offensive_rebounds + pbs.defensive_rebounds)::NUMERIC, 1) AS rpg
-FROM player p
-LEFT JOIN player_box_score pbs ON p.player_id = pbs.player_id
-GROUP BY p.player_id, p.first_name, p.last_name;
+**Season Totals (30 pages):** BAA (4) + ABA (9) + NBA (17 sampled years)
 
-CREATE INDEX idx_player_career_stats_player_id ON player_career_stats(player_id);
+```
+/leagues/BAA_1947.html, BAA_1948.html, BAA_1949.html, BAA_1950.html
+/leagues/ABA_1968.html, ABA_1970.html, ABA_1972.html, ABA_1974.html, ABA_1976.html, ...
+/leagues/NBA_1950_totals.html, 1960, 1970, 1980, 1990, 2000, 2005, 2010, 2015, 2018, 2020, 2024, 2025, ...
 ```
 
-### 2.2 Ingestion Pipeline Architecture
+**Advanced Stats (25 pages):** Sampled years 2001-2025
+
+```
+/leagues/NBA_2001_advanced.html, 2005, 2010, 2015, 2018, 2020, 2022, 2024, 2025, ...
+```
+
+**Schedules (35 pages):** Full season + monthly for key years
+
+```
+/leagues/NBA_{year}_games.html - for years: 1950, 1960, 1970, 1980, 1990, 2000, 2005, 2010, 2015, 2018, 2020, 2024, 2025
+/leagues/NBA_2001_games-{month}.html - All 9 months
+/leagues/NBA_2018_games-{month}.html - All 9 months
+```
+
+**Box Scores (25 pages):** Representative games across eras
+
+```
+/boxscores/?month={m}&day={d}&year={y} - 10 dates
+/boxscores/{gameid}.html - 15 games across eras
+```
+
+**Play-by-Play (15 pages):** Various games
+
+```
+/boxscores/pbp/{gameid}.html - 15 games from different eras
+```
+
+**Player Profiles (20 pages):** Mix of eras, positions, accolades
+
+```
+/players/j/jamesle01.html - LeBron James
+/players/j/jordami01.html - Michael Jordan
+/players/c/chambwi01.html - Wilt Chamberlain
+/players/b/bryanko01.html - Kobe Bryant
+/players/d/duncati01.html - Tim Duncan
+... (15 more covering different eras)
+```
+
+**Player Game Logs (20 pages):** Various players/seasons
+
+```
+/players/w/westbru01/gamelog/2017
+/players/j/jamesle01/gamelog/2020
+... (18 more)
+```
+
+**Search Results (10 pages):** Various queries
+
+```
+/search/search.fcgi?search={term} - Various terms
+```
+
+### Phase 3: New Page Types - Core Additions (200 pages, 10 hours)
+
+**Coaches (15 pages):**
+
+```
+/coaches/jacksph01c.html - Phil Jackson
+/coaches/popovgr01c.html - Gregg Popovich
+/coaches/rileypt01c.html - Pat Riley
+/coaches/auerbch01c.html - Red Auerbach
+... (11 more legendary/active coaches)
+```
+
+**Draft (30 pages):**
+
+```
+/draft/NBA_1950.html, 1960, 1970, 1980, 1990, 2000, 2005, 2010, 2015, 2018, 2020, 2022, 2024, 2025
+/draft/combine/2018.html, 2020, 2022, 2024, 2025
+/draft/lottery_2018.html, 2020, 2022, 2024, 2025
+```
+
+**Awards (25 pages):**
+
+```
+/awards/mvp.html
+/awards/dpoy.html
+/awards/roy.html
+/awards/smoy.html
+/awards/mip.html
+/awards/coy.html
+/awards/all_nba.html
+/awards/all_rookie.html
+/awards/all_defensive.html
+/awards/hof.html
+... (15 more award-specific pages)
+```
+
+**Playoffs (30 pages):**
+
+```
+/playoffs/NBA_1950.html, 1960, 1970, 1980, 1990, 2000, 2005, 2010, 2015, 2018, 2020, 2024, 2025
+/playoffs/2024-nba-finals-celtics-vs-mavericks.html
+/playoffs/2023-nba-finals-nuggets-vs-heat.html
+... (15 notable series pages)
+```
+
+**All-Star (20 pages):**
+
+```
+/allstar/NBA_1951.html, 1960, 1970, 1980, 1990, 2000, 2005, 2010, 2015, 2018, 2020, 2024, 2025
+... (more All-Star game pages)
+```
+
+**Leaders (20 pages):**
+
+```
+/leaders/career_pts.html
+/leaders/career_trb.html
+/leaders/career_ast.html
+/leaders/active_pts.html
+/trailers/pts_yearly_p.html
+... (15 more leader pages)
+```
+
+**Team Pages (30 pages):**
+
+```
+/teams/BOS/2024.html, BOS/2020, BOS/2010, BOS/2000, BOS/1980, BOS/1960
+/teams/LAL/2024.html, LAL/2020, LAL/2010, LAL/2000, LAL/1980, LAL/1960
+/teams/CHI/1996.html (Jordan's Bulls)
+... (teams from different eras)
+```
+
+**Executives (10 pages):**
+
+```
+/executives/{id}/ - 10 notable GMs/executives
+```
+
+**Team Sub-pages (30 pages):**
+
+```
+/teams/{team}/{year}_schedule.html - 10 examples
+/teams/{team}/{year}_gamelog.html - 10 examples
+/teams/{team}/draft.html - 10 franchises
+```
+
+### Phase 4: Historical Leagues (80 pages, 4 hours)
+
+**BAA (12 pages):**
+
+```
+/leagues/BAA_1947.html, 1948, 1949, 1950
+/leagues/BAA_{year}_totals.html - 4 years
+/leagues/BAA_{year}_games.html - 4 years
+```
+
+**ABA (36 pages):**
+
+```
+/leagues/ABA_{year}.html - 10 seasons sampled
+/leagues/ABA_{year}_totals.html - 10 seasons
+/leagues/ABA_{year}_games.html - 10 seasons
+/players/{aba_player}.html - 6 ABA legends
+```
+
+**NBL (10 pages):**
+
+```
+/nbl/players/{id}n.html - 10 NBL players
+```
+
+**Historical (22 pages):**
+
+```
+/leagues/NBA_1950_rookies.html, 1960, 1970, 1980, 1990, 2000
+/leagues/NBA_{year}_standings_by_date.html - 6 examples
+/leagues/NBA_{year}_leaders.html - 10 examples
+```
+
+### Phase 5: Extended League Stats (60 pages, 3 hours)
+
+**Per-Game Stats (12 pages):**
+
+```
+/leagues/NBA_{year}_per_game.html - 12 seasons sampled
+```
+
+**Per-Minute Stats (12 pages):**
+
+```
+/leagues/NBA_{year}_per_minute.html - 12 seasons
+```
+
+**Per-Possession Stats (12 pages):**
+
+```
+/leagues/NBA_{year}_per_poss.html - 12 seasons
+```
+
+**Shooting Stats (12 pages):**
+
+```
+/leagues/NBA_{year}_shooting.html - 12 seasons
+```
+
+**Adjusted Shooting (12 pages):**
+
+```
+/leagues/NBA_{year}_adj_shooting.html - 12 seasons
+```
+
+### Phase 6: Player Sub-Pages (120 pages, 6 hours)
+
+**Splits (20 pages):**
+
+```
+/players/{id}/splits/{year} - 20 players/seasons
+```
+
+**Shooting (20 pages):**
+
+```
+/players/{id}/shooting/{year} - 20 players/seasons
+```
+
+**Advanced (20 pages):**
+
+```
+/players/{id}/advanced/{year} - 20 players/seasons
+```
+
+**Per-Minute (20 pages):**
+
+```
+/players/{id}/per_minute/{year} - 20 players/seasons
+```
+
+**Per-Possession (20 pages):**
+
+```
+/players/{id}/per_poss/{year} - 20 players/seasons
+```
+
+**Playoffs (20 pages):**
+
+```
+/players/{id}/playoffs/{year} - 20 players/seasons
+```
+
+---
+
+## Total Fixture Count: ~543 Pages
+
+
+| Phase               | Page Types                       | Count    | Scrape Time  |
+| ------------------- | -------------------------------- | -------- | ------------ |
+| 1. Critical         | Standings + 2018 totals          | 8        | 30 min       |
+| 2. Existing         | Current 12 types                 | 180      | 9 hrs        |
+| 3. New Core         | Coaches, draft, awards, playoffs | 200      | 10 hrs       |
+| 4. Historical       | BAA, ABA, NBL                    | 80       | 4 hrs        |
+| 5. Extended Stats   | Per-game, per-poss, shooting     | 60       | 3 hrs        |
+| 6. Player Sub-pages | Splits, shooting, advanced       | 120      | 6 hrs        |
+| **Total**           | **50+ types**                    | **~648** | **32.5 hrs** |
+
+
+**With development time (scraper, parsers, tests): 80-120 hours**
+
+---
+
+## Architecture
 
 ```mermaid
 flowchart TB
-    subgraph Sources
-        scraper[Scraper Service]
-        csv1[CSV Dataset 1]
-        csv2[CSV Dataset 2]
-        csv3[CSV Dataset 3]
-        sqlite[SQLite DB]
+    subgraph research [Research Phase - COMPLETED]
+        tavily[Tavily Crawl]
+        perplexity[Perplexity Research]
+        exa[Exa Search]
+        browser[Browser Inspect]
     end
     
-    subgraph Staging
-        staging_players[staging_players]
-        staging_games[staging_games]
-        staging_stats[staging_stats]
+    subgraph design [Design Phase]
+        catalog[Page Type Catalog]
+        validators[HTML Validators]
+        scraper[Scraper Architecture]
     end
     
-    subgraph Validation
-        type_check[pg_input_is_valid]
-        constraint_check[Business Rules]
-        dedup[Deduplication]
+    subgraph implement [Implementation Phase]
+        parsers[40+ New Parsers]
+        tests[Test Suite Creation]
+        fixtures[Fixture Generation]
     end
     
-    subgraph Production
-        players[(player)]
-        games[(game)]
-        box_scores[(box_score)]
-        stats[(player_season)]
+    subgraph execute [Execution Phase]
+        phase1[Phase 1: Critical]
+        phase2[Phase 2: Existing]
+        phase3[Phase 3: New Core]
+        phase4[Phase 4: Historical]
+        phase5[Phase 5: Extended]
+        phase6[Phase 6: Player Sub]
     end
     
-    csv1 --> |COPY| staging_players
-    csv2 --> |COPY| staging_stats
-    csv3 --> |COPY| staging_games
-    sqlite --> |pgloader| staging_games
-    scraper --> |Direct| Production
+    research --> design
+    design --> implement
+    implement --> execute
     
-    staging_players --> type_check
-    staging_games --> type_check
-    staging_stats --> type_check
+    phase1 --> phase2
+    phase2 --> phase3
+    phase3 --> phase4
+    phase4 --> phase5
+    phase5 --> phase6
     
-    type_check --> constraint_check
-    constraint_check --> dedup
-    dedup --> Production
+    execute -->|Checkpoint After Each| resume[Resume Support]
 ```
 
-### 2.3 CSV Import Implementation
+
+
+---
+
+## Implementation Strategy
+
+### Scraper Design (Chaos Engineering Principles)
+
+**Core Requirements:**
+
+1. **Resilience**: Handle 429/403 gracefully, exponential backoff
+2. **Checkpointing**: Save progress every 10 pages, resume from checkpoint
+3. **Validation**: Verify HTML structure matches expected elements
+4. **Rate Limiting**: 3-5 second random delays, respect robots.txt
+5. **Monitoring**: Log success/failure rates, response times, error patterns
+6. **Graceful Degradation**: Continue on single page failures, report at end
+
+**Script:** `scripts/rescrape_fixtures_comprehensive.py`
 
 ```python
-# Recommended approach using psycopg2 copy_from (fastest)
-async def bulk_import_csv(filepath: Path, staging_table: str) -> int:
-    """Import CSV to staging table using COPY protocol."""
-    async with async_session_factory() as session:
-        conn = await session.connection()
-        raw_conn = await conn.get_raw_connection()
+class ComprehensiveScraper:
+    """
+    Chaos-engineered scraper for basketball-reference.com.
+    
+    Features:
+    - Automatic retry with exponential backoff
+    - Checkpoint/resume support
+    - HTML validation per page type
+    - Progress tracking and reporting
+    - Rate limit enforcement
+    - Error categorization (network, rate-limit, structure)
+    """
+    
+    def __init__(self, checkpoint_file="scraper_checkpoint.json"):
+        self.rate_limiter = RateLimiter(min_seconds=3.5, max_seconds=5.0)
+        self.session = requests.Session()
+        self.checkpoint = self.load_checkpoint(checkpoint_file)
+        self.validators = self.load_validators()
         
-        with open(filepath, 'r') as f:
-            # Skip header
-            next(f)
-            await raw_conn.copy_from(
-                f, staging_table, sep=',', null='',
-                columns=['col1', 'col2', ...]  # Map CSV columns
-            )
-        
-        # Run validation queries
-        await session.execute(text("""
-            UPDATE staging_players 
-            SET validation_errors = jsonb_build_object(
-                'birthdate', CASE WHEN NOT pg_input_is_valid(birthdate, 'date') 
-                             THEN 'Invalid date format' END,
-                'height', CASE WHEN NOT pg_input_is_valid(height, 'numeric') 
-                          THEN 'Invalid number' END
-            )
-            WHERE NOT pg_input_is_valid(birthdate, 'date')
-               OR NOT pg_input_is_valid(height, 'numeric')
-        """))
-        
-        # Migrate valid rows
-        await session.execute(text("""
-            INSERT INTO player (slug, first_name, last_name, birth_date, height_inches)
-            SELECT 
-                lower(last_name) || substring(first_name, 1, 2) || '01',
-                first_name, last_name, 
-                birthdate::date, height::numeric
-            FROM staging_players
-            WHERE validation_errors IS NULL OR validation_errors = '{}'
-            ON CONFLICT (slug) DO UPDATE SET ...
-        """))
+    def scrape_batch(self, batch_name, url_manifest):
+        """Scrape a batch of URLs with checkpointing."""
+        for url, fixture_path, validator_key in url_manifest:
+            if self.checkpoint.is_completed(url):
+                continue  # Skip already scraped
+                
+            success = self.scrape_with_retry(url, fixture_path, validator_key)
+            self.checkpoint.record(url, success)
+            
+            if self.checkpoint.should_save():
+                self.checkpoint.save()
 ```
 
-### 2.4 SQLite Migration Strategy
+### New Parser Implementation Pattern
 
-```bash
-# Using pgloader for SQLite -> PostgreSQL
-pgloader sqlite:///raw-data/database/sqlite/nba.sqlite \
-         postgresql://user:pass@localhost/nba \
-         --with "data only" \
-         --cast "type text to varchar"
+**For each new page type, create:**
+
+1. `src/html/{page_type}.py` - HTML wrapper classes
+2. `src/parsers/{page_type}.py` - Data extraction logic
+3. `tests/unit/html/test_{page_type}.py` - Unit tests
+4. `tests/integration/html/test_{page_type}.py` - Integration tests
+5. `tests/integration/files/{page_type}/` - Fixture directory
+
+**Example: Coach Pages**
+
+```python
+# src/html/coach.py
+class CoachPage:
+    """Wrapper for coach profile page."""
+    
+    def __init__(self, html):
+        self.html = html
+        
+    @property
+    def coaching_record_table(self):
+        """Extract coaching record table."""
+        tables = self.html.xpath('//table[@id="coaching_record"]')
+        return CoachingRecordTable(tables[0]) if tables else None
+
+# src/parsers/coach.py
+class CoachParser:
+    """Parse coach page data."""
+    
+    def parse(self, page: CoachPage) -> dict:
+        """Extract coach info and record."""
+        return {
+            'name': self._parse_name(page),
+            'seasons': self._parse_seasons(page),
+            'wins': self._parse_wins(page),
+            'losses': self._parse_losses(page),
+            'championships': self._parse_championships(page),
+        }
 ```
 
-### 2.5 API Enhancements
+### HTML Validation Rules (Per Page Type)
 
-Add these query parameters:
-
-| Endpoint | New Parameters |
-
-|----------|---------------|
-
-| `/api/v1/players` | `season`, `team`, `position`, `isActive` |
-
-| `/api/v1/players/{id}/stats` | `seasonType` (regular/playoff), `perMode` (totals/per_game) |
-
-| `/api/v1/games` | `startDate`, `endDate`, `isPlayoff`, `team` |
-
-| `/api/v1/standings` | `date` (point-in-time standings) |
-
-### 2.6 UI Pages (MVP Scope)
-
-| Page | Data Source | Priority |
-
-|------|-------------|----------|
-
-| Player Profile | `player` + `player_career_stats` view | P0 |
-
-| Player Season Log | `player_box_score` | P0 |
-
-| Team Roster | `player` + current roster | P0 |
-
-| Game Box Score | `game` + `box_score` + `player_box_score` | P0 |
-
-| Season Schedule | `game` filtered by season | P0 |
-
-| Standings | `team_season` aggregated | P0 |
-
-| League Leaders | `player_season` ranked | P1 |
-
-| Player Comparison | `player_career_stats` multiple | P1 |
-
----
-
-## Phase 3: Execution Order
-
-### Step 1: Seed Data Infrastructure
-
-1. Create staging tables migration
-2. Implement CSV import service with COPY protocol
-3. Map each raw-data CSV to target tables
-4. Run pgloader for SQLite database
-5. Validate and migrate to production tables
-
-### Step 2: Materialized Views
-
-1. Create `player_career_stats` materialized view
-2. Create `team_season_standings` materialized view
-3. Add refresh triggers/scheduled jobs
-
-### Step 3: API Extensions
-
-1. Add query parameter support to existing endpoints
-2. Implement pagination with cursor-based approach
-3. Add `/api/v1/players/{id}/career` endpoint using materialized view
-
-### Step 4: UI Implementation
-
-1. Enhance existing game detail page
-2. Build player profile page with career stats
-3. Build standings page with live data
-4. Add season/team filtering UI components
-
----
-
-## Phase 4: Quality & Iteration
-
-### Data Validation Checklist
-
-- [ ] All 6,700 players imported with valid slugs
-- [ ] All seasons (1946-2026) have schedule data
-- [ ] Player stats totals match across CSV sources
-- [ ] No orphaned foreign keys (player_box_score -> player)
-- [ ] Materialized views refresh < 30 seconds
-
-### Performance Targets
-
-- Player career lookup: < 50ms (using materialized view)
-- Season schedule query: < 100ms
-- Game box score: < 200ms
-- Full text player search: < 100ms (existing Meilisearch)
-
----
-
-## Key Files/Locations
-
-| Purpose | Location |
-
-|---------|----------|
-
-| Strategic docs | `docs/strategy/` (new) |
-
-| Implementation specs | `docs/specs/` (new) |
-
-| Schema reference | `docs/reference/schema.md` (new) |
-
-| API reference | `docs/reference/api.md` (new) |
-
-| Raw seed data | `raw-data/` (existing) |
-
-| DB migrations | `webapp/backend/alembic/versions/` |
-
-| Ingestion services | `webapp/backend/app/ingestion/` |
-
-| API endpoints | `webapp/backend/app/api/v1/endpoints/` |
-
-| Frontend pages | `webapp/frontend/app/` |
-
----
-
-## Mermaid: Complete Data Flow
-
-```mermaid
-flowchart LR
-    subgraph DataSources["Data Sources"]
-        scraper[Scraper Service]
-        csv[CSV Files<br/>47 files]
-        sqlite[SQLite DB<br/>nba.sqlite]
-    end
-    
-    subgraph Ingestion["Ingestion Layer"]
-        staging[Staging Tables<br/>UNLOGGED]
-        validator[Validation<br/>pg_input_is_valid]
-        mapper[Entity Mappers]
-    end
-    
-    subgraph Storage["PostgreSQL"]
-        core[Core Tables<br/>player, game, team]
-        stats[Stats Tables<br/>box_score, player_season]
-        views[Materialized Views<br/>career_stats]
-    end
-    
-    subgraph API["FastAPI"]
-        rest[REST Endpoints<br/>/api/v1/*]
-        celery[Celery Tasks<br/>refresh views]
-    end
-    
-    subgraph UI["Next.js 15"]
-        pages[React Server Components]
-        search[Meilisearch]
-    end
-    
-    scraper --> mapper
-    csv -->|COPY| staging
-    sqlite -->|pgloader| staging
-    staging --> validator
-    validator --> mapper
-    mapper --> core
-    mapper --> stats
-    core --> views
-    stats --> views
-    
-    core --> rest
-    stats --> rest
-    views --> rest
-    rest --> pages
-    core --> search
-    search --> pages
+```python
+VALIDATION_RULES = {
+    'coach': {
+        'required_ids': ['coaching_record'],
+        'required_xpath': '//table[@id="coaching_record"]//tbody/tr',
+        'min_rows': 1,
+    },
+    'draft': {
+        'required_ids': ['draft_stats'],
+        'required_xpath': '//table[@id="draft_stats"]//tbody/tr',
+        'min_rows': 30,  # At least 30 picks
+    },
+    'awards_mvp': {
+        'required_ids': ['mvp_NBA'],
+        'required_xpath': '//table[@id="mvp_NBA"]//tbody/tr',
+        'min_rows': 50,  # 50+ years of MVPs
+    },
+    'playoff_series': {
+        'required_text': ['Game 1', 'Game 2'],
+        'required_tables': 2,  # Both teams' stats
+    },
+    'team_season': {
+        'required_ids': ['roster', 'team_and_opponent'],
+        'required_xpath': '//table[@id="roster"]//tbody/tr',
+        'min_rows': 10,  # At least 10 players
+    },
+    # ... (validators for all 50+ page types)
+}
 ```
+
+---
+
+## Test Creation Strategy
+
+### Test File Structure
+
+```
+tests/
+├── unit/
+│   ├── html/
+│   │   ├── test_coach_page.py (NEW)
+│   │   ├── test_draft_page.py (NEW)
+│   │   ├── test_awards_page.py (NEW)
+│   │   ├── test_playoff_series_page.py (NEW)
+│   │   ├── test_team_season_page.py (NEW)
+│   │   └── ... (35+ new test files)
+│   └── parsers/
+│       ├── test_coach_parser.py (NEW)
+│       ├── test_draft_parser.py (NEW)
+│       └── ... (35+ new parser tests)
+├── integration/
+│   ├── html/
+│   │   ├── test_coach_page_integration.py (NEW)
+│   │   └── ... (40+ new integration tests)
+│   ├── client/
+│   │   ├── test_coaches.py (NEW)
+│   │   ├── test_draft.py (NEW)
+│   │   ├── test_awards.py (NEW)
+│   │   └── ... (new client tests)
+│   └── files/
+│       ├── coaches/ (NEW - 15 HTML files)
+│       ├── draft/ (NEW - 30 HTML files)
+│       ├── awards/ (NEW - 25 HTML files)
+│       ├── playoffs/ (NEW - 30 HTML files)
+│       ├── allstar/ (NEW - 20 HTML files)
+│       ├── leaders/ (NEW - 20 HTML files)
+│       ├── team_seasons/ (NEW - 30 HTML files)
+│       ├── executives/ (NEW - 10 HTML files)
+│       └── ... (restructured existing directories)
+└── end to end/
+    └── cassettes/ (update for new page types)
+```
+
+---
+
+## Timeline & Milestones
+
+### Week 1: Foundation (20 hours)
+
+- Day 1-2: Archive old fixtures, fix conftest.py typo, scrape Phase 1 critical
+- Day 3-4: Build comprehensive scraper framework with chaos engineering
+- Day 5: Scrape Phase 2 (existing types historical coverage)
+
+### Week 2: Core Expansion (25 hours)
+
+- Day 6-7: Implement parsers for coaches, draft, awards (15 new page types)
+- Day 8-9: Scrape Phase 3 (new core page types)
+- Day 10: Create test files for new page types
+
+### Week 3: Historical & Extended (20 hours)
+
+- Day 11-12: Implement BAA/ABA/NBL parsers
+- Day 13: Scrape Phase 4 (historical leagues)
+- Day 14-15: Scrape Phase 5 (extended stats variants)
+
+### Week 4: Player Sub-Pages & Validation (25 hours)
+
+- Day 16-17: Implement player sub-page parsers (splits, shooting, etc.)
+- Day 18: Scrape Phase 6 (player sub-pages)
+- Day 19: Validate all 543+ fixtures
+- Day 20: Run comprehensive test suite, fix failures
+
+### Week 5: Polish & Documentation (10 hours)
+
+- Day 21: Update all test mockers
+- Day 22: Write documentation (fixtures.md, maintenance guide)
+- Day 23-24: Final validation, CI/CD updates
+- Day 25: Release
+
+**Total**: ~100 hours over 25 work days
+
+---
+
+## Risk Mitigation (Chaos Engineering)
+
+### Failure Scenarios & Responses
+
+1. **Rate Limiting (HTTP 429)**
+  - Detection: Monitor 429 response codes
+  - Response: Exponential backoff (10s, 30s, 60s, 300s)
+  - Recovery: Resume from checkpoint after cooldown
+2. **IP Blocking (HTTP 403)**
+  - Detection: Consecutive 403s on valid URLs
+  - Response: Immediate halt, save checkpoint
+  - Recovery: Manual intervention or proxy rotation
+3. **Page Structure Changes**
+  - Detection: Validator fails on fresh scrape
+  - Response: Save with `.unvalidated` suffix
+  - Recovery: Manual inspection + validator update
+4. **Network Failures**
+  - Detection: Connection timeouts, DNS errors
+  - Response: Retry 3 times with exponential backoff
+  - Recovery: Continue to next URL after max retries
+5. **Incomplete Historical Data**
+  - Detection: 404 on historical URLs
+  - Response: Log missing page, continue
+  - Recovery: Accept gaps in historical coverage
+6. **Disk Space Exhaustion**
+  - Detection: Monitor disk space before each write
+  - Response: Halt if <1GB free space
+  - Recovery: Clear cache, resume
+
+### Monitoring Dashboard
+
+```python
+scraper_metrics = {
+    'total_pages': 543,
+    'completed': 0,
+    'failed': 0,
+    'skipped': 0,
+    'rate_limit_hits': 0,
+    'avg_response_time_ms': 0,
+    'errors_by_type': {},
+    'validation_failures': 0,
+    'estimated_time_remaining': '32 hours',
+}
+```
+
+---
+
+## Success Criteria
+
+1. **Fixture Coverage**: 500+ fixtures across 50+ page types
+2. **Historical Coverage**: BAA (1946-1949), ABA (1967-1976), NBA (1949-2025)
+3. **Test Coverage**: 100% of page types have unit + integration tests
+4. **Test Pass Rate**: 0 failures (down from 20)
+5. **Validation Pass Rate**: 100% of fixtures pass structural validation
+6. **No Rate Violations**: Zero 429/403 responses
+7. **Documentation**: Complete fixture manifest, scraping guide, maintenance procedures
+8. **Reproducibility**: Scraper can be re-run to update fixtures
+
+---
+
+## Deliverables
+
+### Code
+
+- `scripts/rescrape_fixtures_comprehensive.py` (~800 lines)
+- `scripts/validate_fixtures.py` (~300 lines)
+- `src/html/{40+ new page types}.py` (~4000 lines total)
+- `src/parsers/{40+ new parsers}.py` (~4000 lines total)
+- `tests/{150+ new test files}.py` (~15,000 lines total)
+
+### Data
+
+- `tests/integration/files-archive-2026-01-21/` (67MB archived)
+- `tests/integration/files/{50+ directories}/` (~200MB new fixtures)
+- `scraper_checkpoint.json` (progress tracking)
+- `fixture_manifest.json` (URL-to-fixture mapping)
+
+### Documentation
+
+- `docs/fixtures.md` - Complete fixture catalog
+- `docs/scraping-guide.md` - How to re-scrape fixtures
+- `docs/page-types.md` - All page type documentation
+- `tests/integration/files-archive-2026-01-21/README.md` - Archive docs
+
+---
+
+## Open Questions
+
+**None** - Ready to proceed based on comprehensive research findings.
+
+User selected:
+
+- Coverage: Representative (10-15 examples per type)
+- New types: Add ALL page types from sitemap
+- Tests: Full 100% coverage
+- Era: ALL historical periods (BAA, ABA, NBA)
+
