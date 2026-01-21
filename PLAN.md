@@ -3,9 +3,9 @@
 
 ## Executive Summary
 
-Transform test infrastructure from 102 outdated fixtures to 500+ comprehensive fixtures covering 50+ page types across BAA/ABA/NBA history (1946-2025). Implement chaos-engineered scraping infrastructure with resilience, validation, and full test coverage.
+Transform test infrastructure from 102 outdated fixtures to ~433 fixtures covering 50+ page types across BAA/ABA/NBA history (1946-2025). Implement chaos-engineered scraping infrastructure with resilience, validation, and full test coverage.
 
-**Scale**: 102 → 500+ fixtures | 12 → 50+ page types | 20 failures → 0 failures
+**Scale**: 102 -> 433 fixtures | 12 -> 50+ page types | remaining issues: missing fixtures tracked in Phase 2 closure
 
 **Time Estimate**: 80-120 hours across multiple work sessions
 
@@ -124,7 +124,9 @@ Transform test infrastructure from 102 outdated fixtures to 500+ comprehensive f
 
 ---
 
-## Complete URL Manifest (500+ Pages)
+## Complete URL Manifest (Current: ~433 Pages)
+
+Source of truth: `src/scraper/scripts/fixture_manifest.json`
 
 ### Phase 1: Critical Fixes (8 pages, 30 min)
 
@@ -145,7 +147,7 @@ tests/end to end/conftest.py:16 - request parameter
 /leagues/NBA_2018_totals.html → players_season_totals/2018.html (data drift fix)
 ```
 
-### Phase 2: Existing Types - Historical Coverage (180 pages, 9 hours)
+### Phase 2: Existing Types - Historical Coverage (163 pages, 9 hours)
 
 **Season Totals (30 pages):** BAA (4) + ABA (9) + NBA (17 sampled years)
 
@@ -168,6 +170,8 @@ tests/end to end/conftest.py:16 - request parameter
 /leagues/NBA_2001_games-{month}.html - All 9 months
 /leagues/NBA_2018_games-{month}.html - All 9 months
 ```
+
+Note: monthly schedules can be sparse; use a lighter validator (`schedule_month`), and use `schedule_early` for early seasons with fewer rows.
 
 **Box Scores (25 pages):** Representative games across eras
 
@@ -207,7 +211,42 @@ tests/end to end/conftest.py:16 - request parameter
 /search/search.fcgi?search={term} - Various terms
 ```
 
-### Phase 3: New Page Types - Core Additions (200 pages, 10 hours)
+Note: some queries resolve to direct player pages (e.g., lebron). Validate those with `player_profile`.
+
+**Phase 2 Closure Checklist (Missing Fixtures)**
+
+Missing files to re-scrape or replace:
+
+- `tests/integration/files/standings/1950.html`
+- `tests/integration/files/boxscores/201606190CLE.html`
+- `tests/integration/files/boxscores/202006060LAL.html`
+- `tests/integration/files/boxscores/202106200MIL.html`
+- `tests/integration/files/boxscores/202206160GSW.html`
+- `tests/integration/files/play_by_play/199606160CHI.html`
+- `tests/integration/files/play_by_play/201606190CLE.html`
+- `tests/integration/files/play_by_play/202006060LAL.html`
+- `tests/integration/files/play_by_play/202106200MIL.html`
+- `tests/integration/files/play_by_play/202206160GSW.html`
+- `tests/integration/files/players/onealsh01.html`
+- `tests/integration/files/players/duranke01.html`
+- `tests/integration/files/players/antetgi01.html`
+- `tests/integration/files/players/johnear01.html`
+- `tests/integration/files/players/mikange01.html`
+- `tests/integration/files/players/edwardan01.html`
+- `tests/integration/files/boxscores/shot_chart/202306120DEN.html`
+- `tests/integration/files/boxscores/shot_chart/202406170BOS.html`
+- `tests/integration/files/boxscores/plus_minus/202306120DEN.html`
+- `tests/integration/files/boxscores/plus_minus/202406170BOS.html`
+
+Re-scrape procedure (PowerShell):
+
+```
+$env:PYTHONPATH='.'
+uv run python -m src.scraper.scripts.scrape_fixtures.main --phase 2_existing_types --concurrency 1 --retry-failures --no-skip-existing
+uv run python src/scraper/scripts/validate_fixtures.py --manifest src/scraper/scripts/fixture_manifest.json --phase 2_existing_types
+```
+
+### Phase 3: New Page Types - Core Additions (130 pages, 10 hours)
 
 **Coaches (15 pages):**
 
@@ -293,7 +332,7 @@ tests/end to end/conftest.py:16 - request parameter
 /teams/{team}/draft.html - 10 franchises
 ```
 
-### Phase 4: Historical Leagues (80 pages, 4 hours)
+### Phase 4: Historical Leagues (45 pages, 4 hours)
 
 **BAA (12 pages):**
 
@@ -326,7 +365,7 @@ tests/end to end/conftest.py:16 - request parameter
 /leagues/NBA_{year}_leaders.html - 10 examples
 ```
 
-### Phase 5: Extended League Stats (60 pages, 3 hours)
+### Phase 5: Extended League Stats (44 pages, 3 hours)
 
 **Per-Game Stats (12 pages):**
 
@@ -358,7 +397,7 @@ tests/end to end/conftest.py:16 - request parameter
 /leagues/NBA_{year}_adj_shooting.html - 12 seasons
 ```
 
-### Phase 6: Player Sub-Pages (120 pages, 6 hours)
+### Phase 6: Player Sub-Pages (43 pages, 6 hours)
 
 **Splits (20 pages):**
 
@@ -398,18 +437,18 @@ tests/end to end/conftest.py:16 - request parameter
 
 ---
 
-## Total Fixture Count: ~543 Pages
+## Total Fixture Count: ~433 Pages
 
 
 | Phase               | Page Types                       | Count    | Scrape Time  |
 | ------------------- | -------------------------------- | -------- | ------------ |
 | 1. Critical         | Standings + 2018 totals          | 8        | 30 min       |
-| 2. Existing         | Current 12 types                 | 180      | 9 hrs        |
-| 3. New Core         | Coaches, draft, awards, playoffs | 200      | 10 hrs       |
-| 4. Historical       | BAA, ABA, NBL                    | 80       | 4 hrs        |
-| 5. Extended Stats   | Per-game, per-poss, shooting     | 60       | 3 hrs        |
-| 6. Player Sub-pages | Splits, shooting, advanced       | 120      | 6 hrs        |
-| **Total**           | **50+ types**                    | **~648** | **32.5 hrs** |
+| 2. Existing         | Current 12 types                 | 163      | 9 hrs        |
+| 3. New Core         | Coaches, draft, awards, playoffs | 130      | 10 hrs       |
+| 4. Historical       | BAA, ABA, NBL                    | 45       | 4 hrs        |
+| 5. Extended Stats   | Per-game, per-poss, shooting     | 44       | 3 hrs        |
+| 6. Player Sub-pages | Splits, shooting, advanced       | 43       | 6 hrs        |
+| **Total**           | **50+ types**                    | **~433** | **32.5 hrs** |
 
 
 **With development time (scraper, parsers, tests): 80-120 hours**
@@ -478,7 +517,18 @@ flowchart TB
 5. **Monitoring**: Log success/failure rates, response times, error patterns
 6. **Graceful Degradation**: Continue on single page failures, report at end
 
-**Script:** `scripts/rescrape_fixtures_comprehensive.py`
+**Entry points:**
+
+- `src/scraper/scripts/scrape_fixtures/main.py` (scrape)
+- `src/scraper/scripts/validate_fixtures.py` (validate)
+
+**Example usage (PowerShell):**
+
+```
+$env:PYTHONPATH='.'
+uv run python -m src.scraper.scripts.scrape_fixtures.main --phase 2_existing_types --concurrency 1
+uv run python src/scraper/scripts/validate_fixtures.py --manifest src/scraper/scripts/fixture_manifest.json --phase 2_existing_types
+```
 
 ```python
 class ComprehensiveScraper:
@@ -555,6 +605,8 @@ class CoachParser:
 ```
 
 ### HTML Validation Rules (Per Page Type)
+
+Validation rules must account for comment-wrapped tables (Sports Reference often embeds tables inside HTML comments) and updated table ids. Use `advanced`, `per_game_stats`, and `player_game_log_*` where applicable, and historical standings often use `divs_standings*`. For empty-day pages (daily leaders/boxscores), validate headers/breadcrumbs rather than row counts.
 
 ```python
 VALIDATION_RULES = {
@@ -697,12 +749,16 @@ tests/
   - Detection: Monitor disk space before each write
   - Response: Halt if <1GB free space
   - Recovery: Clear cache, resume
+7. **Redirects or Gated Pages (Stathead)**
+  - Detection: Title/canonical mismatch (e.g., players index or Stathead landing)
+  - Response: Mark as invalid and update manifest/validator
+  - Recovery: Replace with a stable alternate URL
 
 ### Monitoring Dashboard
 
 ```python
 scraper_metrics = {
-    'total_pages': 543,
+    'total_pages': 433,
     'completed': 0,
     'failed': 0,
     'skipped': 0,
@@ -718,11 +774,11 @@ scraper_metrics = {
 
 ## Success Criteria
 
-1. **Fixture Coverage**: 500+ fixtures across 50+ page types
+1. **Fixture Coverage**: 433 fixtures across 50+ page types (current manifest; expand to 500+ if scope grows)
 2. **Historical Coverage**: BAA (1946-1949), ABA (1967-1976), NBA (1949-2025)
 3. **Test Coverage**: 100% of page types have unit + integration tests
 4. **Test Pass Rate**: 0 failures (down from 20)
-5. **Validation Pass Rate**: 100% of fixtures pass structural validation
+5. **Validation Pass Rate**: 100% of fixtures pass structural validation after missing fixtures are resolved
 6. **No Rate Violations**: Zero 429/403 responses
 7. **Documentation**: Complete fixture manifest, scraping guide, maintenance procedures
 8. **Reproducibility**: Scraper can be re-run to update fixtures
@@ -733,8 +789,8 @@ scraper_metrics = {
 
 ### Code
 
-- `scripts/rescrape_fixtures_comprehensive.py` (~800 lines)
-- `scripts/validate_fixtures.py` (~300 lines)
+- `src/scraper/scripts/scrape_fixtures/main.py` (scrape entry point)
+- `src/scraper/scripts/validate_fixtures.py`
 - `src/html/{40+ new page types}.py` (~4000 lines total)
 - `src/parsers/{40+ new parsers}.py` (~4000 lines total)
 - `tests/{150+ new test files}.py` (~15,000 lines total)

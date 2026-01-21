@@ -289,6 +289,8 @@ See [`PLAN.md`](PLAN.md) for the active roadmap, milestones, and implementation 
 
 - **Scraper Details:** `src/scraper/AGENTS.md`
 - **Testing Strategy:** `tests/AGENTS.md`
-- **Webapp Architecture:** `src/webapp/README.md`
-- **API Reference:** `docs/reference/`
-- **Specifications:** `docs/specs/`
+- **Webapp Details:** `src/webapp/AGENTS.md`
+- **Webapp Overview:** `src/webapp/README.md`
+- **API Reference:** `docs/reference/api.md`, `docs/reference/schema.md`
+- **Specifications:** `docs/specs/implementation.md`
+- **Strategy:** `docs/strategy/blueprint.md`
