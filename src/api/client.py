@@ -13,7 +13,6 @@ Usage:
 import requests
 
 from src.common.errors import InvalidDate, InvalidPlayerAndSeason, InvalidSeason
-from src.services.http import HTTPService
 from src.output.columns import (
     BOX_SCORE_COLUMN_NAMES,
     PLAY_BY_PLAY_COLUMN_NAMES,
@@ -34,6 +33,7 @@ from src.output.writers import (
     OutputOptions,
     SearchCSVWriter,
 )
+from src.services.http import HTTPService
 from src.services.parsing import ParserService
 
 
@@ -69,7 +69,7 @@ def standings(
         values = http_service.standings(season_end_year=season_end_year)
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidSeason(season_end_year=season_end_year)
+            raise InvalidSeason(season_end_year=season_end_year) from None
         else:
             raise http_error
     options = OutputOptions.of(
@@ -124,7 +124,7 @@ def player_box_scores(
         values = http_service.player_box_scores(day=day, month=month, year=year)
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidDate(day=day, month=month, year=year)
+            raise InvalidDate(day=day, month=month, year=year) from None
         else:
             raise http_error
 
@@ -179,7 +179,7 @@ def regular_season_player_box_scores(
         ):
             raise InvalidPlayerAndSeason(
                 player_identifier=player_identifier, season_end_year=season_end_year
-            )
+            ) from None
         else:
             raise http_error
     options = OutputOptions.of(
@@ -231,7 +231,7 @@ def playoff_player_box_scores(
         ):
             raise InvalidPlayerAndSeason(
                 player_identifier=player_identifier, season_end_year=season_end_year
-            )
+            ) from None
         else:
             raise http_error
 
@@ -273,7 +273,7 @@ def season_schedule(
     except requests.exceptions.HTTPError as http_error:
         # https://github.com/requests/requests/blob/master/requests/status_codes.py#L58
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidSeason(season_end_year=season_end_year)
+            raise InvalidSeason(season_end_year=season_end_year) from None
         else:
             raise http_error
     options = OutputOptions.of(
@@ -313,7 +313,7 @@ def players_season_totals(
         values = http_service.players_season_totals(season_end_year=season_end_year)
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidSeason(season_end_year=season_end_year)
+            raise InvalidSeason(season_end_year=season_end_year) from None
         else:
             raise http_error
     options = OutputOptions.of(
@@ -357,7 +357,7 @@ def players_advanced_season_totals(
         )
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidSeason(season_end_year=season_end_year)
+            raise InvalidSeason(season_end_year=season_end_year) from None
         else:
             raise http_error
     options = OutputOptions.of(
@@ -400,7 +400,7 @@ def team_box_scores(
         values = http_service.team_box_scores(day=day, month=month, year=year)
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidDate(day=day, month=month, year=year)
+            raise InvalidDate(day=day, month=month, year=year) from None
         else:
             raise http_error
     options = OutputOptions.of(
@@ -448,7 +448,7 @@ def play_by_play(
         )
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidDate(day=day, month=month, year=year)
+            raise InvalidDate(day=day, month=month, year=year) from None
         else:
             raise http_error
     options = OutputOptions.of(
