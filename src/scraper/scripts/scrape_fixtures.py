@@ -209,7 +209,9 @@ class CircuitBreaker:
         self.last_failure_time = time.monotonic()
         if self.failure_count >= self.failure_threshold:
             self.state = "OPEN"
-            logger.warning(f"Circuit breaker OPENED after {self.failure_count} failures")
+            logger.warning(
+                f"Circuit breaker OPENED after {self.failure_count} failures"
+            )
 
     def record_success(self) -> None:
         self.failure_count = 0
@@ -250,7 +252,9 @@ class AsyncComprehensiveScraper:
         self.circuit_breaker = CircuitBreaker()
         self._last_request_time = 0.0
 
-    async def fetch(self, url: str, session: requests.AsyncSession) -> requests.Response:
+    async def fetch(
+        self, url: str, session: requests.AsyncSession
+    ) -> requests.Response:
         if not self.circuit_breaker.can_proceed():
             raise RuntimeError("circuit_breaker_open")
 
@@ -458,7 +462,7 @@ async def async_main(argv: Iterable[str]) -> int:
     finally:
         checkpoint.save()
         duration = time.monotonic() - start_time
-        logger.info(f"Scrape finished in {duration/60:.1f} minutes")
+        logger.info(f"Scrape finished in {duration / 60:.1f} minutes")
 
     return 0
 
