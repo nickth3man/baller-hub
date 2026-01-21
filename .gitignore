@@ -48,3 +48,4 @@ raw-data/misc-csv/csv_3/play_by_play.csv
 tests/.cache/
 webapp/.cache/
 /prompts
+/.github/agents
