@@ -10,7 +10,7 @@ class TestHTTPService(TestCase):
     def test_player_box_scores_raises_invalid_date_for_300_response(self):
         service = HTTPService(parser=mock.MagicMock())
         response = mock.Mock(status_code=codes.multiple_choices)
-        
+
         with mock.patch.object(service, '_fetch', return_value=response):
             self.assertRaisesRegex(
                 InvalidDate,

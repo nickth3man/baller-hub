@@ -32,7 +32,7 @@ class StandingsMocker:
         @functools.wraps(callable)
         def inner(*args, **kwargs):
             html_files_directory = os.path.join(self._schedules_directory, str(self._season_end_year))
-            
+
             # Create a single mock context for all files
             with requests_mock.Mocker() as m:
                 for file in os.listdir(os.fsencode(html_files_directory)):
@@ -41,16 +41,18 @@ class StandingsMocker:
                         raise ValueError(
                             f"Unexpected prefix for {filename}. Expected all files in {html_files_directory} to end with .html.")
 
-                    with open(os.path.join(html_files_directory, filename), encoding="utf-8") as file_input:
+                    filepath = os.path.join(html_files_directory, filename)
+                    with open(filepath, encoding="utf-8") as file_input:
+                        file_content = file_input.read()
                         # Mock the standings URL (NBA_YEAR.html, not NBA_YEAR_games.html)
                         if filename.startswith(str(self._season_end_year)):
                             key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
-                            m.get(key, text=file_input.read(), status_code=200)
+                            m.get(key, text=file_content, status_code=200)
                         else:
                             # Mock schedule URLs for monthly files
                             key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}_games-{filename}"
-                            m.get(key, text=file_input.read(), status_code=200)
-                
+                            m.get(key, text=file_content, status_code=200)
+
                 # Execute the test within the mock context
                 return callable(*args, **kwargs)
 
