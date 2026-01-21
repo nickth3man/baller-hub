@@ -7,8 +7,8 @@ from lxml import html
 
 from src.scraper.common.data import TEAM_ABBREVIATIONS_TO_TEAMS, Team
 from src.scraper.html.coach import CoachPage
+from src.scraper.parsers.base import TeamAbbreviationParser
 from src.scraper.parsers.coach import CoachParser
-from src.scraper.parsers.team_abbreviations import TeamAbbreviationParser
 
 
 class TestCoachIntegration(TestCase):
@@ -37,7 +37,7 @@ class TestCoachIntegration(TestCase):
         """Test parsing Phil Jackson's page."""
         page = self._get_page("jacksph01c.html")
         result = self.parser.parse(page)
-        
+
         self.assertEqual(result["name"], "Phil Jackson")
         # Find 1995-96 Bulls season
         bulls_72 = next(r for r in result["record"] if r["season"] == "1995-96")
@@ -49,7 +49,7 @@ class TestCoachIntegration(TestCase):
         """Test parsing Gregg Popovich's page."""
         page = self._get_page("popovgr01c.html")
         result = self.parser.parse(page)
-        
+
         self.assertEqual(result["name"], "Gregg Popovich")
         # Popovich has coached for many seasons
         self.assertTrue(len(result["record"]) > 20)

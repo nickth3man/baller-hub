@@ -95,7 +95,7 @@ class TestCareerLeadersPage(TestCase):
         from src.scraper.html.leaders import CareerLeadersPage
 
         page = CareerLeadersPage(html=self.html)
-        self.assertIn("stats_table", page.career_table_query)
+        self.assertIn("tot", page.career_table_query)
 
 
 class TestActiveLeadersPage(TestCase):
@@ -110,4 +110,4 @@ class TestActiveLeadersPage(TestCase):
         from src.scraper.html.leaders import ActiveLeadersPage
 
         page = ActiveLeadersPage(html=self.html)
-        self.assertIn("stats_table", page.active_table_query)
+        self.assertIn("active", page.active_table_query)

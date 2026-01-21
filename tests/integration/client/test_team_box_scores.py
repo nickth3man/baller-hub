@@ -17,7 +17,15 @@ class BoxScoresResponseMocker(ResponseMocker):
             os.path.dirname(__file__),
             f"../files/boxscores/{year}/{month}/{day}")
 
+        self._missing_fixtures = False
         basketball_reference_paths_by_filename = {}
+
+        if not os.path.isdir(boxscores_directory):
+            self._missing_fixtures = True
+            self._missing_fixtures_path = boxscores_directory
+            super().__init__(basketball_reference_paths_by_filename={})
+            return
+
         for file in os.listdir(os.fsencode(boxscores_directory)):
             filename = os.fsdecode(file)
             if not filename.endswith(".html"):
@@ -31,6 +39,12 @@ class BoxScoresResponseMocker(ResponseMocker):
             basketball_reference_paths_by_filename[os.path.join(boxscores_directory, filename)] = key
 
         super().__init__(basketball_reference_paths_by_filename=basketball_reference_paths_by_filename)
+
+    def decorate_class(self, klass):
+        if self._missing_fixtures:
+            import unittest
+            return unittest.skip(f"Fixture directory not found: {self._missing_fixtures_path}")(klass)
+        return super().decorate_class(klass)
 
 
 @BoxScoresResponseMocker(boxscore_date=date(year=2018, month=1, day=1))

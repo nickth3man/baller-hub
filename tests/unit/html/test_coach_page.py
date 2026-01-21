@@ -1,7 +1,7 @@
 """Unit tests for CoachPage HTML wrapper."""
 
 from unittest import TestCase
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock
 
 
 class TestCoachPage(TestCase):
@@ -31,8 +31,7 @@ class TestCoachPage(TestCase):
         expected = '//h1[@itemprop="name"]/span'
         self.assertEqual(CoachPage(html=self.html).name_query, expected)
 
-    @patch.object(MagicMock, "xpath")
-    def test_coaching_record_table_returns_table_when_found(self, mock_xpath):
+    def test_coaching_record_table_returns_table_when_found(self):
         """Test that coaching record table is returned when found."""
         from src.scraper.html.coach import CoachPage
 
@@ -43,8 +42,7 @@ class TestCoachPage(TestCase):
         result = page.coaching_record_table
         self.assertIsNotNone(result)
 
-    @patch.object(MagicMock, "xpath")
-    def test_coaching_record_table_returns_none_when_not_found(self, mock_xpath):
+    def test_coaching_record_table_returns_none_when_not_found(self):
         """Test that None is returned when coaching record table not found."""
         from src.scraper.html.coach import CoachPage
 

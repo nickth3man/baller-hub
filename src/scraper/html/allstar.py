@@ -107,11 +107,11 @@ class AllStarPlayerRow:
         return './/td[@data-stat="ast"]'
 
     @property
-    def starter_query(self) -> str:
+    def starter_query(self) -> str | None:
         """XPath query for starter status."""
         # Starters are usually the first 5 rows and not marked with specific data-stat
-        # But we can check if they have a 'span' or specific class if applicable
-        return None
+        # Basketball Reference marks starters with data-stat="reason" containing "starter"
+        return './/td[@data-stat="reason"]'
 
     @property
     def player_name(self) -> str | None:
