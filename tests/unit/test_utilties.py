@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from src.utils.casting import str_to_float, str_to_int
-from src.utils.dictionaries import merge_two_dicts
+from src.scraper.utils.casting import str_to_float, str_to_int
+from src.scraper.utils.dictionaries import merge_two_dicts
 
 
 class TestStrToInt(TestCase):

@@ -3,9 +3,9 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.common.data import TEAM_ABBREVIATIONS_TO_TEAM, Outcome, Team, TeamTotal
-from src.html import BoxScoresPage
-from src.parsers import TeamAbbreviationParser, TeamTotalsParser
+from src.scraper.common.data import TEAM_ABBREVIATIONS_TO_TEAM, Outcome, Team, TeamTotal
+from src.scraper.html import BoxScoresPage
+from src.scraper.parsers import TeamAbbreviationParser, TeamTotalsParser
 
 
 class TestParseTeams(TestCase):

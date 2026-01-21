@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from src.common.data import Location, Outcome, Position, Team
-from src.output.fields import format_value
+from src.scraper.common.data import Location, Outcome, Position, Team
+from src.scraper.output.fields import format_value
 
 
 class TestRowFormatter(TestCase):

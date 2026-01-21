@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.html import PlayByPlayPage
+from src.scraper.html import PlayByPlayPage
 
 
 class TestPlayByPlayPage(TestCase):

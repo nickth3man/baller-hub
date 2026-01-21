@@ -5,8 +5,8 @@ from unittest import TestCase
 
 import requests_mock
 
-from src.api import client
-from src.common.data import OutputType, OutputWriteOption
+from src.scraper.api import client
+from src.scraper.common.data import OutputType, OutputWriteOption
 
 
 @requests_mock.Mocker()

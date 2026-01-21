@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.html import PlayerContractsRow
+from src.scraper.html import PlayerContractsRow
 
 
 class TestPlayerContractsRow(TestCase):

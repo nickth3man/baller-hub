@@ -2,8 +2,8 @@ from unittest import TestCase, mock
 
 from requests import codes
 
-from src.common.errors import InvalidDate
-from src.services.http import HTTPService
+from src.scraper.common.errors import InvalidDate
+from src.scraper.services.http import HTTPService
 
 
 class TestHTTPService(TestCase):

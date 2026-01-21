@@ -13,7 +13,7 @@ def vcr_config():
 
 
 @pytest.fixture(autouse=True)
-def speed_up_tests(_request):
+def speed_up_tests(request):
     """
     Patch time.sleep to do nothing unless we are in recording mode.
     """
@@ -28,6 +28,7 @@ def speed_up_tests(_request):
     # Users should set env var CI_RECORD=1 if they need real sleeps.
     import os
 
+    _ = request
     if not os.getenv("CI_RECORD"):
         with patch("time.sleep"):
             yield

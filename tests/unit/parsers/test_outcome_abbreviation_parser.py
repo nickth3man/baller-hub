@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from src.common.data import OUTCOME_ABBREVIATIONS_TO_OUTCOME, Outcome
-from src.parsers import OutcomeAbbreviationParser
+from src.scraper.common.data import OUTCOME_ABBREVIATIONS_TO_OUTCOME, Outcome
+from src.scraper.parsers import OutcomeAbbreviationParser
 
 
 class TestOutcomeAbbreviationParser(TestCase):

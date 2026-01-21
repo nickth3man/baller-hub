@@ -4,15 +4,15 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.common.data import (
+from src.scraper.common.data import (
     LOCATION_ABBREVIATIONS_TO_POSITION,
     OUTCOME_ABBREVIATIONS_TO_OUTCOME,
     TEAM_ABBREVIATIONS_TO_TEAM,
     Outcome,
     Team,
 )
-from src.html import DailyLeadersPage
-from src.parsers import (
+from src.scraper.html import DailyLeadersPage
+from src.scraper.parsers import (
     LocationAbbreviationParser,
     OutcomeAbbreviationParser,
     PlayerBoxScoresParser,

@@ -3,14 +3,14 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.common.data import (
+from src.scraper.common.data import (
     POSITION_ABBREVIATIONS_TO_POSITION,
     TEAM_ABBREVIATIONS_TO_TEAM,
     Position,
     Team,
 )
-from src.html import PlayerSeasonTotalTable
-from src.parsers import (
+from src.scraper.html import PlayerSeasonTotalTable
+from src.scraper.parsers import (
     PlayerSeasonTotalsParser,
     PositionAbbreviationParser,
     TeamAbbreviationParser,

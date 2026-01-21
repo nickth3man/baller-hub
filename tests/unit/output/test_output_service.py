@@ -1,8 +1,8 @@
 from unittest import TestCase, mock
 
-from src.common.data import OutputType, OutputWriteOption
-from src.output.service import OutputService
-from src.output.writers import FileOptions, OutputOptions
+from src.scraper.common.data import OutputType, OutputWriteOption
+from src.scraper.output.service import OutputService
+from src.scraper.output.writers import FileOptions, OutputOptions
 
 
 class TestOutput(TestCase):

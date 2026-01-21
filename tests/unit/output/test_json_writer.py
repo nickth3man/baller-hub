@@ -1,7 +1,7 @@
 from unittest import TestCase, mock
 
-from src.common.data import OutputWriteOption
-from src.output.writers import JSONWriter
+from src.scraper.common.data import OutputWriteOption
+from src.scraper.output.writers import JSONWriter
 
 
 class TestJSONWriter(TestCase):

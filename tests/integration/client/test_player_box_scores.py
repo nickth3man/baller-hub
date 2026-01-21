@@ -5,9 +5,9 @@ from unittest import TestCase
 
 import requests_mock
 
-from src.api.client import player_box_scores
-from src.common.data import OutputType, OutputWriteOption
-from src.common.errors import InvalidDate
+from src.scraper.api.client import player_box_scores
+from src.scraper.common.data import OutputType, OutputWriteOption
+from src.scraper.common.errors import InvalidDate
 
 
 class Test20180101(TestCase):

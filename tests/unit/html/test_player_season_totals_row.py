@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, PropertyMock, patch
 
-from src.html import PlayerSeasonTotalsRow
+from src.scraper.html import PlayerSeasonTotalsRow
 
 
 class TestPlayerSeasonTotalsRow(TestCase):

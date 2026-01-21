@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.output.writers import FileOptions
+from src.scraper.output.writers import FileOptions
 
 
 class TestFileOptions(TestCase):

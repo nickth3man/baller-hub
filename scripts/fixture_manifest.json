@@ -1,0 +1,46 @@
+{
+  "base_url": "https://www.basketball-reference.com",
+  "output_dir": "tests/integration/files",
+  "fixtures": [
+    {
+      "url": "/leagues/NBA_2000.html",
+      "fixture_path": "standings/2000.html",
+      "validator": "standings"
+    },
+    {
+      "url": "/leagues/NBA_2001.html",
+      "fixture_path": "standings/2001.html",
+      "validator": "standings"
+    },
+    {
+      "url": "/leagues/NBA_2002.html",
+      "fixture_path": "standings/2002.html",
+      "validator": "standings"
+    },
+    {
+      "url": "/leagues/NBA_2005.html",
+      "fixture_path": "standings/2005.html",
+      "validator": "standings"
+    },
+    {
+      "url": "/leagues/NBA_2018.html",
+      "fixture_path": "standings/2018.html",
+      "validator": "standings"
+    },
+    {
+      "url": "/leagues/NBA_2019.html",
+      "fixture_path": "standings/2019.html",
+      "validator": "standings"
+    },
+    {
+      "url": "/leagues/NBA_2020.html",
+      "fixture_path": "standings/2020.html",
+      "validator": "standings"
+    },
+    {
+      "url": "/leagues/NBA_2018_totals.html",
+      "fixture_path": "players_season_totals/2018.html",
+      "validator": "players_season_totals"
+    }
+  ]
+}

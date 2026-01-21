@@ -1,7 +1,7 @@
 from unittest import TestCase, mock
 
-from src.common.data import OutputWriteOption
-from src.output.writers import CSVWriter, FileOptions, OutputOptions, OutputType
+from src.scraper.common.data import OutputWriteOption
+from src.scraper.output.writers import CSVWriter, FileOptions, OutputOptions, OutputType
 
 
 class TestCSVWriter(TestCase):

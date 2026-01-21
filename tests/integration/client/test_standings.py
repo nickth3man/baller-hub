@@ -6,8 +6,8 @@ from unittest import TestCase
 
 import requests_mock
 
-from src.api.client import standings
-from src.common.data import Conference, Division, OutputType, OutputWriteOption, Team
+from src.scraper.api.client import standings
+from src.scraper.common.data import Conference, Division, OutputType, OutputWriteOption, Team
 
 
 class StandingsMocker:

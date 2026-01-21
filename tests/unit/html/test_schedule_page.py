@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, PropertyMock, patch
 
-from src.html import SchedulePage, ScheduleRow
+from src.scraper.html import SchedulePage, ScheduleRow
 
 
 class TestSchedulePage(TestCase):

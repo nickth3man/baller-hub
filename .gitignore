@@ -47,3 +47,4 @@ raw-data/misc-csv/csv_3/play_by_play.csv
 # Test cache directories
 tests/.cache/
 webapp/.cache/
+/prompts

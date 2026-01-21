@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from src.html import BasicBoxScoreRow
+from src.scraper.html import BasicBoxScoreRow
 
 
 class TestBasicBoxScoreRow(TestCase):
