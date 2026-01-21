@@ -4,24 +4,25 @@ Provides methods to find-or-create entities by their natural keys,
 handling the foreign key dependencies during data ingestion.
 """
 
+import asyncio
 from datetime import date
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col
-
-from app.models.game import BoxScore, Game, Location, Outcome
-from app.models.player import Player, PlayerBoxScore, PlayerSeason, PlayerSeasonAdvanced
-from app.models.season import League, LeagueType, Season
-from app.models.team import Franchise, Team, TeamSeason
 from src.common.data import (
     TEAM_ABBREVIATIONS_TO_TEAM,
     TEAM_NAME_TO_TEAM,
     TEAM_TO_TEAM_ABBREVIATION,
 )
 
+from app.models.game import BoxScore, Game, Location, Outcome
+from app.models.player import Player, PlayerBoxScore, PlayerSeason, PlayerSeasonAdvanced
+from app.models.season import League, LeagueType, Season
+from app.models.team import Franchise, Team, TeamSeason
+
 # Cache for frequently accessed entities to avoid repeated queries
+_cache_lock = asyncio.Lock()
 _team_cache: dict[str, int] = {}
 _player_cache: dict[str, int] = {}
 _season_cache: dict[int, int] = {}
@@ -29,10 +30,11 @@ _season_cache: dict[int, int] = {}
 
 async def clear_caches():
     """Clear all entity caches. Call at start of new ingestion session."""
-    global _team_cache, _player_cache, _season_cache
-    _team_cache = {}
-    _player_cache = {}
-    _season_cache = {}
+    async with _cache_lock:
+        global _team_cache, _player_cache, _season_cache
+        _team_cache = {}
+        _player_cache = {}
+        _season_cache = {}
 
 
 async def get_or_create_league(session: AsyncSession) -> int:
@@ -64,8 +66,9 @@ async def get_or_create_season(session: AsyncSession, season_end_year: int) -> i
     Returns:
         The season_id.
     """
-    if season_end_year in _season_cache:
-        return _season_cache[season_end_year]
+    async with _cache_lock:
+        if season_end_year in _season_cache:
+            return _season_cache[season_end_year]
 
     query = select(Season).where(Season.year == season_end_year)
     result = await session.execute(query)
@@ -84,7 +87,8 @@ async def get_or_create_season(session: AsyncSession, season_end_year: int) -> i
         session.add(season)
         await session.flush()
 
-    _season_cache[season_end_year] = season.season_id
+    async with _cache_lock:
+        _season_cache[season_end_year] = season.season_id
     return season.season_id
 
 
@@ -115,8 +119,9 @@ async def get_or_create_team(
         team_abbrev = normalized[:3]
         team_name = team_name or abbreviation
 
-    if team_abbrev in _team_cache:
-        return _team_cache[team_abbrev]
+    async with _cache_lock:
+        if team_abbrev in _team_cache:
+            return _team_cache[team_abbrev]
 
     query = select(Team).where(Team.abbreviation == team_abbrev)
     result = await session.execute(query)
@@ -142,7 +147,8 @@ async def get_or_create_team(
         session.add(team)
         await session.flush()
 
-    _team_cache[team_abbrev] = team.team_id
+    async with _cache_lock:
+        _team_cache[team_abbrev] = team.team_id
     return team.team_id
 
 
@@ -161,8 +167,9 @@ async def get_or_create_player(
     Returns:
         The player_id.
     """
-    if slug in _player_cache:
-        return _player_cache[slug]
+    async with _cache_lock:
+        if slug in _player_cache:
+            return _player_cache[slug]
 
     query = select(Player).where(Player.slug == slug)
     result = await session.execute(query)
@@ -189,7 +196,8 @@ async def get_or_create_player(
         session.add(player)
         await session.flush()
 
-    _player_cache[slug] = player.player_id
+    async with _cache_lock:
+        _player_cache[slug] = player.player_id
     return player.player_id
 
 

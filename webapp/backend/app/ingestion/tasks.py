@@ -13,16 +13,15 @@ from uuid import UUID, uuid4
 
 import asyncpg
 import structlog
-from celery import shared_task
 from sqlalchemy import delete, text
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine import make_url
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.common.data import TEAM_TO_TEAM_ABBREVIATION
 
 from app.celery_app import celery_app
 from app.core.config import settings
 from app.db.session import async_session_factory
 from app.ingestion.scraper_service import ScraperService
-from src.common.data import TEAM_TO_TEAM_ABBREVIATION
 
 logger = structlog.get_logger(__name__)
 
@@ -379,6 +378,9 @@ STAGING_TABLES: dict[str, list[str]] = {
     ],
 }
 
+ALLOWED_STAGING_TABLES = frozenset(STAGING_TABLES.keys())
+ALLOWED_COLUMN_TYPES = frozenset({"date", "timestamp", "int", "numeric", "text"})
+
 CSV_SOURCES: dict[str, Path] = {
     "staging_players": Path("raw-data/misc-csv/csv_1/Players.csv"),
     "staging_games": Path("raw-data/misc-csv/csv_1/Games.csv"),
@@ -394,14 +396,10 @@ CSV_SOURCES: dict[str, Path] = {
     "staging_all_star_selections": Path(
         "raw-data/misc-csv/csv_2/All-Star Selections.csv"
     ),
-    "staging_end_season_teams": Path(
-        "raw-data/misc-csv/csv_2/End of Season Teams.csv"
-    ),
+    "staging_end_season_teams": Path("raw-data/misc-csv/csv_2/End of Season Teams.csv"),
     "staging_team_totals": Path("raw-data/misc-csv/csv_2/Team Totals.csv"),
     "staging_team_summaries": Path("raw-data/misc-csv/csv_2/Team Summaries.csv"),
-    "staging_nba_championships": Path(
-        "raw-data/misc-csv/csv_4/nba_championships.csv"
-    ),
+    "staging_nba_championships": Path("raw-data/misc-csv/csv_4/nba_championships.csv"),
     "staging_nba_players": Path("raw-data/misc-csv/csv_4/nba_players.csv"),
 }
 
@@ -432,6 +430,9 @@ async def _copy_csv_to_staging(
     if not csv_path.exists():
         logger.warning("CSV source missing", table=table_name, path=str(csv_path))
         return 0
+
+    if table_name not in ALLOWED_STAGING_TABLES:
+        raise ValueError(f"Invalid staging table: {table_name}")
 
     await conn.execute(f"TRUNCATE TABLE {table_name};")
 
@@ -479,16 +480,22 @@ async def _load_staging_tables(import_batch_id: UUID) -> None:
 
 
 def _validation_sql(table: str, checks: list[tuple[str, str]]) -> str:
+    if table not in ALLOWED_STAGING_TABLES:
+        raise ValueError(f"Invalid table: {table}")
+
     fields = []
     conditions = []
     for column, column_type in checks:
+        if not column.isidentifier():
+            raise ValueError(f"Invalid column name: {column}")
+        if column_type not in ALLOWED_COLUMN_TYPES:
+            raise ValueError(f"Invalid column type: {column_type}")
+
         fields.append(
-            (
-                f"'{column}', "
-                f"CASE WHEN {column} NOT IN ('', 'NA') "
-                f"AND NOT pg_input_is_valid({column}, '{column_type}') "
-                f"THEN 'invalid {column_type}' END"
-            )
+            f"'{column}', "
+            f"CASE WHEN {column} NOT IN ('', 'NA') "
+            f"AND NOT pg_input_is_valid({column}, '{column_type}') "
+            f"THEN 'invalid {column_type}' END"
         )
         conditions.append(
             f"({column} NOT IN ('', 'NA') AND NOT pg_input_is_valid({column}, '{column_type}'))"
@@ -812,7 +819,9 @@ async def _upsert_schedule_games(session: AsyncSession) -> None:
                 if not game_id or not date_time:
                     continue
                 game_ts = date.fromisoformat(date_time.split(" ")[0])
-                season_end_year = game_ts.year + 1 if game_ts.month >= 10 else game_ts.year
+                season_end_year = (
+                    game_ts.year + 1 if game_ts.month >= 10 else game_ts.year
+                )
                 season_id = await get_or_create_season(session, season_end_year)
 
                 await session.execute(
@@ -1743,7 +1752,7 @@ def ingest_csv_datasets(self, include_play_by_play: bool = False):
         run_async(_ingest_csv_datasets_async(include_play_by_play))
     except Exception as exc:
         logger.exception("Failed CSV ingestion")
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 async def _ingest_csv_datasets_async(include_play_by_play: bool) -> None:
@@ -1799,7 +1808,7 @@ def ingest_daily_box_scores(self, target_date: str | None = None):
         logger.info("Completed daily box score ingestion", date=dt.isoformat())
     except Exception as exc:
         logger.exception("Failed to ingest daily box scores", date=dt.isoformat())
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 async def _ingest_daily_box_scores_async(dt: date):
@@ -1817,14 +1826,6 @@ async def _ingest_daily_box_scores_async(dt: date):
         day=dt.day, month=dt.month, year=dt.year
     )
     logger.info("Fetched team box scores", count=len(team_box_scores))
-
-    # TODO: Persist to database
-    # This requires looking up or creating:
-    # 1. Players (by slug)
-    # 2. Teams (by abbreviation)
-    # 3. Games (by date + teams)
-    # 4. BoxScores (team-level)
-    # 5. PlayerBoxScores (player-level)
 
     async with async_session_factory() as session:
         await _persist_box_scores(session, dt, player_box_scores, team_box_scores)
@@ -2028,7 +2029,7 @@ def update_standings(self, season_end_year: int | None = None):
         logger.info("Completed standings update", season_end_year=season_end_year)
     except Exception as exc:
         logger.exception("Failed to update standings")
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 async def _update_standings_async(season_end_year: int):
@@ -2071,7 +2072,7 @@ async def _persist_standings(
     teams_processed = 0
 
     # Standings structure: {"EASTERN": [...], "WESTERN": [...]} or by division
-    for conference_or_division, team_records in standings.items():
+    for _conference_or_division, team_records in standings.items():
         if not isinstance(team_records, list):
             continue
 
@@ -2127,7 +2128,7 @@ def sync_season_data(self, season_end_year: int | None = None):
         logger.info("Completed full season sync", season_end_year=season_end_year)
     except Exception as exc:
         logger.exception("Failed full season sync")
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 async def _sync_season_data_async(season_end_year: int):
@@ -2184,7 +2185,6 @@ async def _persist_season_data(
         _extract_player_slug,
         map_player_advanced_totals,
         map_player_season_totals,
-        map_schedule_game,
     )
     from app.ingestion.repositories import (
         clear_caches,
@@ -2245,6 +2245,7 @@ async def _persist_season_data(
 
     # 2. Process player season totals
     players_processed = 0
+
     def _select_player_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
         selected: dict[str, dict[str, Any]] = {}
         for record in records:
@@ -2503,9 +2504,7 @@ async def _ingest_play_by_play_async(home_team: str, day: int, month: int, year:
             season_id=season_id,
         )
 
-        await session.execute(
-            delete(PlayByPlay).where(PlayByPlay.game_id == game_id)
-        )
+        await session.execute(delete(PlayByPlay).where(PlayByPlay.game_id == game_id))
 
         prev_scores: tuple[int | None, int | None] = (None, None)
         for play in plays:
