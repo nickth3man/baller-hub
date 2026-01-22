@@ -108,4 +108,5 @@ webapp/.cache/
 # Test fixtures (HTML files are intentionally untracked)
 tests/integration/files/**/*.html
 !tests/integration/files/**/.gitkeep
-/.antigravityballer.duckdb
+/.antigravity
+baller.duckdb
