@@ -1,43 +1,30 @@
 # src/webapp/backend AGENTS.md
 
-**Context:** FastAPI backend for Baller Hub.
-**Parent:** `../AGENTS.md` (Webapp), `../../AGENTS.md` (Root)
+**Generated:** 2026-01-22
+**Context:** FastAPI backend service.
 
-## STRUCTURE
-```
-backend/
-├── app/
-│   ├── api/v1/      # Routers
-│   ├── core/        # Config (env vars)
-│   ├── db/          # SQLModel session
-│   ├── models/      # Database models
-│   ├── schemas/     # Pydantic DTOs
-│   ├── services/    # Business logic
-│   └── ingestion/   # Scraper integration
-├── tests/           # Backend-specific tests
-└── alembic/         # DB migrations
-```
+## OVERVIEW
+The REST API server for Baller Hub, built with FastAPI. It handles data persistence (PostgreSQL), search (Meilisearch), and serves the frontend.
 
-## COMMANDS
-```bash
-# Dev Server
-uv run uvicorn app.main:app --reload
+## FOLDER STRUCTURE
+- `app/api/v1/`: Versioned API route handlers.
+- `app/core/`: Configuration and environment settings.
+- `app/db/`: Database session management and migrations.
+- `app/models/`: SQLModel (SQLAlchemy + Pydantic) database tables.
+- `app/services/`: Business logic layer isolated from HTTP transport.
+- `tests/`: Backend-specific test suite.
 
-# Database
-uv run alembic upgrade head    # Migrate
-python -m scripts.seed_db      # Seed
-
-# Tests
-uv run pytest tests/
-```
+## CORE BEHAVIORS & PATTERNS
+- **Service Layer**: Business logic resides in `services/`, not in route handlers.
+- **Async Database**: All database interactions use asynchronous sessions.
+- **Dependency Injection**: FastAPI `Depends` is used for service and database access.
 
 ## CONVENTIONS
-- **Imports:** Absolute from `app` (e.g., `from app.models import Player`).
-- **DB Models:** SQLModel with snake_case table names.
-- **API:** Versioned routers (`/api/v1`).
-- **Async:** All DB operations must be async.
+- **Commands**: `uv run uvicorn` (run), `uv run alembic` (db), `uv run ruff check` (lint), `uv run ty check` (type).
+- **Naming**: Snake_case for models and schemas.
+- **Imports**: Absolute imports from `app` (e.g., `from app.core import config`).
 
-## ANTI-PATTERNS
-- Sync DB calls in async routes.
-- Hardcoded secrets (use `.env`).
-- Circular imports in models (use string forward refs).
+## WORKING AGREEMENTS
+- **Secrets**: Never commit secrets. Use `.env` file and `app/core/config.py`.
+- **Migrations**: Always generate a migration when modifying `models/`.
+- **No Sync I/O**: Avoid blocking calls in async route handlers.

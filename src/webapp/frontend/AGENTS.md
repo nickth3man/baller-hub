@@ -1,37 +1,28 @@
 # src/webapp/frontend AGENTS.md
 
-**Context:** Next.js 15 (App Router) Frontend.
-**Parent:** `../AGENTS.md` (Webapp), `../../AGENTS.md` (Root)
+**Generated:** 2026-01-22
+**Context:** Next.js 15 Frontend.
 
-## STRUCTURE
-```
-frontend/
-├── app/             # App Router pages/layouts
-├── components/
-│   ├── ui/          # Generic UI (Button, Card)
-│   ├── stats/       # Domain components
-│   └── layout/      # Nav, Footer
-├── lib/             # Utils, API client
-└── hooks/           # Custom React hooks
-```
+## OVERVIEW
+The user interface for Baller Hub, built with Next.js 15 (App Router). It consumes the backend API and provides a responsive, interactive experience.
 
-## COMMANDS
-```bash
-# Dev
-npm run dev
+## FOLDER STRUCTURE
+- `app/`: Next.js App Router pages, layouts, and route groups.
+- `components/`: React components organized by domain (`stats`, `ui`) or function (`layout`).
+- `lib/`: Utility functions and shared API clients.
+- `hooks/`: Custom React hooks for state and logic reuse.
 
-# Lint/Format
-npm run lint
-npm run format
-```
+## CORE BEHAVIORS & PATTERNS
+- **Server Components**: Used by default for data fetching and layout.
+- **Client Components**: Used only when interactivity (state, effects) is required.
+- **Data Fetching**: TanStack Query is used for client-side data management.
 
 ## CONVENTIONS
-- **Styling:** Tailwind CSS + `clsx`/`tailwind-merge`.
-- **State:** Server Components (default) + TanStack Query (client).
-- **Imports:** `@/*` alias for `src/webapp/frontend/*`.
-- **API:** Proxy requests to backend via Next.js rewrites.
+- **Commands**: `npm run dev` (start), `npm run lint` (lint), `npm run format` (format).
+- **Styling**: Tailwind CSS with `clsx` and `tailwind-merge`.
+- **Naming**: PascalCase for components, camelCase for functions/vars.
 
-## ANTI-PATTERNS
-- `useEffect` for data fetching (use TanStack Query).
-- Client Components where Server Components suffice.
-- Inline styles (use Tailwind).
+## WORKING AGREEMENTS
+- **Component Colocation**: Keep related components close to where they are used if not generic.
+- **Strict Typing**: No `any` types. Define interfaces for all props.
+- **Clean Effects**: Avoid `useEffect` for data fetching; prefer TanStack Query.

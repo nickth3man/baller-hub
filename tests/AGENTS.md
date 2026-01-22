@@ -1,33 +1,27 @@
 # tests AGENTS.md
 
-**Context:** Test suite (Unit, Integration, E2E).
-**Parent:** `../AGENTS.md`
+**Generated:** 2026-01-22
+**Context:** Global Test Suite.
 
-## STRUCTURE
-```
-tests/
-├── unit/            # Isolated logic (fast)
-├── integration/     # Uses HTML fixtures (no network)
-└── end to end/      # Uses VCR cassettes (network/mock)
-```
+## OVERVIEW
+The centralized testing repository for the entire monorepo, covering unit, integration, and end-to-end scenarios.
 
-## COMMANDS
-```bash
-# Unit
-uv run pytest tests/unit/
+## FOLDER STRUCTURE
+- `unit/`: Fast, isolated tests mocking all external dependencies.
+- `integration/`: Tests using frozen HTML fixtures to verify scraping logic without network.
+- `end to end/`: Full system tests using VCR cassettes to record/replay network interactions.
 
-# Integration
-uv run pytest tests/integration/
-
-# E2E
-uv run pytest "tests/end to end/"
-```
+## CORE BEHAVIORS & PATTERNS
+- **Fixture-Based**: Integration tests rely on `tests/integration/files/` (frozen HTML) to ensure determinism.
+- **Network Mocking**: `requests_mock` for integration, `vcrpy` for end-to-end.
+- **Separation**: Tests are separated by type to allow running specific subsets (e.g., only fast unit tests).
 
 ## CONVENTIONS
-- **Fixtures:** `tests/integration/files/` (Frozen HTML).
-- **Network:** Integration = `requests_mock`; E2E = `vcr`.
-- **Modifications:** Never edit fixtures manually; use scraper scripts.
+- **Commands**: `uv run pytest tests/unit`, `uv run pytest tests/integration`, `uv run pytest tests/end\ to\ end`.
+- **Naming**: Test files must start with `test_`.
+- **Markers**: Use pytest markers for slow tests or specific features.
 
-## FILES NEVER TO MODIFY
-- `tests/integration/files/**/*.html`
-- `tests/end to end/cassettes/**/*.yaml`
+## WORKING AGREEMENTS
+- **Immutable Fixtures**: Never manually edit HTML fixtures. Use the scraper scripts to regenerate them.
+- **Cassette Management**: Re-record VCR cassettes only when external API behavior changes.
+- **Coverage**: New features must include corresponding unit tests.
