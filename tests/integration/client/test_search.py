@@ -5,8 +5,8 @@ from unittest import TestCase
 
 import requests_mock
 
-from src.scraper.api import client
 from src.core.domain import OutputType, OutputWriteOption
+from src.scraper.api import client
 
 ARCHIVE_SEARCH_DIR = os.path.join(
     os.path.dirname(__file__),

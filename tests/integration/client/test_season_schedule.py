@@ -7,8 +7,8 @@ from unittest import TestCase
 import pytz
 import requests_mock
 
-from src.scraper.api.client import season_schedule
 from src.core.domain import OutputType, Team
+from src.scraper.api.client import season_schedule
 from tests.integration.client.utilities import SeasonScheduleMocker
 
 

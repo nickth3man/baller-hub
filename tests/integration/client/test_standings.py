@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 import requests_mock
 
-from src.scraper.api.client import standings
 from src.core.domain import (
     Conference,
     Division,
@@ -15,6 +14,7 @@ from src.core.domain import (
     OutputWriteOption,
     Team,
 )
+from src.scraper.api.client import standings
 
 
 class StandingsMocker:

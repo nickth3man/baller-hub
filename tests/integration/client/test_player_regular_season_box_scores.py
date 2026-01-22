@@ -5,8 +5,8 @@ from unittest import TestCase
 
 import requests_mock
 
-from src.scraper.api.client import regular_season_player_box_scores
 from src.core.domain import Outcome, OutputType, Team
+from src.scraper.api.client import regular_season_player_box_scores
 from src.scraper.common.errors import InvalidPlayerAndSeason
 
 

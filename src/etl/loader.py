@@ -8,9 +8,9 @@ def load_dims(con):
 
     con.execute("""
         INSERT INTO dim_teams (bref_id, nba_id, abbreviation)
-        SELECT team AS bref_id, NULL AS nba_id, abbrev AS abbreviation
-        FROM read_csv_auto('raw-data/misc-csv/csv_2/Team Abbrev.csv')
-        GROUP BY team, abbrev
+        SELECT team AS bref_id, NULL AS nba_id, team AS abbreviation
+        FROM read_csv_auto('raw-data/misc-csv/csv_2/Player Play By Play.csv', nullstr='NA')
+        GROUP BY team
         ON CONFLICT DO NOTHING
     """)
 
@@ -27,25 +27,27 @@ def load_facts(con):
         )
         SELECT
             b.bref_id AS player_id,
-            log.tm AS team_id,
-            log.date || '-' || log.tm || '-' || log.opp AS game_id,
-            CAST(log.date AS DATE) AS date,
+            log.team AS team_id,
+            log.season || '-' || log.team || '-' || log.player_id AS game_id,
+            CAST(log.season || '-01-01' AS DATE) AS date,
             log.mp AS minutes_played,
-            CAST(log.fg AS INTEGER) AS made_field_goals,
-            CAST(log.fga AS INTEGER) AS attempted_field_goals,
-            CAST(log."3p" AS INTEGER) AS made_three_point_field_goals,
-            CAST(log."3pa" AS INTEGER) AS attempted_three_point_field_goals,
-            CAST(log.ft AS INTEGER) AS made_free_throws,
-            CAST(log.fta AS INTEGER) AS attempted_free_throws,
-            CAST(log.orb AS INTEGER) AS offensive_rebounds,
-            CAST(log.drb AS INTEGER) AS defensive_rebounds,
-            CAST(log.ast AS INTEGER) AS assists,
-            CAST(log.stl AS INTEGER) AS steals,
-            CAST(log.blk AS INTEGER) AS blocks,
-            CAST(log.tov AS INTEGER) AS turnovers,
-            CAST(log.pf AS INTEGER) AS personal_fouls,
-            CAST(log.pts AS INTEGER) AS points
-        FROM read_csv_auto('raw-data/misc-csv/csv_2/Player Play By Play.csv') log
+            CAST(tot.fg AS INTEGER) AS made_field_goals,
+            CAST(tot.fga AS INTEGER) AS attempted_field_goals,
+            CAST(tot.x3p AS INTEGER) AS made_three_point_field_goals,
+            CAST(tot.x3pa AS INTEGER) AS attempted_three_point_field_goals,
+            CAST(tot.ft AS INTEGER) AS made_free_throws,
+            CAST(tot.fta AS INTEGER) AS attempted_free_throws,
+            CAST(tot.orb AS INTEGER) AS offensive_rebounds,
+            CAST(tot.drb AS INTEGER) AS defensive_rebounds,
+            CAST(tot.ast AS INTEGER) AS assists,
+            CAST(tot.stl AS INTEGER) AS steals,
+            CAST(tot.blk AS INTEGER) AS blocks,
+            CAST(tot.tov AS INTEGER) AS turnovers,
+            CAST(tot.pf AS INTEGER) AS personal_fouls,
+            CAST(tot.pts AS INTEGER) AS points
+        FROM read_csv_auto('raw-data/misc-csv/csv_2/Player Play By Play.csv', nullstr='NA') log
+        JOIN read_csv_auto('raw-data/misc-csv/csv_2/Player Totals.csv', nullstr='NA') tot
+          ON log.player_id = tot.player_id AND log.season = tot.season AND log.team = tot.team
         JOIN bridge_ids b ON log.player = b.name
         ON CONFLICT DO NOTHING
     """)

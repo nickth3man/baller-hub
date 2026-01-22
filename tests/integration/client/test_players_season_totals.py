@@ -5,8 +5,8 @@ from unittest import TestCase
 
 import requests_mock
 
-from src.scraper.api import client
 from src.core.domain import OutputType, Position, Team
+from src.scraper.api import client
 
 
 class BaseCSVOutputTest(TestCase):

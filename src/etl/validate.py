@@ -4,7 +4,7 @@ def validate_etl(con):
     db_count = con.execute("SELECT count(*) FROM fact_player_gamelogs").fetchone()[0]
     csv_count = con.execute("""
         SELECT count(*)
-        FROM read_csv_auto('raw-data/misc-csv/csv_2/Player Play By Play.csv') log
+        FROM read_csv_auto('raw-data/misc-csv/csv_2/Player Play By Play.csv', nullstr='NA') log
         JOIN bridge_ids b ON log.player = b.name
     """).fetchone()[0]
 

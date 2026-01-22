@@ -14,8 +14,8 @@ import structlog
 
 sys.path.insert(0, str(__file__).split("webapp")[0])
 
-from src.scraper.api import client as scraper_client
 from src.core.domain import Team as ScraperTeam
+from src.scraper.api import client as scraper_client
 from src.scraper.common.errors import InvalidDate, InvalidPlayerAndSeason, InvalidSeason
 
 logger = structlog.get_logger(__name__)

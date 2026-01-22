@@ -6,7 +6,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 from sqlalchemy import JSON as JSONType
-from sqlmodel import Field as SQLField, SQLModel
+from sqlmodel import Field as SQLField
+from sqlmodel import SQLModel
 
 
 class Severity(str, Enum):

@@ -447,7 +447,7 @@ class SearchService:
         score = None
         if game.home_score is not None and game.away_score is not None:
             score = f"{game.away_score}-{game.home_score}"
-        matchup = "Game {0}".format(game.game_id)
+        matchup = f"Game {game.game_id}"
         if home_abbrev and away_abbrev:
             matchup = f"{away_abbrev} @ {home_abbrev}"
         return {
