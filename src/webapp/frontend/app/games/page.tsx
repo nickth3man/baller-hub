@@ -1,11 +1,11 @@
-import Link from 'next/link';
-import { getGames } from '@/lib/api';
+import Link from "next/link";
+import { getGames } from "@/lib/api";
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
+  return new Date(date).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
   });
 }
 
@@ -33,18 +33,23 @@ export default async function GamesPage() {
   const sortedDates = Object.keys(gamesByDate).sort().reverse();
 
   return (
-    <div className="max-w-6xl mx-auto py-12 space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8 py-12">
       <header className="text-center">
-        <h1 className="text-5xl font-display uppercase tracking-[0.2em] text-gray-900">
+        <h1 className="font-display text-5xl uppercase tracking-[0.2em] text-gray-900">
           Games
         </h1>
-        <p className="mt-3 text-lg text-gray-500">Recent results and matchups.</p>
+        <p className="mt-3 text-lg text-gray-500">
+          Recent results and matchups.
+        </p>
       </header>
 
       <div className="space-y-6">
         {sortedDates.map((date) => (
-          <div key={date} className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className="px-6 py-4 bg-slate-900 text-white">
+          <div
+            key={date}
+            className="overflow-hidden rounded-2xl bg-white shadow-lg"
+          >
+            <div className="bg-slate-900 px-6 py-4 text-white">
               <h2 className="text-base font-semibold">{formatDate(date)}</h2>
             </div>
             <div className="divide-y divide-gray-100">
@@ -54,7 +59,7 @@ export default async function GamesPage() {
                 const score =
                   game.home_score !== null && game.away_score !== null
                     ? `${game.away_score}-${game.home_score}`
-                    : 'TBD';
+                    : "TBD";
                 return (
                   <Link
                     key={game.game_id}
@@ -72,7 +77,7 @@ export default async function GamesPage() {
           </div>
         ))}
         {sortedDates.length === 0 && (
-          <div className="text-center text-gray-500 text-sm">
+          <div className="text-center text-sm text-gray-500">
             No games available in this range.
           </div>
         )}
