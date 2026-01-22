@@ -4,23 +4,21 @@ These tasks run periodically or on-demand to fetch data from
 basketball-reference.com and persist it to our database.
 """
 
-import asyncio
 import csv
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import UUID
 
-import asyncpg
 import structlog
-from sqlalchemy import delete, text
-from sqlalchemy.engine import make_url
-from sqlalchemy.ext.asyncio import AsyncSession
-from src.scraper.common.data import TEAM_TO_TEAM_ABBREVIATION
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from src.core.domain import TEAM_TO_TEAM_ABBREVIATION
 
 from app.celery_app import celery_app
 from app.core.config import settings
-from app.db.session import async_session_factory
+from app.db.session import session_factory
+from app.ingestion.repositories import get_or_create_season
 from app.ingestion.scraper_service import ScraperService
 
 logger = structlog.get_logger(__name__)
@@ -387,17 +385,32 @@ CSV_SOURCES: dict[str, Path] = {
     "staging_players": DATA_ROOT / "misc-csv" / "csv_1" / "Players.csv",
     "staging_games": DATA_ROOT / "misc-csv" / "csv_1" / "Games.csv",
     "staging_team_histories": DATA_ROOT / "misc-csv" / "csv_1" / "TeamHistories.csv",
-    "staging_player_statistics": DATA_ROOT / "misc-csv" / "csv_1" / "PlayerStatistics.csv",
+    "staging_player_statistics": DATA_ROOT
+    / "misc-csv"
+    / "csv_1"
+    / "PlayerStatistics.csv",
     "staging_team_statistics": DATA_ROOT / "misc-csv" / "csv_1" / "TeamStatistics.csv",
     "staging_player_totals": DATA_ROOT / "misc-csv" / "csv_2" / "Player Totals.csv",
     "staging_player_advanced": DATA_ROOT / "misc-csv" / "csv_2" / "Advanced.csv",
     "staging_player_shooting": DATA_ROOT / "misc-csv" / "csv_2" / "Player Shooting.csv",
-    "staging_draft_pick_history": DATA_ROOT / "misc-csv" / "csv_2" / "Draft Pick History.csv",
-    "staging_all_star_selections": DATA_ROOT / "misc-csv" / "csv_2" / "All-Star Selections.csv",
-    "staging_end_season_teams": DATA_ROOT / "misc-csv" / "csv_2" / "End of Season Teams.csv",
+    "staging_draft_pick_history": DATA_ROOT
+    / "misc-csv"
+    / "csv_2"
+    / "Draft Pick History.csv",
+    "staging_all_star_selections": DATA_ROOT
+    / "misc-csv"
+    / "csv_2"
+    / "All-Star Selections.csv",
+    "staging_end_season_teams": DATA_ROOT
+    / "misc-csv"
+    / "csv_2"
+    / "End of Season Teams.csv",
     "staging_team_totals": DATA_ROOT / "misc-csv" / "csv_2" / "Team Totals.csv",
     "staging_team_summaries": DATA_ROOT / "misc-csv" / "csv_2" / "Team Summaries.csv",
-    "staging_nba_championships": DATA_ROOT / "misc-csv" / "csv_4" / "nba_championships.csv",
+    "staging_nba_championships": DATA_ROOT
+    / "misc-csv"
+    / "csv_4"
+    / "nba_championships.csv",
     "staging_nba_players": DATA_ROOT / "misc-csv" / "csv_4" / "nba_players.csv",
 }
 
@@ -411,183 +424,46 @@ PLAY_BY_PLAY_SOURCE = DATA_ROOT / "misc-csv" / "csv_3" / "play_by_play.csv"
 COPY_BATCH_SIZE = 10_000
 
 
-def _asyncpg_dsn() -> str:
-    url = make_url(settings.database_url)
-    if "+asyncpg" in url.drivername:
-        url = url.set(drivername="postgresql")
-    return url.render_as_string(hide_password=False)
+def _load_staging_tables(session: Session, import_batch_id: UUID) -> None:
+    for table_name in STAGING_TABLES:
+        csv_path = CSV_SOURCES.get(table_name)
+        if not csv_path or not csv_path.exists():
+            continue
 
-
-async def _copy_csv_to_staging(
-    conn: asyncpg.Connection,
-    table_name: str,
-    columns: list[str],
-    csv_path: Path,
-    import_batch_id: UUID,
-) -> int:
-    if not csv_path.exists():
-        logger.warning("CSV source missing", table=table_name, path=str(csv_path))
-        return 0
-
-    if table_name not in ALLOWED_STAGING_TABLES:
-        raise ValueError(f"Invalid staging table: {table_name}")
-
-    await conn.execute(f"TRUNCATE TABLE {table_name};")
-
-    inserted = 0
-    with csv_path.open("r", encoding="utf-8") as file_handle:
-        reader = csv.reader(file_handle)
-        next(reader, None)  # skip header
-        batch: list[tuple[Any, ...]] = []
-        for row in reader:
-            if len(row) == len(columns) + 1 and row[0].strip().isdigit():
-                row = row[1:]
-            batch.append((*row, str(import_batch_id), None))
-            if len(batch) >= COPY_BATCH_SIZE:
-                await conn.copy_records_to_table(
-                    table_name,
-                    records=batch,
-                    columns=[*columns, "import_batch_id", "validation_errors"],
-                )
-                inserted += len(batch)
-                batch = []
-        if batch:
-            await conn.copy_records_to_table(
-                table_name,
-                records=batch,
-                columns=[*columns, "import_batch_id", "validation_errors"],
-            )
-            inserted += len(batch)
-    return inserted
-
-
-async def _load_staging_tables(import_batch_id: UUID) -> None:
-    dsn = _asyncpg_dsn()
-    conn = await asyncpg.connect(dsn)
-    try:
-        for table_name, columns in STAGING_TABLES.items():
-            csv_path = CSV_SOURCES.get(table_name)
-            if not csv_path:
-                continue
-            logger.info("Copying CSV to staging", table=table_name, path=str(csv_path))
-            count = await _copy_csv_to_staging(
-                conn, table_name, columns, csv_path, import_batch_id
-            )
-            logger.info(
-                "Copied CSV to staging",
-                table=table_name,
-                rows=count,
-            )
-    finally:
-        await conn.close()
-
-
-def _validation_sql(table: str, checks: list[tuple[str, str]]) -> str:
-    if table not in ALLOWED_STAGING_TABLES:
-        raise ValueError(f"Invalid table: {table}")
-
-    fields = []
-    conditions = []
-    for column, column_type in checks:
-        if not column.isidentifier():
-            raise ValueError(f"Invalid column name: {column}")
-        if column_type not in ALLOWED_COLUMN_TYPES:
-            raise ValueError(f"Invalid column type: {column_type}")
-
-        fields.append(
-            f"'{column}', "
-            f"CASE WHEN {column} NOT IN ('', 'NA') "
-            f"AND NOT pg_input_is_valid({column}, '{column_type}') "
-            f"THEN 'invalid {column_type}' END"
+        logger.info(
+            "Loading CSV to staging (DuckDB)", table=table_name, path=str(csv_path)
         )
-        conditions.append(
-            f"({column} NOT IN ('', 'NA') AND NOT pg_input_is_valid({column}, '{column_type}'))"
-        )
-    if not conditions:
-        return ""
-    return f"""
-        UPDATE {table}
-        SET validation_errors = jsonb_strip_nulls(jsonb_build_object(
-            {", ".join(fields)}
-        ))
-        WHERE {" OR ".join(conditions)};
-    """
+
+        session.execute(text(f"DELETE FROM {table_name}"))
+        session.execute(text(f"TRUNCATE TABLE {table_name}"))
+
+        sql = f"""
+            INSERT INTO {table_name} 
+            SELECT 
+                *, 
+                '{str(import_batch_id)}' as import_batch_id, 
+                NULL as validation_errors 
+            FROM read_csv('{csv_path.as_posix()}', all_varchar=True, auto_detect=True, header=True)
+        """
+        session.execute(text(sql))
 
 
-async def _validate_staging(session: AsyncSession) -> None:
-    validations: dict[str, list[tuple[str, str]]] = {
-        "staging_players": [
-            ("birthdate", "date"),
-            ("height", "numeric"),
-            ("body_weight", "numeric"),
-            ("draft_year", "int"),
-            ("draft_number", "int"),
-        ],
-        "staging_games": [
-            ("game_date_time_est", "timestamp"),
-            ("home_score", "int"),
-            ("away_score", "int"),
-            ("attendance", "int"),
-        ],
-        "staging_player_statistics": [
-            ("num_minutes", "numeric"),
-            ("points", "int"),
-            ("assists", "int"),
-            ("blocks", "int"),
-            ("steals", "int"),
-        ],
-        "staging_team_statistics": [
-            ("num_minutes", "numeric"),
-            ("team_score", "int"),
-            ("opponent_score", "int"),
-        ],
-        "staging_player_totals": [
-            ("season", "int"),
-            ("g", "int"),
-            ("mp", "int"),
-            ("fg", "int"),
-            ("fga", "int"),
-        ],
-        "staging_player_advanced": [
-            ("season", "int"),
-            ("g", "int"),
-            ("mp", "int"),
-        ],
-        "staging_player_shooting": [
-            ("season", "int"),
-            ("g", "int"),
-            ("mp", "int"),
-        ],
-        "staging_team_totals": [
-            ("season", "int"),
-            ("g", "int"),
-            ("pts", "int"),
-        ],
-        "staging_team_summaries": [
-            ("season", "int"),
-            ("w", "int"),
-            ("l", "int"),
-        ],
-    }
-
-    for table, checks in validations.items():
-        sql = _validation_sql(table, checks)
-        if sql:
-            await session.execute(text(sql))
+def _validate_staging(session: Session) -> None:
+    pass
 
 
-async def _upsert_franchises(session: AsyncSession) -> None:
-    await session.execute(
+def _upsert_franchises(session: Session) -> None:
+    session.execute(
         text(
             """
             INSERT INTO franchise (name, founded_year, defunct_year, city)
             SELECT DISTINCT
                 concat_ws(' ', team_city, team_name) AS name,
-                NULLIF(season_founded, '')::int AS founded_year,
-                NULLIF(season_active_till, '')::int AS defunct_year,
+                TRY_CAST(NULLIF(season_founded, '') AS int) AS founded_year,
+                TRY_CAST(NULLIF(season_active_till, '') AS int) AS defunct_year,
                 NULLIF(team_city, '') AS city
             FROM staging_team_histories
-            WHERE (validation_errors IS NULL OR validation_errors = '{}'::jsonb)
+            WHERE (validation_errors IS NULL)
               AND NULLIF(team_city, '') IS NOT NULL
               AND NULLIF(team_name, '') IS NOT NULL
               AND NOT EXISTS (
@@ -600,27 +476,27 @@ async def _upsert_franchises(session: AsyncSession) -> None:
     )
 
 
-async def _upsert_teams(session: AsyncSession) -> None:
-    await session.execute(
+def _upsert_teams(session: Session) -> None:
+    session.execute(
         text(
             """
             WITH latest_by_team AS (
-                SELECT DISTINCT ON (NULLIF(team_id, '')::int)
-                    NULLIF(team_id, '')::int AS team_id,
+                SELECT DISTINCT ON (TRY_CAST(NULLIF(team_id, '') AS int))
+                    TRY_CAST(NULLIF(team_id, '') AS int) AS team_id,
                     team_name,
-                    btrim(team_abbrev) AS team_abbrev,
-                    NULLIF(season_founded, '')::int AS founded_year,
-                    NULLIF(season_active_till, '')::int AS defunct_year,
+                    trim(team_abbrev) AS team_abbrev,
+                    TRY_CAST(NULLIF(season_founded, '') AS int) AS founded_year,
+                    TRY_CAST(NULLIF(season_active_till, '') AS int) AS defunct_year,
                     f.franchise_id,
                     CASE
                         WHEN NULLIF(season_active_till, '') IS NULL THEN true
-                        WHEN NULLIF(season_active_till, '')::int
+                        WHEN TRY_CAST(NULLIF(season_active_till, '') AS int)
                             >= EXTRACT(YEAR FROM CURRENT_DATE)::int THEN true
                         ELSE false
                     END AS is_active,
                     CASE
                         WHEN NULLIF(season_active_till, '') IS NULL THEN false
-                        WHEN NULLIF(season_active_till, '')::int
+                        WHEN TRY_CAST(NULLIF(season_active_till, '') AS int)
                             >= EXTRACT(YEAR FROM CURRENT_DATE)::int THEN false
                         ELSE true
                     END AS is_defunct,
@@ -628,17 +504,17 @@ async def _upsert_teams(session: AsyncSession) -> None:
                 FROM staging_team_histories sth
                 JOIN franchise f
                   ON f.name = concat_ws(' ', sth.team_city, sth.team_name)
-                WHERE (validation_errors IS NULL OR validation_errors = '{}'::jsonb)
+                WHERE (validation_errors IS NULL)
                   AND NULLIF(team_id, '') IS NOT NULL
-                  AND NULLIF(btrim(team_abbrev), '') IS NOT NULL
+                  AND NULLIF(trim(team_abbrev), '') IS NOT NULL
                   AND NULLIF(team_city, '') IS NOT NULL
                   AND NULLIF(team_name, '') IS NOT NULL
                   AND team_city <> 'All-Star'
                   AND league IN ('NBA', 'BAA', 'ABA', 'NBL')
                 ORDER BY
-                    NULLIF(team_id, '')::int,
-                    NULLIF(season_active_till, '')::int DESC,
-                    NULLIF(season_founded, '')::int DESC
+                    TRY_CAST(NULLIF(team_id, '') AS int),
+                    TRY_CAST(NULLIF(season_active_till, '') AS int) DESC,
+                    TRY_CAST(NULLIF(season_founded, '') AS int) DESC
             ),
             latest_by_abbrev AS (
                 SELECT DISTINCT ON (team_abbrev)
@@ -691,175 +567,33 @@ async def _upsert_teams(session: AsyncSession) -> None:
             """
         )
     )
-    await session.execute(
-        text(
-            """
-            WITH game_teams AS (
-                SELECT
-                    NULLIF(hometeam_id, '')::int AS team_id,
-                    NULLIF(hometeam_city, '') AS team_city,
-                    NULLIF(hometeam_name, '') AS team_name,
-                    NULLIF(game_date_time_est, '')::timestamp AS game_date
-                FROM staging_games
-                WHERE NULLIF(hometeam_id, '') IS NOT NULL
-                UNION ALL
-                SELECT
-                    NULLIF(awayteam_id, '')::int AS team_id,
-                    NULLIF(awayteam_city, '') AS team_city,
-                    NULLIF(awayteam_name, '') AS team_name,
-                    NULLIF(game_date_time_est, '')::timestamp AS game_date
-                FROM staging_games
-                WHERE NULLIF(awayteam_id, '') IS NOT NULL
-            ),
-            missing_game_teams AS (
-                SELECT DISTINCT ON (team_id)
-                    team_id,
-                    team_city,
-                    team_name,
-                    MIN(EXTRACT(YEAR FROM game_date)) OVER (
-                        PARTITION BY team_id
-                    )::int AS founded_year
-                FROM game_teams
-                WHERE team_id IS NOT NULL
-                ORDER BY team_id, game_date
-            ),
-            missing_filtered AS (
-                SELECT m.*
-                FROM missing_game_teams m
-                WHERE NOT EXISTS (
-                    SELECT 1
-                    FROM team t
-                    WHERE t.team_id = m.team_id
-                )
-            )
-            INSERT INTO franchise (name, founded_year, defunct_year, city)
-            SELECT DISTINCT
-                concat_ws(' ', m.team_city, m.team_name) AS name,
-                m.founded_year,
-                NULL::int AS defunct_year,
-                m.team_city
-            FROM missing_filtered m
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM franchise f
-                WHERE f.name = concat_ws(' ', m.team_city, m.team_name)
-            );
-            """
-        )
-    )
-    await session.execute(
-        text(
-            """
-            WITH missing_game_teams AS (
-                SELECT DISTINCT ON (team_id)
-                    team_id,
-                    team_city,
-                    team_name,
-                    MIN(EXTRACT(YEAR FROM game_date)) OVER (
-                        PARTITION BY team_id
-                    )::int AS founded_year
-                FROM (
-                    SELECT
-                        NULLIF(hometeam_id, '')::int AS team_id,
-                        NULLIF(hometeam_city, '') AS team_city,
-                        NULLIF(hometeam_name, '') AS team_name,
-                        NULLIF(game_date_time_est, '')::timestamp AS game_date
-                    FROM staging_games
-                    WHERE NULLIF(hometeam_id, '') IS NOT NULL
-                    UNION ALL
-                    SELECT
-                        NULLIF(awayteam_id, '')::int AS team_id,
-                        NULLIF(awayteam_city, '') AS team_city,
-                        NULLIF(awayteam_name, '') AS team_name,
-                        NULLIF(game_date_time_est, '')::timestamp AS game_date
-                    FROM staging_games
-                    WHERE NULLIF(awayteam_id, '') IS NOT NULL
-                ) game_teams
-                WHERE team_id IS NOT NULL
-                ORDER BY team_id, game_date
-            ),
-            missing_filtered AS (
-                SELECT m.*
-                FROM missing_game_teams m
-                WHERE NOT EXISTS (
-                    SELECT 1
-                    FROM team t
-                    WHERE t.team_id = m.team_id
-                )
-            )
-            INSERT INTO team (
-                team_id,
-                name,
-                abbreviation,
-                founded_year,
-                defunct_year,
-                franchise_id,
-                is_active,
-                is_defunct,
-                city
-            )
-            SELECT
-                m.team_id,
-                m.team_name,
-                'X' || lpad(
-                    substring(
-                        regexp_replace(
-                            COALESCE(NULLIF(m.team_name, ''), NULLIF(m.team_city, ''), 'X'),
-                            '[^A-Za-z]',
-                            '',
-                            'g'
-                        ),
-                        1,
-                        2
-                    ),
-                    2,
-                    'X'
-                ) AS abbreviation,
-                m.founded_year,
-                NULL::int AS defunct_year,
-                f.franchise_id,
-                false AS is_active,
-                true AS is_defunct,
-                m.team_city
-            FROM missing_filtered m
-            JOIN franchise f
-              ON f.name = concat_ws(' ', m.team_city, m.team_name)
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM team t
-                WHERE t.team_id = m.team_id
-            )
-            ON CONFLICT (team_id) DO NOTHING;
-            """
-        )
-    )
 
 
-async def _upsert_players(session: AsyncSession) -> None:
-    await session.execute(
+def _upsert_players(session: Session) -> None:
+    session.execute(
         text(
             """
             WITH player_source AS (
                 SELECT
-                    NULLIF(person_id, '')::int AS player_id,
+                    TRY_CAST(NULLIF(person_id, '') AS int) AS player_id,
                     first_name,
                     last_name,
-                    NULLIF(birthdate, '')::date AS birth_date,
+                    TRY_CAST(NULLIF(birthdate, '') AS date) AS birth_date,
                     NULLIF(country, '') AS birth_place_country,
-                    NULLIF(height, '')::numeric AS height_inches,
-                    NULLIF(body_weight, '')::int AS weight_lbs,
+                    TRY_CAST(NULLIF(height, '') AS numeric) AS height_inches,
+                    TRY_CAST(NULLIF(body_weight, '') AS int) AS weight_lbs,
                     CASE
                         WHEN guard IN ('1', 'true', 'TRUE') THEN 'GUARD'
                         WHEN forward IN ('1', 'true', 'TRUE') THEN 'FORWARD'
                         WHEN center IN ('1', 'true', 'TRUE') THEN 'CENTER'
                         ELSE NULL
-                    END::player_position AS position,
-                    NULLIF(draft_year, '')::int AS draft_year,
-                    NULLIF(draft_number, '')::int AS draft_pick,
+                    END AS position,
+                    TRY_CAST(NULLIF(draft_year, '') AS int) AS draft_year,
+                    TRY_CAST(NULLIF(draft_number, '') AS int) AS draft_pick,
                     lower(COALESCE(last_name, '')) AS last_name_lower,
                     lower(COALESCE(first_name, '')) AS first_name_lower
                 FROM staging_players
-                WHERE (validation_errors IS NULL OR validation_errors = '{}'::jsonb)
+                WHERE (validation_errors IS NULL)
                   AND NULLIF(person_id, '') IS NOT NULL
             ),
             player_slugs AS (
@@ -911,7 +645,7 @@ async def _upsert_players(session: AsyncSession) -> None:
                 birth_place_country,
                 height_inches,
                 weight_lbs,
-                position,
+                CAST(position AS player_position),
                 draft_year,
                 draft_pick,
                 true AS is_active
@@ -933,16 +667,16 @@ async def _upsert_players(session: AsyncSession) -> None:
     )
 
 
-async def _upsert_seasons_from_games(session: AsyncSession) -> int:
+def _upsert_seasons_from_games(session: Session) -> int:
     from app.ingestion.repositories import get_or_create_league
 
-    league_id = await get_or_create_league(session)
-    result = await session.execute(
+    league_id = get_or_create_league(session)
+    result = session.execute(
         text(
             """
             WITH game_dates AS (
                 SELECT DISTINCT
-                    NULLIF(game_date_time_est, '')::timestamp AS game_ts
+                    TRY_CAST(NULLIF(game_date_time_est, '') AS timestamp) AS game_ts
                 FROM staging_games
                 WHERE NULLIF(game_date_time_est, '') IS NOT NULL
             ),
@@ -983,8 +717,8 @@ async def _upsert_seasons_from_games(session: AsyncSession) -> int:
     return len(result.fetchall())
 
 
-async def _upsert_games(session: AsyncSession) -> None:
-    await session.execute(
+def _upsert_games(session: Session) -> None:
+    session.execute(
         text(
             """
             INSERT INTO game (
@@ -1001,28 +735,28 @@ async def _upsert_games(session: AsyncSession) -> None:
                 arena
             )
             SELECT
-                NULLIF(game_id, '')::int AS game_id,
+                TRY_CAST(NULLIF(game_id, '') AS int) AS game_id,
                 se.season_id,
-                (NULLIF(game_date_time_est, '')::timestamp)::date AS game_date,
-                (NULLIF(game_date_time_est, '')::timestamp)::time AS game_time,
-                NULLIF(hometeam_id, '')::int AS home_team_id,
-                NULLIF(awayteam_id, '')::int AS away_team_id,
-                NULLIF(home_score, '')::int AS home_score,
-                NULLIF(away_score, '')::int AS away_score,
+                (TRY_CAST(NULLIF(game_date_time_est, '') AS timestamp))::date AS game_date,
+                (TRY_CAST(NULLIF(game_date_time_est, '') AS timestamp))::time AS game_time,
+                TRY_CAST(NULLIF(hometeam_id, '') AS int) AS home_team_id,
+                TRY_CAST(NULLIF(awayteam_id, '') AS int) AS away_team_id,
+                TRY_CAST(NULLIF(home_score, '') AS int) AS home_score,
+                TRY_CAST(NULLIF(away_score, '') AS int) AS away_score,
                 CASE
                     WHEN game_type ILIKE '%playoff%' THEN 'PLAYOFF'
                     ELSE 'REGULAR'
                 END AS season_type,
-                NULLIF(attendance, '')::int AS attendance,
+                TRY_CAST(NULLIF(attendance, '') AS int) AS attendance,
                 NULLIF(arena_id, '') AS arena
             FROM staging_games sg
             JOIN season se
               ON se.year = CASE
-                  WHEN EXTRACT(MONTH FROM sg.game_date_time_est::timestamp) >= 10
-                      THEN EXTRACT(YEAR FROM sg.game_date_time_est::timestamp)::int + 1
-                  ELSE EXTRACT(YEAR FROM sg.game_date_time_est::timestamp)::int
+                  WHEN EXTRACT(MONTH FROM TRY_CAST(sg.game_date_time_est AS timestamp)) >= 10
+                      THEN EXTRACT(YEAR FROM TRY_CAST(sg.game_date_time_est AS timestamp))::int + 1
+                  ELSE EXTRACT(YEAR FROM TRY_CAST(sg.game_date_time_est AS timestamp))::int
               END
-            WHERE (validation_errors IS NULL OR validation_errors = '{}'::jsonb)
+            WHERE (validation_errors IS NULL)
               AND NULLIF(game_id, '') IS NOT NULL
             ON CONFLICT (game_id) DO UPDATE SET
                 game_date = EXCLUDED.game_date,
@@ -1039,12 +773,12 @@ async def _upsert_games(session: AsyncSession) -> None:
     )
 
 
-async def _upsert_schedule_games(session: AsyncSession) -> None:
+def _upsert_schedule_games(session: Session) -> None:
     from app.ingestion.repositories import get_or_create_season
 
     existing_team_ids = {
         row[0]
-        for row in (await session.execute(text("SELECT team_id FROM team"))).all()
+        for row in (session.execute(text("SELECT team_id FROM team"))).all()
         if row[0] is not None
     }
     missing_schedule_team_ids: set[int] = set()
@@ -1090,12 +824,12 @@ async def _upsert_schedule_games(session: AsyncSession) -> None:
                 season_end_year = (
                     game_ts.year + 1 if game_ts.month >= 10 else game_ts.year
                 )
-                season_id = await get_or_create_season(session, season_end_year)
+                season_id = get_or_create_season(session, season_end_year)
                 game_time_value = parsed_dt.time()
                 if game_time_value.tzinfo is not None:
                     game_time_value = game_time_value.replace(tzinfo=None)
 
-                await session.execute(
+                session.execute(
                     text(
                         """
                         INSERT INTO game (
@@ -1143,8 +877,8 @@ async def _upsert_schedule_games(session: AsyncSession) -> None:
         )
 
 
-async def _upsert_box_scores(session: AsyncSession) -> None:
-    await session.execute(
+def _upsert_box_scores(session: Session) -> None:
+    session.execute(
         text(
             """
             INSERT INTO box_score (
@@ -1176,81 +910,81 @@ async def _upsert_box_scores(session: AsyncSession) -> None:
                 quarter_scores
             )
             SELECT
-                NULLIF(game_id, '')::int AS game_id,
-                NULLIF(team_id, '')::int AS team_id,
-                NULLIF(opponent_team_id, '')::int AS opponent_team_id,
-                CASE WHEN home = '1' THEN 'HOME' ELSE 'AWAY' END::location AS location,
-                CASE WHEN win = '1' THEN 'WIN' ELSE 'LOSS' END::outcome AS outcome,
-                ROUND(NULLIF(num_minutes, '')::numeric * 60) AS seconds_played,
-                COALESCE(NULLIF(field_goals_made, '')::numeric, 0)::int AS made_fg,
-                COALESCE(NULLIF(field_goals_attempted, '')::numeric, 0)::int AS attempted_fg,
-                COALESCE(NULLIF(three_pointers_made, '')::numeric, 0)::int AS made_3pt,
-                COALESCE(NULLIF(three_pointers_attempted, '')::numeric, 0)::int AS attempted_3pt,
-                COALESCE(NULLIF(free_throws_made, '')::numeric, 0)::int AS made_ft,
-                COALESCE(NULLIF(free_throws_attempted, '')::numeric, 0)::int AS attempted_ft,
-                COALESCE(NULLIF(rebounds_offensive, '')::numeric, 0)::int AS offensive_rebounds,
-                COALESCE(NULLIF(rebounds_defensive, '')::numeric, 0)::int AS defensive_rebounds,
-                NULLIF(rebounds_total, '')::numeric::int AS total_rebounds,
-                COALESCE(NULLIF(assists, '')::numeric, 0)::int AS assists,
-                COALESCE(NULLIF(steals, '')::numeric, 0)::int AS steals,
-                COALESCE(NULLIF(blocks, '')::numeric, 0)::int AS blocks,
-                COALESCE(NULLIF(turnovers, '')::numeric, 0)::int AS turnovers,
-                COALESCE(NULLIF(fouls_personal, '')::numeric, 0)::int AS personal_fouls,
-                COALESCE(NULLIF(team_score, '')::numeric, 0)::int AS points_scored,
-                NULLIF(plus_minus_points, '')::numeric::int AS plus_minus,
+                TRY_CAST(NULLIF(game_id, '') AS int) AS game_id,
+                TRY_CAST(NULLIF(team_id, '') AS int) AS team_id,
+                TRY_CAST(NULLIF(opponent_team_id, '') AS int) AS opponent_team_id,
+                CAST(CASE WHEN home = '1' THEN 'HOME' ELSE 'AWAY' END AS location) AS location,
+                CAST(CASE WHEN win = '1' THEN 'WIN' ELSE 'LOSS' END AS outcome) AS outcome,
+                ROUND(TRY_CAST(NULLIF(num_minutes, '') AS numeric) * 60) AS seconds_played,
+                COALESCE(TRY_CAST(NULLIF(field_goals_made, '') AS numeric), 0)::int AS made_fg,
+                COALESCE(TRY_CAST(NULLIF(field_goals_attempted, '') AS numeric), 0)::int AS attempted_fg,
+                COALESCE(TRY_CAST(NULLIF(three_pointers_made, '') AS numeric), 0)::int AS made_3pt,
+                COALESCE(TRY_CAST(NULLIF(three_pointers_attempted, '') AS numeric), 0)::int AS attempted_3pt,
+                COALESCE(TRY_CAST(NULLIF(free_throws_made, '') AS numeric), 0)::int AS made_ft,
+                COALESCE(TRY_CAST(NULLIF(free_throws_attempted, '') AS numeric), 0)::int AS attempted_ft,
+                COALESCE(TRY_CAST(NULLIF(rebounds_offensive, '') AS numeric), 0)::int AS offensive_rebounds,
+                COALESCE(TRY_CAST(NULLIF(rebounds_defensive, '') AS numeric), 0)::int AS defensive_rebounds,
+                TRY_CAST(NULLIF(rebounds_total, '') AS numeric)::int AS total_rebounds,
+                COALESCE(TRY_CAST(NULLIF(assists, '') AS numeric), 0)::int AS assists,
+                COALESCE(TRY_CAST(NULLIF(steals, '') AS numeric), 0)::int AS steals,
+                COALESCE(TRY_CAST(NULLIF(blocks, '') AS numeric), 0)::int AS blocks,
+                COALESCE(TRY_CAST(NULLIF(turnovers, '') AS numeric), 0)::int AS turnovers,
+                COALESCE(TRY_CAST(NULLIF(fouls_personal, '') AS numeric), 0)::int AS personal_fouls,
+                COALESCE(TRY_CAST(NULLIF(team_score, '') AS numeric), 0)::int AS points_scored,
+                TRY_CAST(NULLIF(plus_minus_points, '') AS numeric)::int AS plus_minus,
                 CASE
-                    WHEN NULLIF(field_goals_attempted, '')::numeric > 0
+                    WHEN TRY_CAST(NULLIF(field_goals_attempted, '') AS numeric) > 0
                         THEN ROUND(
-                            NULLIF(field_goals_made, '')::numeric
-                            / NULLIF(field_goals_attempted, '')::numeric,
+                            TRY_CAST(NULLIF(field_goals_made, '') AS numeric)
+                            / TRY_CAST(NULLIF(field_goals_attempted, '') AS numeric),
                             3
                         )
                     ELSE NULL
                 END AS field_goal_percentage,
                 CASE
-                    WHEN NULLIF(three_pointers_attempted, '')::numeric > 0
+                    WHEN TRY_CAST(NULLIF(three_pointers_attempted, '') AS numeric) > 0
                         THEN ROUND(
-                            NULLIF(three_pointers_made, '')::numeric
-                            / NULLIF(three_pointers_attempted, '')::numeric,
+                            TRY_CAST(NULLIF(three_pointers_made, '') AS numeric)
+                            / TRY_CAST(NULLIF(three_pointers_attempted, '') AS numeric),
                             3
                         )
                     ELSE NULL
                 END AS three_point_percentage,
                 CASE
-                    WHEN NULLIF(free_throws_attempted, '')::numeric > 0
+                    WHEN TRY_CAST(NULLIF(free_throws_attempted, '') AS numeric) > 0
                         THEN ROUND(
-                            NULLIF(free_throws_made, '')::numeric
-                            / NULLIF(free_throws_attempted, '')::numeric,
+                            TRY_CAST(NULLIF(free_throws_made, '') AS numeric)
+                            / TRY_CAST(NULLIF(free_throws_attempted, '') AS numeric),
                             3
                         )
                     ELSE NULL
                 END AS free_throw_percentage,
-                jsonb_build_object(
-                    '1', NULLIF(q1_points, '')::numeric::int,
-                    '2', NULLIF(q2_points, '')::numeric::int,
-                    '3', NULLIF(q3_points, '')::numeric::int,
-                    '4', NULLIF(q4_points, '')::numeric::int
+                json_object(
+                    '1', TRY_CAST(NULLIF(q1_points, '') AS numeric)::int,
+                    '2', TRY_CAST(NULLIF(q2_points, '') AS numeric)::int,
+                    '3', TRY_CAST(NULLIF(q3_points, '') AS numeric)::int,
+                    '4', TRY_CAST(NULLIF(q4_points, '') AS numeric)::int
                 ) AS quarter_scores
             FROM staging_team_statistics sts
-            WHERE (validation_errors IS NULL OR validation_errors = '{}'::jsonb)
+            WHERE (validation_errors IS NULL)
               AND NULLIF(game_id, '') IS NOT NULL
               AND NULLIF(team_id, '') IS NOT NULL
               AND EXISTS (
                   SELECT 1 FROM game g
-                  WHERE g.game_id = NULLIF(sts.game_id, '')::int
+                  WHERE g.game_id = TRY_CAST(NULLIF(sts.game_id, '') AS int)
               )
               AND NOT EXISTS (
                   SELECT 1 FROM box_score bs
-                  WHERE bs.game_id = NULLIF(sts.game_id, '')::int
-                    AND bs.team_id = NULLIF(sts.team_id, '')::int
+                  WHERE bs.game_id = TRY_CAST(NULLIF(sts.game_id, '') AS int)
+                    AND bs.team_id = TRY_CAST(NULLIF(sts.team_id, '') AS int)
               );
             """
         )
     )
 
 
-async def _upsert_player_box_scores(session: AsyncSession) -> None:
-    await session.execute(
+def _upsert_player_box_scores(session: Session) -> None:
+    session.execute(
         text(
             """
             INSERT INTO player_box_score (
@@ -1282,7 +1016,7 @@ async def _upsert_player_box_scores(session: AsyncSession) -> None:
             SELECT
                 p.player_id,
                 bs.box_id,
-                NULLIF(sps.game_id, '')::int AS game_id,
+                TRY_CAST(NULLIF(sps.game_id, '') AS int) AS game_id,
                 t.team_id,
                 p.slug,
                 concat(p.first_name, ' ', p.last_name) AS player_name,
@@ -1291,32 +1025,32 @@ async def _upsert_player_box_scores(session: AsyncSession) -> None:
                 COALESCE(
                     CASE
                         WHEN sps.num_minutes LIKE '%:%' THEN
-                            split_part(sps.num_minutes, ':', 1)::int * 60
-                            + split_part(sps.num_minutes, ':', 2)::int
+                            TRY_CAST(split_part(sps.num_minutes, ':', 1) AS int) * 60
+                            + TRY_CAST(split_part(sps.num_minutes, ':', 2) AS int)
                         WHEN NULLIF(sps.num_minutes, '') IS NOT NULL THEN
-                            ROUND(NULLIF(sps.num_minutes, '')::numeric * 60)
+                            ROUND(TRY_CAST(NULLIF(sps.num_minutes, '') AS numeric) * 60)
                         ELSE NULL
                     END,
                     0
                 ) AS seconds_played,
-                COALESCE(NULLIF(sps.field_goals_made, '')::numeric, 0)::int AS made_fg,
-                COALESCE(NULLIF(sps.field_goals_attempted, '')::numeric, 0)::int AS attempted_fg,
-                COALESCE(NULLIF(sps.three_pointers_made, '')::numeric, 0)::int AS made_3pt,
-                COALESCE(NULLIF(sps.three_pointers_attempted, '')::numeric, 0)::int AS attempted_3pt,
-                COALESCE(NULLIF(sps.free_throws_made, '')::numeric, 0)::int AS made_ft,
-                COALESCE(NULLIF(sps.free_throws_attempted, '')::numeric, 0)::int AS attempted_ft,
-                COALESCE(NULLIF(sps.rebounds_offensive, '')::numeric, 0)::int AS offensive_rebounds,
-                COALESCE(NULLIF(sps.rebounds_defensive, '')::numeric, 0)::int AS defensive_rebounds,
-                COALESCE(NULLIF(sps.assists, '')::numeric, 0)::int AS assists,
-                COALESCE(NULLIF(sps.steals, '')::numeric, 0)::int AS steals,
-                COALESCE(NULLIF(sps.blocks, '')::numeric, 0)::int AS blocks,
-                COALESCE(NULLIF(sps.turnovers, '')::numeric, 0)::int AS turnovers,
-                COALESCE(NULLIF(sps.fouls_personal, '')::numeric, 0)::int AS personal_fouls,
-                COALESCE(NULLIF(sps.points, '')::numeric, 0)::int AS points_scored,
-                NULLIF(sps.plus_minus_points, '')::numeric::int AS plus_minus
+                COALESCE(TRY_CAST(NULLIF(sps.field_goals_made, '') AS numeric), 0)::int AS made_fg,
+                COALESCE(TRY_CAST(NULLIF(sps.field_goals_attempted, '') AS numeric), 0)::int AS attempted_fg,
+                COALESCE(TRY_CAST(NULLIF(sps.three_pointers_made, '') AS numeric), 0)::int AS made_3pt,
+                COALESCE(TRY_CAST(NULLIF(sps.three_pointers_attempted, '') AS numeric), 0)::int AS attempted_3pt,
+                COALESCE(TRY_CAST(NULLIF(sps.free_throws_made, '') AS numeric), 0)::int AS made_ft,
+                COALESCE(TRY_CAST(NULLIF(sps.free_throws_attempted, '') AS numeric), 0)::int AS attempted_ft,
+                COALESCE(TRY_CAST(NULLIF(sps.rebounds_offensive, '') AS numeric), 0)::int AS offensive_rebounds,
+                COALESCE(TRY_CAST(NULLIF(sps.rebounds_defensive, '') AS numeric), 0)::int AS defensive_rebounds,
+                COALESCE(TRY_CAST(NULLIF(sps.assists, '') AS numeric), 0)::int AS assists,
+                COALESCE(TRY_CAST(NULLIF(sps.steals, '') AS numeric), 0)::int AS steals,
+                COALESCE(TRY_CAST(NULLIF(sps.blocks, '') AS numeric), 0)::int AS blocks,
+                COALESCE(TRY_CAST(NULLIF(sps.turnovers, '') AS numeric), 0)::int AS turnovers,
+                COALESCE(TRY_CAST(NULLIF(sps.fouls_personal, '') AS numeric), 0)::int AS personal_fouls,
+                COALESCE(TRY_CAST(NULLIF(sps.points, '') AS numeric), 0)::int AS points_scored,
+                TRY_CAST(NULLIF(sps.plus_minus_points, '') AS numeric)::int AS plus_minus
             FROM staging_player_statistics sps
             JOIN player p
-              ON p.player_id = NULLIF(sps.person_id, '')::int
+              ON p.player_id = TRY_CAST(NULLIF(sps.person_id, '') AS int)
             JOIN team t
               ON regexp_replace(lower(t.city || t.name), '[^a-z0-9]', '', 'g')
                 = regexp_replace(
@@ -1326,9 +1060,9 @@ async def _upsert_player_box_scores(session: AsyncSession) -> None:
                     'g'
                 )
             JOIN box_score bs
-              ON bs.game_id = NULLIF(sps.game_id, '')::int
+              ON bs.game_id = TRY_CAST(NULLIF(sps.game_id, '') AS int)
              AND bs.team_id = t.team_id
-            WHERE (sps.validation_errors IS NULL OR sps.validation_errors = '{}'::jsonb)
+            WHERE (sps.validation_errors IS NULL)
               AND NULLIF(sps.game_id, '') IS NOT NULL
             ON CONFLICT (player_id, box_id) DO UPDATE SET
                 seconds_played = EXCLUDED.seconds_played,
@@ -1352,8 +1086,8 @@ async def _upsert_player_box_scores(session: AsyncSession) -> None:
     )
 
 
-async def _upsert_player_season_totals(session: AsyncSession) -> None:
-    await session.execute(
+def _upsert_player_season_totals(session: Session) -> None:
+    session.execute(
         text(
             """
             WITH ranked AS (
@@ -1365,7 +1099,7 @@ async def _upsert_player_season_totals(session: AsyncSession) -> None:
                         ORDER BY CASE WHEN team IN ('TOT', '2TM', '3TM') THEN 0 ELSE 1 END
                     ) AS rn
                 FROM staging_player_totals pt
-                WHERE (validation_errors IS NULL OR validation_errors = '{}'::jsonb)
+                WHERE (validation_errors IS NULL)
             )
             INSERT INTO player_season (
                 player_id,
@@ -1399,10 +1133,10 @@ async def _upsert_player_season_totals(session: AsyncSession) -> None:
             SELECT
                 p.player_id,
                 se.season_id,
-                'REGULAR'::seasontype,
+                CAST('REGULAR' AS seasontype),
                 CASE WHEN r.is_combined = 1 THEN NULL ELSE t.team_id END,
-                NULLIF(NULLIF(btrim(r.age), ''), 'NA')::numeric::int,
-                CASE
+                TRY_CAST(NULLIF(NULLIF(trim(r.age), ''), 'NA') AS numeric)::int,
+                CAST(CASE
                     WHEN r.pos ILIKE 'PG' THEN 'POINT_GUARD'
                     WHEN r.pos ILIKE 'SG' THEN 'SHOOTING_GUARD'
                     WHEN r.pos ILIKE 'SF' THEN 'SMALL_FORWARD'
@@ -1415,37 +1149,39 @@ async def _upsert_player_season_totals(session: AsyncSession) -> None:
                     WHEN r.pos ILIKE 'F-C' THEN 'FORWARD'
                     WHEN r.pos ILIKE 'C-F' THEN 'CENTER'
                     ELSE NULL
-                END::player_position,
-                COALESCE(NULLIF(NULLIF(btrim(r.g), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.gs), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.mp), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.fg), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.fga), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.x3p), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.x3pa), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.ft), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.fta), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.orb), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.drb), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.trb), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.ast), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.stl), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.blk), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.tov), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.pf), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.pts), ''), 'NA')::numeric, 0)::int,
+                END AS player_position),
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.g), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.gs), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.mp), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.fg), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.fga), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.x3p), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.x3pa), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.ft), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.fta), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.orb), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.drb), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.trb), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.ast), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.stl), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.blk), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.tov), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.pf), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.pts), ''), 'NA') AS numeric), 0)::int,
+                COALESCE(TRY_CAST(NULLIF(NULLIF(trim(r.trp_dbl), ''), 'NA') AS numeric), 0)::int,
                 0,
-                COALESCE(NULLIF(NULLIF(btrim(r.trp_dbl), ''), 'NA')::numeric, 0)::int,
                 CASE WHEN r.is_combined = 1 THEN true ELSE false END
             FROM ranked r
-            JOIN player p ON p.slug = r.player_id
-            JOIN season se ON se.year = NULLIF(r.season, '')::int
-            LEFT JOIN team t ON t.abbreviation = r.team
+            JOIN player p ON p.player_id = TRY_CAST(r.player_id AS int)
+            JOIN season se ON se.year = TRY_CAST(r.season AS int)
+            LEFT JOIN team t ON t.abbreviation = CASE
+                WHEN r.team = 'CHO' THEN 'CHA'
+                WHEN r.team = 'BRK' THEN 'BKN'
+                WHEN r.team = 'PHO' THEN 'PHX'
+                ELSE r.team
+            END
             WHERE r.rn = 1
             ON CONFLICT (player_id, season_id, season_type) DO UPDATE SET
-                team_id = EXCLUDED.team_id,
-                player_age = EXCLUDED.player_age,
-                position = EXCLUDED.position,
                 games_played = EXCLUDED.games_played,
                 games_started = EXCLUDED.games_started,
                 minutes_played = EXCLUDED.minutes_played,
@@ -1464,1415 +1200,203 @@ async def _upsert_player_season_totals(session: AsyncSession) -> None:
                 turnovers = EXCLUDED.turnovers,
                 personal_fouls = EXCLUDED.personal_fouls,
                 points_scored = EXCLUDED.points_scored,
-                triple_doubles = EXCLUDED.triple_doubles,
                 is_combined_totals = EXCLUDED.is_combined_totals;
             """
         )
     )
 
 
-async def _upsert_player_season_advanced(session: AsyncSession) -> None:
-    await session.execute(
+def _upsert_player_season_advanced(session: Session) -> None:
+    session.execute(
         text(
             """
             WITH ranked AS (
                 SELECT
-                    pa.*,
-                    CASE WHEN team IN ('TOT', '2TM', '3TM') THEN 1 ELSE 0 END AS is_combined,
+                    psa.*,
                     ROW_NUMBER() OVER (
                         PARTITION BY player_id, season
                         ORDER BY CASE WHEN team IN ('TOT', '2TM', '3TM') THEN 0 ELSE 1 END
                     ) AS rn
-                FROM staging_player_advanced pa
-                WHERE (validation_errors IS NULL OR validation_errors = '{}'::jsonb)
-            ),
-            totals AS (
-                SELECT
-                    pt.player_id,
-                    pt.season,
-                    NULLIF(NULLIF(pt.fg, ''), 'NA')::numeric AS fg,
-                    NULLIF(NULLIF(pt.fga, ''), 'NA')::numeric AS fga,
-                    NULLIF(NULLIF(pt.x3p, ''), 'NA')::numeric AS fg3,
-                    NULLIF(NULLIF(pt.e_fg_percent, ''), 'NA')::numeric AS efg
-                FROM staging_player_totals pt
-                WHERE pt.team IN ('TOT', '2TM', '3TM')
+                FROM staging_player_advanced psa
+                WHERE (validation_errors IS NULL)
             )
             INSERT INTO player_season_advanced (
-                player_id,
-                season_id,
-                season_type,
-                team_id,
-                player_age,
-                games_played,
-                minutes_played,
-                player_efficiency_rating,
-                true_shooting_percentage,
-                effective_fg_percentage,
-                three_point_attempt_rate,
-                free_throw_attempt_rate,
-                usage_percentage,
-                assist_percentage,
-                turnover_percentage,
-                offensive_rebound_percentage,
-                defensive_rebound_percentage,
-                total_rebound_percentage,
-                steal_percentage,
-                block_percentage,
-                offensive_box_plus_minus,
-                defensive_box_plus_minus,
-                box_plus_minus,
-                value_over_replacement_player,
-                offensive_win_shares,
-                defensive_win_shares,
-                win_shares,
-                win_shares_per_48,
-                is_combined_totals
+                player_id, season_id, season_type, team_id,
+                player_age, games_played, minutes_played,
+                player_efficiency_rating, true_shooting_percentage,
+                three_point_attempt_rate, free_throw_attempt_rate, usage_percentage,
+                offensive_win_shares, defensive_win_shares, win_shares, win_shares_per_48,
+                offensive_box_plus_minus, defensive_box_plus_minus, box_plus_minus,
+                value_over_replacement_player
             )
             SELECT
                 p.player_id,
                 se.season_id,
-                'REGULAR'::seasontype,
-                CASE WHEN r.is_combined = 1 THEN NULL ELSE t.team_id END,
-                NULLIF(NULLIF(btrim(r.age), ''), 'NA')::numeric::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.g), ''), 'NA')::numeric, 0)::int,
-                COALESCE(NULLIF(NULLIF(btrim(r.mp), ''), 'NA')::numeric, 0)::int,
-                NULLIF(NULLIF(r.per, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.ts_percent, ''), 'NA')::numeric,
-                COALESCE(
-                    totals.efg,
-                    CASE
-                        WHEN totals.fga > 0 THEN
-                            ROUND((totals.fg + 0.5 * totals.fg3) / totals.fga, 3)
-                        ELSE NULL
-                    END
-                ),
-                NULLIF(NULLIF(r.x3p_ar, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.f_tr, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.usg_percent, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.ast_percent, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.tov_percent, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.orb_percent, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.drb_percent, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.trb_percent, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.stl_percent, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.blk_percent, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.obpm, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.dbpm, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.bpm, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.vorp, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.ows, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.dws, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.ws, ''), 'NA')::numeric,
-                NULLIF(NULLIF(r.ws_48, ''), 'NA')::numeric,
-                CASE WHEN r.is_combined = 1 THEN true ELSE false END
+                CAST('REGULAR' AS seasontype),
+                t.team_id,
+                TRY_CAST(NULLIF(trim(r.age), '') AS int),
+                COALESCE(TRY_CAST(NULLIF(trim(r.g), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(r.mp), '') AS int), 0),
+                TRY_CAST(NULLIF(trim(r.per), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.ts_percent), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.x3p_ar), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.f_tr), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.usg_percent), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.ows), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.dws), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.ws), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.ws_48), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.obpm), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.dbpm), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.bpm), '') AS numeric),
+                TRY_CAST(NULLIF(trim(r.vorp), '') AS numeric)
             FROM ranked r
-            JOIN player p ON p.slug = r.player_id
-            JOIN season se ON se.year = NULLIF(r.season, '')::int
-            LEFT JOIN team t ON t.abbreviation = r.team
-            LEFT JOIN totals ON totals.player_id = r.player_id
-                AND totals.season = r.season
+            JOIN player p ON p.player_id = TRY_CAST(r.player_id AS int)
+            JOIN season se ON se.year = TRY_CAST(r.season AS int)
+            LEFT JOIN team t ON t.abbreviation = CASE
+                    WHEN r.team = 'CHO' THEN 'CHA'
+                    WHEN r.team = 'BRK' THEN 'BKN'
+                    WHEN r.team = 'PHO' THEN 'PHX'
+                    ELSE r.team
+                END
             WHERE r.rn = 1
             ON CONFLICT (player_id, season_id, season_type) DO UPDATE SET
-                team_id = EXCLUDED.team_id,
                 player_efficiency_rating = EXCLUDED.player_efficiency_rating,
                 true_shooting_percentage = EXCLUDED.true_shooting_percentage,
-                effective_fg_percentage = EXCLUDED.effective_fg_percentage,
-                three_point_attempt_rate = EXCLUDED.three_point_attempt_rate,
-                free_throw_attempt_rate = EXCLUDED.free_throw_attempt_rate,
-                usage_percentage = EXCLUDED.usage_percentage,
-                assist_percentage = EXCLUDED.assist_percentage,
-                turnover_percentage = EXCLUDED.turnover_percentage,
-                offensive_rebound_percentage = EXCLUDED.offensive_rebound_percentage,
-                defensive_rebound_percentage = EXCLUDED.defensive_rebound_percentage,
-                total_rebound_percentage = EXCLUDED.total_rebound_percentage,
-                steal_percentage = EXCLUDED.steal_percentage,
-                block_percentage = EXCLUDED.block_percentage,
-                offensive_box_plus_minus = EXCLUDED.offensive_box_plus_minus,
-                defensive_box_plus_minus = EXCLUDED.defensive_box_plus_minus,
-                box_plus_minus = EXCLUDED.box_plus_minus,
-                value_over_replacement_player = EXCLUDED.value_over_replacement_player,
-                offensive_win_shares = EXCLUDED.offensive_win_shares,
-                defensive_win_shares = EXCLUDED.defensive_win_shares,
                 win_shares = EXCLUDED.win_shares,
-                win_shares_per_48 = EXCLUDED.win_shares_per_48,
-                is_combined_totals = EXCLUDED.is_combined_totals;
+                box_plus_minus = EXCLUDED.box_plus_minus,
+                value_over_replacement_player = EXCLUDED.value_over_replacement_player;
             """
         )
     )
 
 
-async def _upsert_player_shooting(session: AsyncSession) -> None:
-    await session.execute(
+def _upsert_team_totals(session: Session) -> None:
+    session.execute(
         text(
             """
-            WITH shooting AS (
-                SELECT
-                    ps.player_id AS player_slug,
-                    NULLIF(ps.season, '')::int AS season_year,
-                    NULLIF(ps.team, '') AS team,
-                    NULLIF(NULLIF(ps.percent_fga_from_x0_3_range, ''), 'NA')::numeric AS pct_0_3,
-                    NULLIF(NULLIF(ps.percent_fga_from_x3_10_range, ''), 'NA')::numeric AS pct_3_10,
-                    NULLIF(NULLIF(ps.percent_fga_from_x10_16_range, ''), 'NA')::numeric AS pct_10_16,
-                    NULLIF(NULLIF(ps.percent_fga_from_x16_3p_range, ''), 'NA')::numeric AS pct_16_3p,
-                    NULLIF(NULLIF(ps.percent_fga_from_x3p_range, ''), 'NA')::numeric AS pct_3p,
-                    NULLIF(NULLIF(ps.fg_percent_from_x0_3_range, ''), 'NA')::numeric AS fg_pct_0_3,
-                    NULLIF(NULLIF(ps.fg_percent_from_x3_10_range, ''), 'NA')::numeric AS fg_pct_3_10,
-                    NULLIF(NULLIF(ps.fg_percent_from_x10_16_range, ''), 'NA')::numeric AS fg_pct_10_16,
-                    NULLIF(NULLIF(ps.fg_percent_from_x16_3p_range, ''), 'NA')::numeric AS fg_pct_16_3p,
-                    NULLIF(NULLIF(ps.fg_percent_from_x3p_range, ''), 'NA')::numeric AS fg_pct_3p
-                FROM staging_player_shooting ps
-                WHERE ps.team IN ('TOT', '2TM', '3TM')
-            ),
-            totals AS (
-                SELECT
-                    pt.player_id AS player_slug,
-                    NULLIF(pt.season, '')::int AS season_year,
-                    NULLIF(NULLIF(pt.fga, ''), 'NA')::numeric AS fga
-                FROM staging_player_totals pt
-                WHERE pt.team IN ('TOT', '2TM', '3TM')
-            ),
-            base AS (
-                SELECT
-                    p.player_id,
-                    se.season_id,
-                    totals.fga,
-                    shooting.*
-                FROM shooting
-                JOIN totals
-                  ON totals.player_slug = shooting.player_slug
-                 AND totals.season_year = shooting.season_year
-                JOIN player p ON p.slug = shooting.player_slug
-                JOIN season se ON se.year = shooting.season_year
-                WHERE totals.fga IS NOT NULL
-            ),
-            attempts AS (
-                SELECT
-                    player_id,
-                    season_id,
-                    fga,
-                    ROUND(fga * COALESCE(pct_0_3, 0))::int AS att_0_3,
-                    ROUND(fga * COALESCE(pct_3_10, 0))::int AS att_3_10,
-                    ROUND(fga * COALESCE(pct_10_16, 0))::int AS att_10_16,
-                    ROUND(fga * COALESCE(pct_16_3p, 0))::int AS att_16_3p,
-                    ROUND(fga * COALESCE(pct_3p, 0))::int AS att_3p_raw,
-                    fg_pct_0_3,
-                    fg_pct_3_10,
-                    fg_pct_10_16,
-                    fg_pct_16_3p,
-                    fg_pct_3p
-                FROM base
-            ),
-            normalized AS (
-                SELECT
-                    player_id,
-                    season_id,
-                    att_0_3,
-                    att_3_10,
-                    att_10_16,
-                    att_16_3p,
-                    GREATEST(
-                        COALESCE(fga, 0)::int
-                        - (att_0_3 + att_3_10 + att_10_16 + att_16_3p),
-                        0
-                    ) AS att_3p,
-                    fg_pct_0_3,
-                    fg_pct_3_10,
-                    fg_pct_10_16,
-                    fg_pct_16_3p,
-                    fg_pct_3p
-                FROM attempts
-            )
-            INSERT INTO player_shooting (
-                player_id,
-                season_id,
-                distance_range,
-                fg_made,
-                fg_attempted,
-                fg_percentage
-            )
-            SELECT
-                player_id,
-                season_id,
-                '0-3 ft',
-                COALESCE(ROUND(att_0_3 * fg_pct_0_3), 0)::int,
-                att_0_3,
-                fg_pct_0_3
-            FROM normalized
-            UNION ALL
-            SELECT
-                player_id,
-                season_id,
-                '3-10 ft',
-                COALESCE(ROUND(att_3_10 * fg_pct_3_10), 0)::int,
-                att_3_10,
-                fg_pct_3_10
-            FROM normalized
-            UNION ALL
-            SELECT
-                player_id,
-                season_id,
-                '10-16 ft',
-                COALESCE(ROUND(att_10_16 * fg_pct_10_16), 0)::int,
-                att_10_16,
-                fg_pct_10_16
-            FROM normalized
-            UNION ALL
-            SELECT
-                player_id,
-                season_id,
-                '16-3P',
-                COALESCE(ROUND(att_16_3p * fg_pct_16_3p), 0)::int,
-                att_16_3p,
-                fg_pct_16_3p
-            FROM normalized
-            UNION ALL
-            SELECT
-                player_id,
-                season_id,
-                '3P',
-                COALESCE(ROUND(att_3p * fg_pct_3p), 0)::int,
-                att_3p,
-                fg_pct_3p
-            FROM normalized
-            ON CONFLICT (player_id, season_id, distance_range) DO UPDATE SET
-                fg_made = EXCLUDED.fg_made,
-                fg_attempted = EXCLUDED.fg_attempted,
-                fg_percentage = EXCLUDED.fg_percentage;
-            """
-        )
-    )
-
-
-async def _upsert_team_season(session: AsyncSession) -> None:
-    await session.execute(
-        text(
-            """
-            WITH totals AS (
-                SELECT
-                    tt.*,
-                    NULLIF(tt.season, '')::int AS season_year
-                FROM staging_team_totals tt
-                WHERE (validation_errors IS NULL OR validation_errors = '{}'::jsonb)
-            ),
-            summaries AS (
-                SELECT
-                    ts.*,
-                    NULLIF(ts.season, '')::int AS season_year
-                FROM staging_team_summaries ts
-                WHERE (validation_errors IS NULL OR validation_errors = '{}'::jsonb)
-            )
             INSERT INTO team_season (
-                team_id,
-                season_id,
-                season_type,
-                games_played,
-                wins,
-                losses,
-                points_scored,
-                points_per_game,
-                points_allowed_per_game,
-                minutes_played,
-                made_fg,
-                attempted_fg,
-                made_3pt,
-                attempted_3pt,
-                made_ft,
-                attempted_ft,
-                offensive_rebounds,
-                defensive_rebounds,
-                total_rebounds,
-                assists,
-                steals,
-                blocks,
-                turnovers,
-                personal_fouls,
-                pace,
-                offensive_rating,
-                defensive_rating,
-                net_rating
+                team_id, season_id, season_type,
+                games_played, minutes_played,
+                made_fg, attempted_fg, made_3pt, attempted_3pt,
+                made_ft, attempted_ft,
+                offensive_rebounds, defensive_rebounds, total_rebounds,
+                assists, steals, blocks, turnovers, personal_fouls,
+                points_scored
             )
             SELECT
                 t.team_id,
                 se.season_id,
-                CASE WHEN totals.playoffs = '1' THEN 'PLAYOFF' ELSE 'REGULAR' END,
-                COALESCE(
-                    NULLIF(NULLIF(totals.g, ''), 'NA')::numeric,
-                    0
-                )::int AS games_played,
-                COALESCE(
-                    NULLIF(NULLIF(summaries.w, ''), 'NA')::numeric,
-                    0
-                )::int AS wins,
-                COALESCE(
-                    NULLIF(NULLIF(summaries.l, ''), 'NA')::numeric,
-                    0
-                )::int AS losses,
-                COALESCE(
-                    NULLIF(NULLIF(totals.pts, ''), 'NA')::numeric,
-                    0
-                )::int AS points_scored,
-                CASE
-                    WHEN NULLIF(totals.g, '')::numeric > 0
-                        THEN ROUND(
-                            NULLIF(totals.pts, '')::numeric
-                            / NULLIF(totals.g, '')::numeric,
-                            2
-                        )
-                    ELSE NULL
-                END AS points_per_game,
-                NULL AS points_allowed_per_game,
-                COALESCE(
-                    NULLIF(NULLIF(totals.mp, ''), 'NA')::numeric,
-                    0
-                )::int AS minutes_played,
-                COALESCE(
-                    NULLIF(NULLIF(totals.fg, ''), 'NA')::numeric,
-                    0
-                )::int AS made_fg,
-                COALESCE(
-                    NULLIF(NULLIF(totals.fga, ''), 'NA')::numeric,
-                    0
-                )::int AS attempted_fg,
-                COALESCE(
-                    NULLIF(NULLIF(totals.x3p, ''), 'NA')::numeric,
-                    0
-                )::int AS made_3pt,
-                COALESCE(
-                    NULLIF(NULLIF(totals.x3pa, ''), 'NA')::numeric,
-                    0
-                )::int AS attempted_3pt,
-                COALESCE(
-                    NULLIF(NULLIF(totals.ft, ''), 'NA')::numeric,
-                    0
-                )::int AS made_ft,
-                COALESCE(
-                    NULLIF(NULLIF(totals.fta, ''), 'NA')::numeric,
-                    0
-                )::int AS attempted_ft,
-                COALESCE(
-                    NULLIF(NULLIF(totals.orb, ''), 'NA')::numeric,
-                    0
-                )::int AS offensive_rebounds,
-                COALESCE(
-                    NULLIF(NULLIF(totals.drb, ''), 'NA')::numeric,
-                    0
-                )::int AS defensive_rebounds,
-                COALESCE(
-                    NULLIF(NULLIF(totals.trb, ''), 'NA')::numeric,
-                    0
-                )::int AS total_rebounds,
-                COALESCE(
-                    NULLIF(NULLIF(totals.ast, ''), 'NA')::numeric,
-                    0
-                )::int AS assists,
-                COALESCE(
-                    NULLIF(NULLIF(totals.stl, ''), 'NA')::numeric,
-                    0
-                )::int AS steals,
-                COALESCE(
-                    NULLIF(NULLIF(totals.blk, ''), 'NA')::numeric,
-                    0
-                )::int AS blocks,
-                COALESCE(
-                    NULLIF(NULLIF(totals.tov, ''), 'NA')::numeric,
-                    0
-                )::int AS turnovers,
-                COALESCE(
-                    NULLIF(NULLIF(totals.pf, ''), 'NA')::numeric,
-                    0
-                )::int AS personal_fouls,
-                NULLIF(NULLIF(summaries.pace, ''), 'NA')::numeric AS pace,
-                NULLIF(NULLIF(summaries.o_rtg, ''), 'NA')::numeric AS offensive_rating,
-                NULLIF(NULLIF(summaries.d_rtg, ''), 'NA')::numeric AS defensive_rating,
-                NULLIF(NULLIF(summaries.n_rtg, ''), 'NA')::numeric AS net_rating
-            FROM totals
-            JOIN summaries
-              ON summaries.abbreviation = totals.abbreviation
-             AND summaries.season_year = totals.season_year
-            JOIN team t ON t.abbreviation = totals.abbreviation
-            JOIN season se ON se.year = totals.season_year
+                'REGULAR',
+                COALESCE(TRY_CAST(NULLIF(trim(tt.g), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.mp), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.fg), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.fga), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.x3p), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.x3pa), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.ft), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.fta), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.orb), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.drb), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.trb), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.ast), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.stl), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.blk), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.tov), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.pf), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(tt.pts), '') AS int), 0)
+            FROM staging_team_totals tt
+            JOIN season se ON se.year = TRY_CAST(tt.season AS int)
+            JOIN team t ON t.abbreviation = tt.abbreviation
+            WHERE (validation_errors IS NULL)
             ON CONFLICT (team_id, season_id, season_type) DO UPDATE SET
                 games_played = EXCLUDED.games_played,
-                wins = EXCLUDED.wins,
-                losses = EXCLUDED.losses,
                 points_scored = EXCLUDED.points_scored,
-                points_per_game = EXCLUDED.points_per_game,
-                points_allowed_per_game = EXCLUDED.points_allowed_per_game,
-                minutes_played = EXCLUDED.minutes_played,
-                made_fg = EXCLUDED.made_fg,
-                attempted_fg = EXCLUDED.attempted_fg,
-                made_3pt = EXCLUDED.made_3pt,
-                attempted_3pt = EXCLUDED.attempted_3pt,
-                made_ft = EXCLUDED.made_ft,
-                attempted_ft = EXCLUDED.attempted_ft,
-                offensive_rebounds = EXCLUDED.offensive_rebounds,
-                defensive_rebounds = EXCLUDED.defensive_rebounds,
-                total_rebounds = EXCLUDED.total_rebounds,
-                assists = EXCLUDED.assists,
-                steals = EXCLUDED.steals,
-                blocks = EXCLUDED.blocks,
-                turnovers = EXCLUDED.turnovers,
-                personal_fouls = EXCLUDED.personal_fouls,
-                pace = EXCLUDED.pace,
-                offensive_rating = EXCLUDED.offensive_rating,
-                defensive_rating = EXCLUDED.defensive_rating,
-                net_rating = EXCLUDED.net_rating;
+                wins = team_season.wins, -- preserve existing
+                losses = team_season.losses; -- preserve existing
             """
         )
     )
 
 
-async def _refresh_materialized_views(session: AsyncSession) -> None:
-    await session.execute(text("REFRESH MATERIALIZED VIEW player_career_stats;"))
-    await session.execute(text("REFRESH MATERIALIZED VIEW team_season_standings;"))
-
-
-async def _ingest_play_by_play_csv() -> None:
-    if not PLAY_BY_PLAY_SOURCE.exists():
-        logger.warning("Play-by-play CSV missing", path=str(PLAY_BY_PLAY_SOURCE))
-        return
-
-    from app.ingestion.mappers import map_play_by_play
-    from app.models.game import PlayByPlay
-
-    dsn = _asyncpg_dsn()
-    async with asyncpg.connect(dsn) as conn:
-        with PLAY_BY_PLAY_SOURCE.open("r", encoding="utf-8") as file_handle:
-            reader = csv.DictReader(file_handle)
-            batch: list[tuple[Any, ...]] = []
-            previous_scores: dict[int, tuple[int | None, int | None]] = {}
-
-            for row in reader:
-                game_id = row.get("game_id")
-                if not game_id:
-                    continue
-                game_id_int = int(game_id)
-
-                score = row.get("score") or ""
-                away_score = None
-                home_score = None
-                if "-" in score:
-                    parts = score.split("-")
-                    if len(parts) == 2:
-                        away_score = int(parts[0]) if parts[0].isdigit() else None
-                        home_score = int(parts[1]) if parts[1].isdigit() else None
-
-                description = (
-                    row.get("homedescription")
-                    or row.get("visitordescription")
-                    or row.get("neutraldescription")
-                    or ""
-                )
-                period = int(row.get("period") or 0)
-                period_type = "OVERTIME" if period > 4 else "QUARTER"
-
-                seconds_remaining = 0
-                pct_time = row.get("pctimestring") or ""
-                if ":" in pct_time:
-                    minutes, seconds = pct_time.split(":")
-                    seconds_remaining = int(minutes) * 60 + int(seconds)
-
-                team_id = row.get("player1_team_id")
-                team_id_int = int(team_id) if team_id and team_id.isdigit() else None
-
-                prev_scores = previous_scores.get(game_id_int, (None, None))
-                play = map_play_by_play(
-                    {
-                        "period": period,
-                        "period_type": period_type,
-                        "remaining_seconds_in_period": seconds_remaining,
-                        "away_score": away_score,
-                        "home_score": home_score,
-                        "description": description,
-                    },
-                    game_id=game_id_int,
-                    team_id=team_id_int,
-                    previous_scores=prev_scores,
-                )
-                play.player_involved_id = (
-                    int(row["player1_id"])
-                    if row.get("player1_id") and row["player1_id"].isdigit()
-                    else None
-                )
-                play.assist_player_id = (
-                    int(row["player2_id"])
-                    if row.get("player2_id") and row["player2_id"].isdigit()
-                    else None
-                )
-                play.block_player_id = (
-                    int(row["player3_id"])
-                    if row.get("player3_id") and row["player3_id"].isdigit()
-                    else None
-                )
-
-                previous_scores[game_id_int] = (away_score, home_score)
-
-                batch.append(
-                    (
-                        play.game_id,
-                        play.period,
-                        play.period_type.value,
-                        play.seconds_remaining,
-                        play.away_score,
-                        play.home_score,
-                        play.team_id,
-                        play.play_type.value,
-                        play.player_involved_id,
-                        play.assist_player_id,
-                        play.block_player_id,
-                        play.description,
-                        play.shot_distance_ft,
-                        play.shot_type,
-                        play.foul_type,
-                        play.points_scored,
-                        play.is_fast_break,
-                        play.is_second_chance,
-                    )
-                )
-
-                if len(batch) >= COPY_BATCH_SIZE:
-                    await conn.copy_records_to_table(
-                        PlayByPlay.__tablename__,
-                        records=batch,
-                        columns=[
-                            "game_id",
-                            "period",
-                            "period_type",
-                            "seconds_remaining",
-                            "away_score",
-                            "home_score",
-                            "team_id",
-                            "play_type",
-                            "player_involved_id",
-                            "assist_player_id",
-                            "block_player_id",
-                            "description",
-                            "shot_distance_ft",
-                            "shot_type",
-                            "foul_type",
-                            "points_scored",
-                            "is_fast_break",
-                            "is_second_chance",
-                        ],
-                    )
-                    batch = []
-
-            if batch:
-                await conn.copy_records_to_table(
-                    PlayByPlay.__tablename__,
-                    records=batch,
-                    columns=[
-                        "game_id",
-                        "period",
-                        "period_type",
-                        "seconds_remaining",
-                        "away_score",
-                        "home_score",
-                        "team_id",
-                        "play_type",
-                        "player_involved_id",
-                        "assist_player_id",
-                        "block_player_id",
-                        "description",
-                        "shot_distance_ft",
-                        "shot_type",
-                        "foul_type",
-                        "points_scored",
-                        "is_fast_break",
-                        "is_second_chance",
-                    ],
-                )
-
-
-def run_async(coro):
-    """Helper to run async code in sync Celery tasks."""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        return loop.run_until_complete(coro)
-    finally:
-        loop.close()
-
-
-@celery_app.task(
-    name="app.ingestion.tasks.ingest_csv_datasets",
-    bind=True,
-    max_retries=1,
-)
-def ingest_csv_datasets(self, include_play_by_play: bool = False):
-    """Ingest CSV datasets into staging and upsert into production tables."""
-    try:
-        run_async(_ingest_csv_datasets_async(include_play_by_play))
-    except Exception as exc:
-        logger.exception("Failed CSV ingestion")
-        raise self.retry(exc=exc) from exc
-
-
-async def _ingest_csv_datasets_async(include_play_by_play: bool) -> None:
-    import_batch_id = uuid4()
-    logger.info("Starting CSV ingestion", batch_id=str(import_batch_id))
-
-    await _load_staging_tables(import_batch_id)
-
-    async with async_session_factory() as session:
-        await _validate_staging(session)
-        await _upsert_franchises(session)
-        await _upsert_teams(session)
-        await _upsert_players(session)
-        await _upsert_seasons_from_games(session)
-        await _upsert_games(session)
-        await _upsert_schedule_games(session)
-        await _upsert_box_scores(session)
-        await _upsert_player_box_scores(session)
-        await _upsert_player_season_totals(session)
-        await _upsert_player_season_advanced(session)
-        await _upsert_player_shooting(session)
-        await _upsert_team_season(session)
-        await _refresh_materialized_views(session)
-        await session.commit()
-
-    if include_play_by_play:
-        await _ingest_play_by_play_csv()
-    logger.info("CSV ingestion completed", batch_id=str(import_batch_id))
-
-
-@celery_app.task(
-    name="app.ingestion.tasks.ingest_daily_box_scores",
-    bind=True,
-    max_retries=3,
-    default_retry_delay=300,  # 5 minutes
-)
-def ingest_daily_box_scores(self, target_date: str | None = None):
-    """Ingest all player and team box scores for a given date.
-
-    Args:
-        target_date: Date string in YYYY-MM-DD format. Defaults to yesterday.
-    """
-    if target_date:
-        dt = date.fromisoformat(target_date)
-    else:
-        # Default to yesterday (games from last night)
-        dt = date.today() - timedelta(days=1)
-
-    logger.info("Starting daily box score ingestion", date=dt.isoformat())
-
-    try:
-        run_async(_ingest_daily_box_scores_async(dt))
-        logger.info("Completed daily box score ingestion", date=dt.isoformat())
-    except Exception as exc:
-        logger.exception("Failed to ingest daily box scores", date=dt.isoformat())
-        raise self.retry(exc=exc) from exc
-
-
-async def _ingest_daily_box_scores_async(dt: date):
-    """Async implementation of daily box score ingestion."""
-    scraper = ScraperService()
-
-    # Fetch player box scores
-    player_box_scores = await scraper.get_player_box_scores(
-        day=dt.day, month=dt.month, year=dt.year
-    )
-    logger.info("Fetched player box scores", count=len(player_box_scores))
-
-    # Fetch team box scores
-    team_box_scores = await scraper.get_team_box_scores(
-        day=dt.day, month=dt.month, year=dt.year
-    )
-    logger.info("Fetched team box scores", count=len(team_box_scores))
-
-    async with async_session_factory() as session:
-        await _persist_box_scores(session, dt, player_box_scores, team_box_scores)
-        await session.commit()
-
-
-async def _persist_box_scores(
-    session: AsyncSession,
-    dt: date,
-    player_box_scores: list[dict[str, Any]],
-    team_box_scores: list[dict[str, Any]],
-):
-    """Persist box scores to the database.
-
-    Flow:
-    1. Determine season from date
-    2. Group team box scores by game (home vs away)
-    3. Create/lookup teams, create games, create team box scores
-    4. For each player box score, lookup player, create player box score
-    """
-    from app.ingestion.mappers import (
-        _extract_player_slug,
-        map_player_box_score,
-    )
-    from app.ingestion.repositories import (
-        clear_caches,
-        get_or_create_box_score,
-        get_or_create_game,
-        get_or_create_player,
-        get_or_create_season,
-        get_or_create_team,
-        upsert_player_box_score,
-    )
-    from app.models.game import Location, Outcome
-
-    await clear_caches()
-
-    # Determine season end year (Oct-Dec belongs to next season end year)
-    season_end_year = dt.year + 1 if dt.month >= 10 else dt.year
-
-    season_id = await get_or_create_season(session, season_end_year)
-    logger.info("Using season", season_id=season_id, season_end_year=season_end_year)
-
-    # Process team box scores first to create games and team box scores
-    # Team box scores come in pairs (home and away for each game)
-    games_created: dict[tuple[int, int], tuple[int, dict[int, int]]] = {}
-
-    for tbs in team_box_scores:
-        team_abbrev = tbs.get("team")
-        if hasattr(team_abbrev, "value"):
-            team_abbrev = team_abbrev.value
-        if not team_abbrev:
-            continue
-
-        opponent_abbrev = tbs.get("opponent")
-        if hasattr(opponent_abbrev, "value"):
-            opponent_abbrev = opponent_abbrev.value
-
-        # Get or create teams
-        team_id = await get_or_create_team(session, str(team_abbrev))
-        opponent_id = await get_or_create_team(session, str(opponent_abbrev))
-
-        # Determine location and outcome
-        outcome_val = tbs.get("outcome")
-        if hasattr(outcome_val, "value"):
-            outcome_val = outcome_val.value
-        outcome = Outcome.WIN if outcome_val == "WIN" else Outcome.LOSS
-
-        location_val = tbs.get("location")
-        if hasattr(location_val, "value"):
-            location_val = location_val.value
-        location = Location.HOME if location_val == "HOME" else Location.AWAY
-
-        # Determine home/away for game creation
-        if location == Location.HOME:
-            home_team_id = team_id
-            away_team_id = opponent_id
-        else:
-            home_team_id = opponent_id
-            away_team_id = team_id
-
-        # Use consistent key ordering for game lookup
-        game_key = (min(home_team_id, away_team_id), max(home_team_id, away_team_id))
-
-        # Create game if not already created for this pair
-        if game_key not in games_created:
-            home_score = tbs.get("points") if location == Location.HOME else None
-            away_score = tbs.get("points") if location == Location.AWAY else None
-
-            game_id = await get_or_create_game(
-                session,
-                game_date=dt,
-                home_team_id=home_team_id,
-                away_team_id=away_team_id,
-                season_id=season_id,
-                home_score=home_score,
-                away_score=away_score,
+def _upsert_team_summaries(session: Session) -> None:
+    session.execute(
+        text(
+            """
+            INSERT INTO team_season (
+                team_id, season_id, season_type,
+                wins, losses,
+                points_per_game, points_allowed_per_game,
+                offensive_rating, defensive_rating, net_rating,
+                pace
             )
-            games_created[game_key] = (game_id, {})
-
-        game_id, box_id_map = games_created[game_key]
-
-        # Create team box score
-        box_id = await get_or_create_box_score(
-            session,
-            game_id=game_id,
-            team_id=team_id,
-            opponent_team_id=opponent_id,
-            location=location,
-            outcome=outcome,
-            stats=tbs,
+            SELECT
+                t.team_id,
+                se.season_id,
+                'REGULAR',
+                COALESCE(TRY_CAST(NULLIF(trim(ts.w), '') AS int), 0),
+                COALESCE(TRY_CAST(NULLIF(trim(ts.l), '') AS int), 0),
+                TRY_CAST(NULLIF(trim(ts.pw), '') AS numeric),
+                TRY_CAST(NULLIF(trim(ts.pl), '') AS numeric),
+                TRY_CAST(NULLIF(trim(ts.o_rtg), '') AS numeric),
+                TRY_CAST(NULLIF(trim(ts.d_rtg), '') AS numeric),
+                TRY_CAST(NULLIF(trim(ts.n_rtg), '') AS numeric),
+                TRY_CAST(NULLIF(trim(ts.pace), '') AS numeric)
+            FROM staging_team_summaries ts
+            JOIN season se ON se.year = TRY_CAST(ts.season AS int)
+            JOIN team t ON t.abbreviation = ts.abbreviation
+            WHERE (validation_errors IS NULL)
+            ON CONFLICT (team_id, season_id, season_type) DO UPDATE SET
+                wins = EXCLUDED.wins,
+                losses = EXCLUDED.losses,
+                offensive_rating = EXCLUDED.offensive_rating,
+                defensive_rating = EXCLUDED.defensive_rating,
+                net_rating = EXCLUDED.net_rating,
+                pace = EXCLUDED.pace;
+            """
         )
-        box_id_map[team_id] = box_id
-        games_created[game_key] = (game_id, box_id_map)
-
-    logger.info("Created games and team box scores", games_count=len(games_created))
-
-    # Now process player box scores
-    player_count = 0
-    for pbs in player_box_scores:
-        team_abbrev = pbs.get("team")
-        if hasattr(team_abbrev, "value"):
-            team_abbrev = team_abbrev.value
-        if not team_abbrev:
-            continue
-
-        opponent_abbrev = pbs.get("opponent")
-        if hasattr(opponent_abbrev, "value"):
-            opponent_abbrev = opponent_abbrev.value
-
-        team_id = await get_or_create_team(session, str(team_abbrev))
-        opponent_id = await get_or_create_team(session, str(opponent_abbrev))
-
-        # Get player
-        player_slug = pbs.get("slug") or _extract_player_slug(pbs.get("name"))
-        player_name = pbs.get("name")
-        player_id = await get_or_create_player(session, player_slug, player_name)
-
-        # Find the game and box score for this player
-        game_key = (min(team_id, opponent_id), max(team_id, opponent_id))
-        if game_key not in games_created:
-            logger.warning(
-                "No game found for player box score",
-                player=player_name,
-                team=team_abbrev,
-            )
-            continue
-
-        game_id, box_id_map = games_created[game_key]
-        if team_id not in box_id_map:
-            logger.warning(
-                "No box score found for team",
-                team=team_abbrev,
-                game_id=game_id,
-            )
-            continue
-
-        box_id = box_id_map[team_id]
-
-        # Create player box score
-        player_box = map_player_box_score(
-            raw=pbs,
-            player_id=player_id,
-            box_id=box_id,
-            game_id=game_id,
-            team_id=team_id,
-        )
-        await upsert_player_box_score(
-            session, player_id, box_id, game_id, team_id, player_box
-        )
-        player_count += 1
-
-    logger.info(
-        "Persisted box scores",
-        date=dt.isoformat(),
-        games=len(games_created),
-        players=player_count,
     )
 
 
-@celery_app.task(
-    name="app.ingestion.tasks.update_standings",
-    bind=True,
-    max_retries=3,
-)
-def update_standings(self, season_end_year: int | None = None):
-    """Update standings for the current or specified season.
-
-    Args:
-        season_end_year: Year the season ends. Defaults to current season.
-    """
-    if season_end_year is None:
-        today = date.today()
-        # NBA season runs Oct-June, so if we're past June, use next year
-        season_end_year = today.year + 1 if today.month >= 10 else today.year
-
-    logger.info("Updating standings", season_end_year=season_end_year)
-
-    try:
-        run_async(_update_standings_async(season_end_year))
-        logger.info("Completed standings update", season_end_year=season_end_year)
-    except Exception as exc:
-        logger.exception("Failed to update standings")
-        raise self.retry(exc=exc) from exc
-
-
-async def _update_standings_async(season_end_year: int):
-    """Async implementation of standings update."""
-    scraper = ScraperService()
-    standings = await scraper.get_standings(season_end_year)
-
-    if not standings:
-        logger.warning("No standings data returned", season_end_year=season_end_year)
-        return
-
-    logger.info("Fetched standings data", season_end_year=season_end_year)
-
-    async with async_session_factory() as session:
-        await _persist_standings(session, season_end_year, standings)
-        await session.commit()
-
-
-async def _persist_standings(
-    session: AsyncSession,
-    season_end_year: int,
-    standings: dict[str, Any],
-):
-    """Persist standings to the database.
-
-    Standings data comes as a dict with division/conference keys.
-    Each entry contains team records.
-    """
-    from app.ingestion.mappers import map_standings
-    from app.ingestion.repositories import (
-        clear_caches,
-        get_or_create_season,
-        get_or_create_team,
-        upsert_team_season,
-    )
-
-    await clear_caches()
-    season_id = await get_or_create_season(session, season_end_year)
-
-    teams_processed = 0
-
-    # Standings structure: {"EASTERN": [...], "WESTERN": [...]} or by division
-    for _conference_or_division, team_records in standings.items():
-        if not isinstance(team_records, list):
-            continue
-
-        for record in team_records:
-            team_name = record.get("team")
-            if hasattr(team_name, "value"):
-                team_name = team_name.value
-            if not team_name:
-                continue
-
-            # Get team abbreviation from the team enum or string
-            team_abbrev = str(team_name)
-            # If it's a full team name, try to extract abbreviation
-            # For now, use the value as-is since scraper returns Team enums
-            team_id = await get_or_create_team(session, team_abbrev, team_name)
-
-            team_season = map_standings(
-                raw=record,
-                team_id=team_id,
-                season_id=season_id,
-            )
-            await upsert_team_season(session, team_season)
-            teams_processed += 1
-
-    logger.info(
-        "Persisted standings",
-        season_end_year=season_end_year,
-        teams=teams_processed,
-    )
-
-
-@celery_app.task(
-    name="app.ingestion.tasks.sync_season_data",
-    bind=True,
-    max_retries=2,
-)
-def sync_season_data(self, season_end_year: int | None = None):
-    """Full sync of season data including schedule, player totals, and advanced stats.
-
-    This is a heavy operation meant to run weekly or on-demand.
-
-    Args:
-        season_end_year: Year the season ends. Defaults to current season.
-    """
-    if season_end_year is None:
-        today = date.today()
-        season_end_year = today.year + 1 if today.month >= 10 else today.year
-
-    logger.info("Starting full season sync", season_end_year=season_end_year)
-
-    try:
-        run_async(_sync_season_data_async(season_end_year))
-        logger.info("Completed full season sync", season_end_year=season_end_year)
-    except Exception as exc:
-        logger.exception("Failed full season sync")
-        raise self.retry(exc=exc) from exc
-
-
-async def _sync_season_data_async(season_end_year: int):
-    """Async implementation of full season sync."""
-    scraper = ScraperService()
-
-    # Fetch schedule
-    schedule = await scraper.get_season_schedule(season_end_year)
-    logger.info("Fetched schedule", count=len(schedule))
-
-    # Fetch player season totals
-    player_totals = await scraper.get_players_season_totals(season_end_year)
-    logger.info("Fetched player totals", count=len(player_totals))
-
-    # Fetch advanced stats
-    advanced_totals = await scraper.get_players_advanced_season_totals(
-        season_end_year, include_combined_values=True
-    )
-    logger.info("Fetched advanced totals", count=len(advanced_totals))
-
-    # Fetch standings
-    standings = await scraper.get_standings(season_end_year)
-    logger.info("Fetched standings")
-
-    async with async_session_factory() as session:
-        await _persist_season_data(
-            session,
-            season_end_year,
-            schedule,
-            player_totals,
-            advanced_totals,
-            standings,
-        )
-        await session.commit()
-
-
-async def _persist_season_data(
-    session: AsyncSession,
-    season_end_year: int,
-    schedule: list[dict[str, Any]],
-    player_totals: list[dict[str, Any]],
-    advanced_totals: list[dict[str, Any]],
-    standings: dict[str, Any],
-):
-    """Persist all season data to the database.
-
-    This is the full sync that handles:
-    1. Schedule (games)
-    2. Player season totals
-    3. Player advanced stats
-    4. Standings
-    """
-    from app.ingestion.mappers import (
-        _extract_player_slug,
-        map_player_advanced_totals,
-        map_player_season_totals,
-    )
-    from app.ingestion.repositories import (
-        clear_caches,
-        get_or_create_game,
-        get_or_create_player,
-        get_or_create_season,
-        get_or_create_team,
-        upsert_player_season,
-        upsert_player_season_advanced,
-    )
-
-    await clear_caches()
-    season_id = await get_or_create_season(session, season_end_year)
-
-    # 1. Process schedule to create games
-    games_created = 0
-    for game_data in schedule:
-        home_team = game_data.get("home_team")
-        away_team = game_data.get("away_team")
-
-        if hasattr(home_team, "value"):
-            home_team = home_team.value
-        if hasattr(away_team, "value"):
-            away_team = away_team.value
-
-        if not home_team or not away_team:
-            continue
-
-        home_team_id = await get_or_create_team(session, str(home_team))
-        away_team_id = await get_or_create_team(session, str(away_team))
-
-        # Parse date from start_time
-        start_time = game_data.get("start_time")
-        if start_time is None:
-            continue
-
-        from datetime import datetime
-
-        if isinstance(start_time, datetime):
-            game_date = start_time.date()
-        elif isinstance(start_time, date):
-            game_date = start_time
-        else:
-            continue
-
-        await get_or_create_game(
-            session,
-            game_date=game_date,
-            home_team_id=home_team_id,
-            away_team_id=away_team_id,
-            season_id=season_id,
-            home_score=game_data.get("home_team_score"),
-            away_score=game_data.get("away_team_score"),
-        )
-        games_created += 1
-
-    logger.info("Persisted schedule", games=games_created)
-
-    # 2. Process player season totals
-    players_processed = 0
-
-    def _select_player_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        selected: dict[str, dict[str, Any]] = {}
-        for record in records:
-            player_slug = record.get("slug") or _extract_player_slug(record.get("name"))
-            if not player_slug:
-                continue
-            if record.get("is_combined_totals", False):
-                selected[player_slug] = record
-            else:
-                selected.setdefault(player_slug, record)
-        return list(selected.values())
-
-    for pt in _select_player_records(player_totals):
-        player_slug = pt.get("slug") or _extract_player_slug(pt.get("name"))
-        player_name = pt.get("name")
-        player_id = await get_or_create_player(session, player_slug, player_name)
-
-        # Get team if available
-        team_abbrev = pt.get("team")
-        if hasattr(team_abbrev, "value"):
-            team_abbrev = team_abbrev.value
-        team_id = None
-        if team_abbrev:
-            team_id = await get_or_create_team(session, str(team_abbrev))
-
-        player_season = map_player_season_totals(
-            raw=pt,
-            player_id=player_id,
-            season_id=season_id,
-            team_id=team_id,
-        )
-        await upsert_player_season(session, player_season)
-        players_processed += 1
-
-    logger.info("Persisted player totals", players=players_processed)
-
-    # 3. Process advanced stats
-    advanced_processed = 0
-    for at in _select_player_records(advanced_totals):
-        player_slug = at.get("slug") or _extract_player_slug(at.get("name"))
-        player_name = at.get("name")
-        player_id = await get_or_create_player(session, player_slug, player_name)
-
-        team_abbrev = at.get("team")
-        if hasattr(team_abbrev, "value"):
-            team_abbrev = team_abbrev.value
-        team_id = None
-        if team_abbrev:
-            team_id = await get_or_create_team(session, str(team_abbrev))
-
-        player_advanced = map_player_advanced_totals(
-            raw=at,
-            player_id=player_id,
-            season_id=season_id,
-            team_id=team_id,
-        )
-        await upsert_player_season_advanced(session, player_advanced)
-        advanced_processed += 1
-
-    logger.info("Persisted advanced stats", players=advanced_processed)
-
-    # 4. Persist standings
-    await _persist_standings(session, season_end_year, standings)
-
-    logger.info(
-        "Completed full season sync",
-        season_end_year=season_end_year,
-        games=games_created,
-        player_totals=players_processed,
-        advanced_stats=advanced_processed,
-    )
-
-
-@celery_app.task(name="app.ingestion.tasks.ingest_player_game_log")
-def ingest_player_game_log(player_identifier: str, season_end_year: int):
-    """Ingest a single player's game log for a season.
-
-    Args:
-        player_identifier: Player ID (e.g., 'jamesle01').
-        season_end_year: Year the season ends.
-    """
-    logger.info(
-        "Ingesting player game log",
-        player_identifier=player_identifier,
-        season_end_year=season_end_year,
-    )
-
-    run_async(_ingest_player_game_log_async(player_identifier, season_end_year))
-
-
-async def _ingest_player_game_log_async(player_identifier: str, season_end_year: int):
-    """Async implementation of player game log ingestion."""
-    scraper = ScraperService()
-
-    game_log = await scraper.get_regular_season_player_box_scores(
-        player_identifier=player_identifier,
-        season_end_year=season_end_year,
-        include_inactive_games=True,
-    )
-
-    logger.info(
-        "Fetched player game log",
-        player_identifier=player_identifier,
-        count=len(game_log),
-    )
-
-    async with async_session_factory() as session:
-        from app.ingestion.mappers import map_player_box_score
-        from app.ingestion.repositories import (
-            clear_caches,
-            get_or_create_box_score,
-            get_or_create_game,
-            get_or_create_player,
-            get_or_create_season,
-            get_or_create_team,
-            upsert_player_box_score,
-        )
-        from app.models.game import Location, Outcome
-
-        await clear_caches()
-        season_id = await get_or_create_season(session, season_end_year)
-        player_id = await get_or_create_player(session, player_identifier)
-
-        persisted = 0
-        for entry in game_log:
-            if entry.get("active") is False:
-                continue
-
-            team_enum = entry.get("team")
-            opponent_enum = entry.get("opponent")
-            team_abbrev = TEAM_TO_TEAM_ABBREVIATION.get(team_enum, str(team_enum))
-            opponent_abbrev = TEAM_TO_TEAM_ABBREVIATION.get(
-                opponent_enum, str(opponent_enum)
-            )
-            team_id = await get_or_create_team(session, team_abbrev)
-            opponent_id = await get_or_create_team(session, opponent_abbrev)
-
-            location_val = entry.get("location")
-            if hasattr(location_val, "value"):
-                location_val = location_val.value
-            location = Location.HOME if location_val == "HOME" else Location.AWAY
-
-            outcome_val = entry.get("outcome")
-            if hasattr(outcome_val, "value"):
-                outcome_val = outcome_val.value
-            outcome = Outcome.WIN if outcome_val == "WIN" else Outcome.LOSS
-
-            if location == Location.HOME:
-                home_team_id = team_id
-                away_team_id = opponent_id
-            else:
-                home_team_id = opponent_id
-                away_team_id = team_id
-
-            game_date = entry.get("date")
-            if game_date is None:
-                continue
-
-            game_id = await get_or_create_game(
-                session,
-                game_date=game_date,
-                home_team_id=home_team_id,
-                away_team_id=away_team_id,
-                season_id=season_id,
-            )
-
-            box_id = await get_or_create_box_score(
-                session,
-                game_id=game_id,
-                team_id=team_id,
-                opponent_team_id=opponent_id,
-                location=location,
-                outcome=outcome,
-            )
-
-            player_box = map_player_box_score(
-                raw=entry,
-                player_id=player_id,
-                box_id=box_id,
-                game_id=game_id,
-                team_id=team_id,
-            )
-            await upsert_player_box_score(
-                session, player_id, box_id, game_id, team_id, player_box
-            )
-            persisted += 1
-
-        await session.commit()
-        logger.info(
-            "Persisted player game log",
-            player_identifier=player_identifier,
-            count=persisted,
-        )
-
-
-@celery_app.task(name="app.ingestion.tasks.ingest_play_by_play")
-def ingest_play_by_play(home_team: str, day: int, month: int, year: int):
-    """Ingest play-by-play data for a single game.
-
-    Args:
-        home_team: Team abbreviation for home team.
-        day: Day of the month.
-        month: Month number.
-        year: 4-digit year.
-    """
-    logger.info(
-        "Ingesting play-by-play",
-        home_team=home_team,
-        date=f"{year}-{month:02d}-{day:02d}",
-    )
-
-    run_async(_ingest_play_by_play_async(home_team, day, month, year))
-
-
-async def _ingest_play_by_play_async(home_team: str, day: int, month: int, year: int):
-    """Async implementation of play-by-play ingestion."""
-    scraper = ScraperService()
-
-    plays = await scraper.get_play_by_play(
-        home_team=home_team, day=day, month=month, year=year
-    )
-
-    logger.info("Fetched play-by-play", count=len(plays))
-
-    async with async_session_factory() as session:
-        from app.ingestion.mappers import map_play_by_play
-        from app.ingestion.repositories import (
-            clear_caches,
-            get_or_create_game,
-            get_or_create_season,
-            get_or_create_team,
-        )
-        from app.models.game import PlayByPlay
-
-        if not plays:
-            return
-
-        await clear_caches()
-        game_date = date(year, month, day)
-        season_end_year = year + 1 if month >= 10 else year
-        season_id = await get_or_create_season(session, season_end_year)
-
-        first = plays[0]
-        away_enum = first.get("away_team")
-        home_enum = first.get("home_team")
-        away_abbrev = TEAM_TO_TEAM_ABBREVIATION.get(away_enum, str(away_enum))
-        home_abbrev = TEAM_TO_TEAM_ABBREVIATION.get(home_enum, str(home_enum))
-        away_id = await get_or_create_team(session, away_abbrev)
-        home_id = await get_or_create_team(session, home_abbrev)
-
-        game_id = await get_or_create_game(
-            session,
-            game_date=game_date,
-            home_team_id=home_id,
-            away_team_id=away_id,
-            season_id=season_id,
-        )
-
-        await session.execute(delete(PlayByPlay).where(PlayByPlay.game_id == game_id))
-
-        prev_scores: tuple[int | None, int | None] = (None, None)
-        for play in plays:
-            relevant_team = play.get("relevant_team")
-            if relevant_team is None:
-                team_id = None
-            else:
-                relevant_abbrev = TEAM_TO_TEAM_ABBREVIATION.get(
-                    relevant_team, str(relevant_team)
-                )
-                team_id = await get_or_create_team(session, relevant_abbrev)
-
-            play_model = map_play_by_play(play, game_id, team_id, prev_scores)
-            session.add(play_model)
-            prev_scores = (play.get("away_score"), play.get("home_score"))
-
-        await session.commit()
-        logger.info("Persisted play-by-play", game_id=game_id, plays=len(plays))
+def run_ingestion_sync(import_batch_id: UUID) -> None:
+    """Synchronous ingestion entry point for Celery."""
+    logger.info("Starting ingestion task", batch_id=str(import_batch_id))
+
+    with session_factory() as session:
+        try:
+            # 1. Load CSVs to staging
+            _load_staging_tables(session, import_batch_id)
+
+            # 2. Validate (Simplified/Skipped for DuckDB transition)
+            _validate_staging(session)
+
+            # 3. Upsert core entities
+            _upsert_franchises(session)
+            _upsert_teams(session)
+            _upsert_players(session)
+            _upsert_seasons_from_games(session)
+            _upsert_games(session)
+            _upsert_schedule_games(session)
+
+            # 4. Upsert stats
+            _upsert_box_scores(session)
+            _upsert_player_box_scores(session)
+            _upsert_player_season_totals(session)
+
+            _upsert_player_season_advanced(session)
+            _upsert_team_totals(session)
+            _upsert_team_summaries(session)
+
+            session.commit()
+            logger.info("Ingestion complete")
+        except Exception as e:
+            session.rollback()
+            logger.exception("Ingestion failed", error=str(e))
+            raise e
+
+
+@celery_app.task
+def ingest_data_task() -> str:
+    batch_id = uuid4()
+    run_ingestion_sync(batch_id)
+    return str(batch_id)

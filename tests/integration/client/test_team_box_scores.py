@@ -5,7 +5,7 @@ from datetime import date
 from unittest import TestCase
 
 import src.scraper.api.client as client
-from src.scraper.common.data import Outcome, OutputType, OutputWriteOption, Team
+from src.core.domain import Outcome, OutputType, OutputWriteOption, Team
 from tests.integration.client.utilities import ResponseMocker
 
 

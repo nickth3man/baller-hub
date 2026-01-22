@@ -9,8 +9,7 @@ from typing import Any
 
 import structlog
 from sqlalchemy import or_, select
-from sqlalchemy.orm import aliased
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session, aliased
 
 from app.models.player import Player, PlayerSeason, SeasonType
 from app.models.team import Team
@@ -22,7 +21,7 @@ logger = structlog.get_logger(__name__)
 class SearchService:
     """Service for searching players, teams, and games."""
 
-    def __init__(self, session: AsyncSession, use_meilisearch: bool = True):
+    def __init__(self, session: Session, use_meilisearch: bool = True):
         self.session = session
         self.use_meilisearch = use_meilisearch
         self._indexer: SearchIndexer | None = None
@@ -34,7 +33,7 @@ class SearchService:
             self._indexer = SearchIndexer()
         return self._indexer
 
-    async def search(
+    def search(
         self,
         query: str,
         entity_type: str | None = None,
@@ -92,17 +91,17 @@ class SearchService:
 
         # Fallback to database search
         if entity_type is None or entity_type == "player":
-            players = await self._db_search_players(query, limit)
+            players = self._db_search_players(query, limit)
             results["players"] = [self._normalize_player_model(p) for p in players]
 
         if entity_type is None or entity_type == "team":
-            teams = await self._db_search_teams(query, limit)
+            teams = self._db_search_teams(query, limit)
             results["teams"] = [self._normalize_team_model(t) for t in teams]
 
         results["total_results"] = len(results["players"]) + len(results["teams"])
         return results
 
-    async def autocomplete(
+    def autocomplete(
         self,
         query: str,
         limit: int = 10,
@@ -130,7 +129,7 @@ class SearchService:
         player_query = (
             select(Player).where(Player.last_name.ilike(f"{query}%")).limit(limit // 2)
         )
-        player_result = await self.session.execute(player_query)
+        player_result = self.session.execute(player_query)
 
         for player in player_result.scalars():
             suggestions.append(
@@ -148,7 +147,7 @@ class SearchService:
 
         # Search teams
         team_query = select(Team).where(Team.name.ilike(f"%{query}%")).limit(limit // 2)
-        team_result = await self.session.execute(team_query)
+        team_result = self.session.execute(team_query)
 
         for team in team_result.scalars():
             suggestions.append(
@@ -163,7 +162,7 @@ class SearchService:
 
         return {"query": query, "suggestions": suggestions}
 
-    async def search_players(
+    def search_players(
         self,
         query: str,
         position: str | None = None,
@@ -191,17 +190,19 @@ class SearchService:
                     filters["is_active"] = True
 
                 results = self.indexer.search_players(query, limit, filters)
-                return [self._normalize_player_hit(hit) for hit in results.get("hits", [])]
+                return [
+                    self._normalize_player_hit(hit) for hit in results.get("hits", [])
+                ]
             except Exception as e:
                 logger.warning("Meilisearch player search failed", error=str(e))
 
         # Fallback to database
-        players = await self._db_search_players(
+        players = self._db_search_players(
             query, limit, position, active_only, team_abbrev
         )
         return [self._normalize_player_model(p) for p in players]
 
-    async def search_teams(
+    def search_teams(
         self,
         query: str,
         active_only: bool = True,
@@ -227,10 +228,10 @@ class SearchService:
             except Exception as e:
                 logger.warning("Meilisearch team search failed", error=str(e))
 
-        teams = await self._db_search_teams(query, limit, active_only)
+        teams = self._db_search_teams(query, limit, active_only)
         return [self._normalize_team_model(t) for t in teams]
 
-    async def search_games(
+    def search_games(
         self,
         team1: str | None = None,
         team2: str | None = None,
@@ -269,7 +270,7 @@ class SearchService:
         if team1:
             # Get team ID from abbreviation
             team_query = select(Team.team_id).where(Team.abbreviation == team1.upper())
-            team_result = await self.session.execute(team_query)
+            team_result = self.session.execute(team_query)
             team_id = team_result.scalar_one_or_none()
 
             if team_id:
@@ -279,7 +280,7 @@ class SearchService:
 
         if team2:
             team_query = select(Team.team_id).where(Team.abbreviation == team2.upper())
-            team_result = await self.session.execute(team_query)
+            team_result = self.session.execute(team_query)
             team_id = team_result.scalar_one_or_none()
 
             if team_id:
@@ -303,7 +304,7 @@ class SearchService:
                 query = query.where(Game.season_type == "REGULAR")
 
         query = query.order_by(Game.game_date.desc()).limit(limit)
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         rows = result.all()
 
         return [
@@ -312,7 +313,7 @@ class SearchService:
         ]
 
     # Private database fallback methods
-    async def _db_search_players(
+    def _db_search_players(
         self,
         query: str,
         limit: int,
@@ -343,10 +344,10 @@ class SearchService:
             player_query = player_query.where(Player.player_id.in_(player_ids))
 
         player_query = player_query.limit(limit)
-        result = await self.session.execute(player_query)
+        result = self.session.execute(player_query)
         return list(result.scalars().all())
 
-    async def _db_search_teams(
+    def _db_search_teams(
         self,
         query: str,
         limit: int,
@@ -365,7 +366,7 @@ class SearchService:
             team_query = team_query.where(Team.is_active)
 
         team_query = team_query.limit(limit)
-        result = await self.session.execute(team_query)
+        result = self.session.execute(team_query)
         return list(result.scalars().all())
 
     # Serialization helpers

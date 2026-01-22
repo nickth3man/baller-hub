@@ -4,7 +4,7 @@ import csv
 import json
 from pathlib import Path
 
-from src.scraper.common.data import OutputType, OutputWriteOption
+from src.core.domain import OutputType, OutputWriteOption
 from src.scraper.utils.dictionaries import merge_two_dicts
 
 DEFAULT_JSON_SORT_KEYS = True

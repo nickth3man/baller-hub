@@ -13,7 +13,7 @@ from src.scraper.api.client import (
     players_season_totals,
     season_schedule,
 )
-from src.scraper.common.data import (
+from src.core.domain import (
     Location,
     Outcome,
     OutputType,

@@ -5,7 +5,7 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.scraper.common.data import TEAM_ABBREVIATIONS_TO_TEAM, Team
+from src.core.domain import TEAM_ABBREVIATIONS_TO_TEAM, Team
 from src.scraper.html.coach import CoachPage
 from src.scraper.parsers.base import TeamAbbreviationParser
 from src.scraper.parsers.coach import CoachParser

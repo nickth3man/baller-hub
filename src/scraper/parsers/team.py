@@ -1,6 +1,6 @@
 """Parsers for team data."""
 
-from src.scraper.common.data import Outcome
+from src.core.domain import Outcome
 from src.scraper.utils.casting import str_to_int
 
 

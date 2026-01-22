@@ -1,6 +1,6 @@
 """Service for coordinating parsing operations."""
 
-from src.scraper.common.data import (
+from src.core.domain import (
     DIVISIONS_TO_CONFERENCES,
     LEAGUE_ABBREVIATIONS_TO_LEAGUE,
     LOCATION_ABBREVIATIONS_TO_POSITION,

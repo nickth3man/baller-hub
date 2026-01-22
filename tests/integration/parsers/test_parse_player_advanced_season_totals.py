@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.scraper.common.data import (
+from src.core.domain import (
     POSITION_ABBREVIATIONS_TO_POSITION,
     TEAM_ABBREVIATIONS_TO_TEAM,
     Position,

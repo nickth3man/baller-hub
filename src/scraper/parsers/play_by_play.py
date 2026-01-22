@@ -3,7 +3,7 @@
 import re
 from datetime import datetime
 
-from src.scraper.common.data import PeriodType
+from src.core.domain import PeriodType
 
 
 class SecondsPlayedParser:

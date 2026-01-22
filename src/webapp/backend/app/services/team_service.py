@@ -1,8 +1,7 @@
 """Team service - business logic for team operations."""
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.game import Game
 from app.models.player import Player, PlayerSeason
@@ -11,10 +10,10 @@ from app.models.team import Franchise, Team, TeamSeason
 
 
 class TeamService:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: Session):
         self.session = session
 
-    async def list_teams(
+    def list_teams(
         self,
         is_active: bool = True,
         conference: str | None = None,
@@ -44,12 +43,12 @@ class TeamService:
                 query = query.where(Division.division_type == division.upper())
 
         query = query.order_by(Team.name)
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         teams = result.scalars().all()
 
         return [self._team_to_dict(t) for t in teams]
 
-    async def get_team_by_abbreviation(self, abbreviation: str) -> dict | None:
+    def get_team_by_abbreviation(self, abbreviation: str) -> dict | None:
         """Get team details by abbreviation.
 
         Args:
@@ -63,7 +62,7 @@ class TeamService:
             .options(selectinload(Team.franchise), selectinload(Team.seasons))
             .where(Team.abbreviation == abbreviation.upper())
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         team = result.scalar_one_or_none()
 
         if team is None:
@@ -71,7 +70,7 @@ class TeamService:
 
         return self._team_detail_to_dict(team)
 
-    async def get_team_roster(self, abbreviation: str, season_year: int) -> list[dict]:
+    def get_team_roster(self, abbreviation: str, season_year: int) -> list[dict]:
         """Get team roster for a specific season.
 
         Args:
@@ -85,7 +84,7 @@ class TeamService:
         team_query = select(Team.team_id).where(
             Team.abbreviation == abbreviation.upper()
         )
-        team_result = await self.session.execute(team_query)
+        team_result = self.session.execute(team_query)
         team_id = team_result.scalar_one_or_none()
 
         if team_id is None:
@@ -93,7 +92,7 @@ class TeamService:
 
         # Get season
         season_query = select(Season.season_id).where(Season.year == season_year)
-        season_result = await self.session.execute(season_query)
+        season_result = self.session.execute(season_query)
         season_id = season_result.scalar_one_or_none()
 
         if season_id is None:
@@ -108,7 +107,7 @@ class TeamService:
             .order_by(Player.last_name)
         )
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         rows = result.all()
 
         return [
@@ -121,9 +120,7 @@ class TeamService:
             for player, ps in rows
         ]
 
-    async def get_team_schedule(
-        self, abbreviation: str, season_year: int
-    ) -> list[dict]:
+    def get_team_schedule(self, abbreviation: str, season_year: int) -> list[dict]:
         """Get team's schedule for a season.
 
         Args:
@@ -137,7 +134,7 @@ class TeamService:
         team_query = select(Team.team_id).where(
             Team.abbreviation == abbreviation.upper()
         )
-        team_result = await self.session.execute(team_query)
+        team_result = self.session.execute(team_query)
         team_id = team_result.scalar_one_or_none()
 
         if team_id is None:
@@ -145,7 +142,7 @@ class TeamService:
 
         # Get season
         season_query = select(Season.season_id).where(Season.year == season_year)
-        season_result = await self.session.execute(season_query)
+        season_result = self.session.execute(season_query)
         season_id = season_result.scalar_one_or_none()
 
         if season_id is None:
@@ -159,18 +156,16 @@ class TeamService:
             .order_by(Game.game_date)
         )
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         games = result.scalars().all()
-        team_map = await self._get_team_abbrev_map(
+        team_map = self._get_team_abbrev_map(
             {game.home_team_id for game in games}
             | {game.away_team_id for game in games}
         )
 
         return [self._game_to_dict(g, team_id, team_map) for g in games]
 
-    async def get_team_season_stats(
-        self, abbreviation: str, season_year: int
-    ) -> dict | None:
+    def get_team_season_stats(self, abbreviation: str, season_year: int) -> dict | None:
         """Get team's aggregated stats for a season.
 
         Args:
@@ -184,7 +179,7 @@ class TeamService:
         team_query = select(Team.team_id).where(
             Team.abbreviation == abbreviation.upper()
         )
-        team_result = await self.session.execute(team_query)
+        team_result = self.session.execute(team_query)
         team_id = team_result.scalar_one_or_none()
 
         if team_id is None:
@@ -192,7 +187,7 @@ class TeamService:
 
         # Get season
         season_query = select(Season.season_id).where(Season.year == season_year)
-        season_result = await self.session.execute(season_query)
+        season_result = self.session.execute(season_query)
         season_id = season_result.scalar_one_or_none()
 
         if season_id is None:
@@ -203,7 +198,7 @@ class TeamService:
             TeamSeason.team_id == team_id,
             TeamSeason.season_id == season_id,
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         team_season = result.scalar_one_or_none()
 
         if team_season is None:
@@ -211,7 +206,7 @@ class TeamService:
 
         return self._team_season_to_dict(team_season)
 
-    async def get_team_history(self, abbreviation: str) -> list[dict]:
+    def get_team_history(self, abbreviation: str) -> list[dict]:
         """Get team's historical season-by-season records.
 
         Args:
@@ -224,7 +219,7 @@ class TeamService:
         team_query = select(Team.team_id).where(
             Team.abbreviation == abbreviation.upper()
         )
-        team_result = await self.session.execute(team_query)
+        team_result = self.session.execute(team_query)
         team_id = team_result.scalar_one_or_none()
 
         if team_id is None:
@@ -238,7 +233,7 @@ class TeamService:
             .order_by(Season.year.desc())
         )
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         rows = result.all()
 
         return [
@@ -253,7 +248,7 @@ class TeamService:
             for ts, season in rows
         ]
 
-    async def get_franchise_history(self, abbreviation: str) -> dict | None:
+    def get_franchise_history(self, abbreviation: str) -> dict | None:
         """Get full franchise history including relocations.
 
         Args:
@@ -268,7 +263,7 @@ class TeamService:
             .options(selectinload(Team.franchise).selectinload(Franchise.teams))
             .where(Team.abbreviation == abbreviation.upper())
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         team = result.scalar_one_or_none()
 
         if team is None or team.franchise is None:
@@ -317,13 +312,13 @@ class TeamService:
             "position": player.position.value if player.position else None,
         }
 
-    async def _get_team_abbrev_map(self, team_ids: set[int]) -> dict[int, str]:
+    def _get_team_abbrev_map(self, team_ids: set[int]) -> dict[int, str]:
         if not team_ids:
             return {}
         query = select(Team.team_id, Team.abbreviation).where(
             Team.team_id.in_(team_ids)
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         return dict(result.all())
 
     def _game_to_dict(

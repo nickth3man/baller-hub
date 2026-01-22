@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.scraper.common.data import LOCATION_ABBREVIATIONS_TO_POSITION, Location
+from src.core.domain import LOCATION_ABBREVIATIONS_TO_POSITION, Location
 from src.scraper.parsers import LocationAbbreviationParser
 
 

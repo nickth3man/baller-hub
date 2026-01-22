@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from app.models.game import Game
 from app.models.season import Conference, Division, Season
@@ -13,11 +13,11 @@ from app.models.team import Team, TeamSeason
 
 
 class StandingsService:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: Session):
         self.session = session
 
-    async def get_standings(self, season_year: int, view: str = "conference"):
-        season_id = await self._get_season_id(season_year)
+    def get_standings(self, season_year: int, view: str = "conference"):
+        season_id = self._get_season_id(season_year)
         if season_id is None:
             return {"season_year": season_year, "view": view}
 
@@ -29,7 +29,7 @@ class StandingsService:
             .where(TeamSeason.season_id == season_id)
             .where(TeamSeason.season_type == "REGULAR")
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         rows = result.all()
 
         standings = [self._row_to_team_dict(ts, team) for ts, team, _ in rows]
@@ -46,12 +46,8 @@ class StandingsService:
             league = self._apply_rank_and_games_back(standings)
             return {"season_year": season_year, "view": view, "league": league}
 
-        eastern = self._apply_rank_and_games_back(
-            conference_map.get("EASTERN", [])
-        )
-        western = self._apply_rank_and_games_back(
-            conference_map.get("WESTERN", [])
-        )
+        eastern = self._apply_rank_and_games_back(conference_map.get("EASTERN", []))
+        western = self._apply_rank_and_games_back(conference_map.get("WESTERN", []))
         return {
             "season_year": season_year,
             "view": view,
@@ -59,10 +55,10 @@ class StandingsService:
             "western": western,
         }
 
-    async def get_standings_as_of_date(
+    def get_standings_as_of_date(
         self, season_year: int, as_of_date: str, view: str = "conference"
     ):
-        season_id = await self._get_season_id(season_year)
+        season_id = self._get_season_id(season_year)
         if season_id is None:
             return {"season_year": season_year, "view": view}
 
@@ -75,7 +71,7 @@ class StandingsService:
             .where(Game.home_score.isnot(None))
             .where(Game.away_score.isnot(None))
         )
-        result = await self.session.execute(game_query)
+        result = self.session.execute(game_query)
         games = result.scalars().all()
 
         records: dict[int, dict[str, int]] = {}
@@ -102,7 +98,7 @@ class StandingsService:
             .where(TeamSeason.season_id == season_id)
             .where(TeamSeason.season_type == "REGULAR")
         )
-        team_result = await self.session.execute(team_query)
+        team_result = self.session.execute(team_query)
         team_rows = team_result.all()
 
         standings = []
@@ -134,12 +130,8 @@ class StandingsService:
             league = self._apply_rank_and_games_back(standings)
             return {"season_year": season_year, "view": view, "league": league}
 
-        eastern = self._apply_rank_and_games_back(
-            conference_map.get("EASTERN", [])
-        )
-        western = self._apply_rank_and_games_back(
-            conference_map.get("WESTERN", [])
-        )
+        eastern = self._apply_rank_and_games_back(conference_map.get("EASTERN", []))
+        western = self._apply_rank_and_games_back(conference_map.get("WESTERN", []))
         return {
             "season_year": season_year,
             "view": view,
@@ -147,10 +139,10 @@ class StandingsService:
             "western": western,
         }
 
-    async def get_expanded_standings(self, season_year: int):
-        return await self.get_standings(season_year, view="league")
+    def get_expanded_standings(self, season_year: int):
+        return self.get_standings(season_year, view="league")
 
-    async def get_playoff_bracket(self, season_year: int):
+    def get_playoff_bracket(self, season_year: int):
         return {
             "season_year": season_year,
             "eastern_conference": [],
@@ -159,9 +151,9 @@ class StandingsService:
             "champion_abbrev": None,
         }
 
-    async def _get_season_id(self, season_year: int) -> int | None:
+    def _get_season_id(self, season_year: int) -> int | None:
         query = select(Season.season_id).where(Season.year == season_year)
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         return result.scalar_one_or_none()
 
     def _row_to_team_dict(self, ts: TeamSeason, team: Team) -> dict:
@@ -190,9 +182,7 @@ class StandingsService:
     def _apply_rank_and_games_back(self, teams: list[dict]) -> list[dict]:
         if not teams:
             return []
-        sorted_teams = sorted(
-            teams, key=lambda t: (-t["wins"], t["losses"], t["name"])
-        )
+        sorted_teams = sorted(teams, key=lambda t: (-t["wins"], t["losses"], t["name"]))
         leader = sorted_teams[0]
         leader_wins = leader["wins"]
         leader_losses = leader["losses"]

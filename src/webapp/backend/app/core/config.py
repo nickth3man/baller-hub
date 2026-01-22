@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     debug: bool = False
 
-    database_url: str = ""  # Required: set DATABASE_URL env var
+    database_url: str = "duckdb:///baller_hub.db"
     database_echo: bool = False
 
     redis_url: str = "redis://localhost:6379/0"
@@ -40,9 +40,6 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_required_settings(self) -> "Settings":
-        if not self.database_url:
-            raise ValueError("DATABASE_URL environment variable is required")
-
         if not self.jwt_secret_key or len(self.jwt_secret_key) < 32:
             raise ValueError(
                 "JWT_SECRET_KEY environment variable is required and must be at least 32 characters"

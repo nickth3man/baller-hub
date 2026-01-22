@@ -1,4 +1,4 @@
-from src.scraper.common.data import TEAM_TO_TEAM_ABBREVIATION
+from src.core.domain import TEAM_TO_TEAM_ABBREVIATION
 
 
 class URLBuilder:

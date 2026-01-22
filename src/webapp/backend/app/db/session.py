@@ -1,38 +1,40 @@
 """Database session and engine configuration."""
 
-from collections.abc import AsyncGenerator
+from collections.abc import Generator
 
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 from sqlmodel import SQLModel
 
 from app.core.config import settings
 
-engine = create_async_engine(
+# check_same_thread=False is required for SQLite/DuckDB in multithreaded (FastAPI) envs
+engine = create_engine(
     settings.database_url,
     echo=settings.database_echo,
+    connect_args={"check_same_thread": False},
     future=True,
 )
 
-async_session_factory = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
+session_factory = sessionmaker(
+    bind=engine,
+    class_=Session,
     expire_on_commit=False,
     autoflush=False,
 )
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_factory() as session:
+def get_session() -> Generator[Session, None, None]:
+    with session_factory() as session:
         try:
             yield session
-            await session.commit()
+            session.commit()
         except Exception:
-            await session.rollback()
+            session.rollback()
             raise
         finally:
-            await session.close()
+            session.close()
 
 
-async def init_db() -> None:
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
+def init_db() -> None:
+    SQLModel.metadata.create_all(engine)

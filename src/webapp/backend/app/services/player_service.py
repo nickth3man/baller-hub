@@ -1,8 +1,7 @@
 """Player service - business logic for player operations."""
 
 from sqlalchemy import func, select, text
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.player import (
     Player,
@@ -17,10 +16,10 @@ from app.models.team import Team
 
 
 class PlayerService:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: Session):
         self.session = session
 
-    async def list_players(
+    def list_players(
         self,
         page: int = 1,
         per_page: int = 50,
@@ -75,13 +74,11 @@ class PlayerService:
                     Team, PlayerSeason.team_id == Team.team_id
                 ).where(Team.abbreviation == team_abbrev.upper())
 
-            query = query.where(
-                Player.player_id.in_(season_player_query.distinct())
-            )
+            query = query.where(Player.player_id.in_(season_player_query.distinct()))
 
         # Get total count
         count_query = select(func.count()).select_from(query.subquery())
-        total_result = await self.session.execute(count_query)
+        total_result = self.session.execute(count_query)
         total = total_result.scalar() or 0
 
         # Apply pagination and ordering
@@ -91,16 +88,15 @@ class PlayerService:
             .limit(per_page)
         )
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         players = result.scalars().all()
-        current_teams = await self._get_current_teams(
+        current_teams = self._get_current_teams(
             [player.player_id for player in players]
         )
 
         return {
             "items": [
-                self._player_to_dict(p, current_teams.get(p.player_id))
-                for p in players
+                self._player_to_dict(p, current_teams.get(p.player_id)) for p in players
             ],
             "total": total,
             "page": page,
@@ -108,7 +104,7 @@ class PlayerService:
             "pages": (total + per_page - 1) // per_page,
         }
 
-    async def get_player_by_slug(self, slug: str) -> dict | None:
+    def get_player_by_slug(self, slug: str) -> dict | None:
         """Get player details by slug.
 
         Args:
@@ -124,18 +120,18 @@ class PlayerService:
             )
             .where(Player.slug == slug)
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         player = result.scalar_one_or_none()
 
         if player is None:
             return None
 
-        current_team = (
-            await self._get_current_teams([player.player_id])
-        ).get(player.player_id)
+        current_team = (self._get_current_teams([player.player_id])).get(
+            player.player_id
+        )
         return self._player_detail_to_dict(player, current_team)
 
-    async def get_player_game_log(
+    def get_player_game_log(
         self,
         player_slug: str,
         season_year: int,
@@ -155,7 +151,7 @@ class PlayerService:
 
         # Get player
         player_query = select(Player).where(Player.slug == player_slug)
-        player_result = await self.session.execute(player_query)
+        player_result = self.session.execute(player_query)
         player = player_result.scalar_one_or_none()
 
         if player is None:
@@ -163,7 +159,7 @@ class PlayerService:
 
         # Get season
         season_query = select(Season.season_id).where(Season.year == season_year)
-        season_result = await self.session.execute(season_query)
+        season_result = self.session.execute(season_query)
         season_id = season_result.scalar_one_or_none()
 
         if season_id is None:
@@ -187,7 +183,7 @@ class PlayerService:
             .order_by(Game.game_date)
         )
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         rows = result.all()
 
         games = []
@@ -257,7 +253,7 @@ class PlayerService:
             "totals": totals,
         }
 
-    async def get_player_career_stats(self, player_slug: str) -> list[dict]:
+    def get_player_career_stats(self, player_slug: str) -> list[dict]:
         """Get player's career statistics by season.
 
         Args:
@@ -274,18 +270,21 @@ class PlayerService:
             .where(Player.slug == player_slug)
             .order_by(Season.year.desc())
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         rows = result.all()
 
-        selected: dict[tuple[int, SeasonType], tuple[PlayerSeason, int, str | None]] = (
-            {}
-        )
+        selected: dict[
+            tuple[int, SeasonType], tuple[PlayerSeason, int, str | None]
+        ] = {}
         for player_season, season_year, team_abbrev in rows:
             key = (player_season.season_id, player_season.season_type)
             if key not in selected:
                 selected[key] = (player_season, season_year, team_abbrev)
                 continue
-            if player_season.is_combined_totals and not selected[key][0].is_combined_totals:
+            if (
+                player_season.is_combined_totals
+                and not selected[key][0].is_combined_totals
+            ):
                 selected[key] = (player_season, season_year, team_abbrev)
 
         seasons = sorted(selected.values(), key=lambda item: item[1], reverse=True)
@@ -294,7 +293,7 @@ class PlayerService:
             for ps, season_year, team_abbrev in seasons
         ]
 
-    async def get_player_career(self, player_slug: str) -> dict | None:
+    def get_player_career(self, player_slug: str) -> dict | None:
         """Get aggregated career totals from the materialized view."""
         query = text(
             """
@@ -314,7 +313,7 @@ class PlayerService:
             WHERE slug = :slug
             """
         )
-        result = await self.session.execute(query, {"slug": player_slug})
+        result = self.session.execute(query, {"slug": player_slug})
         row = result.mappings().first()
         if not row:
             return None
@@ -333,7 +332,7 @@ class PlayerService:
             "rpg": float(row["rpg"]) if row["rpg"] is not None else 0.0,
         }
 
-    async def get_player_advanced_stats(self, player_slug: str) -> list[dict]:
+    def get_player_advanced_stats(self, player_slug: str) -> list[dict]:
         """Get player's advanced career statistics.
 
         Args:
@@ -348,12 +347,12 @@ class PlayerService:
             .where(Player.slug == player_slug)
             .order_by(PlayerSeasonAdvanced.season_id.desc())
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         seasons = result.scalars().all()
 
         return [self._advanced_stats_to_dict(s) for s in seasons]
 
-    async def get_player_splits(self, player_slug: str, season_year: int) -> dict:
+    def get_player_splits(self, player_slug: str, season_year: int) -> dict:
         """Calculate player splits for a season.
 
         Args:
@@ -368,7 +367,7 @@ class PlayerService:
 
         # Get player
         player_query = select(Player.player_id).where(Player.slug == player_slug)
-        player_result = await self.session.execute(player_query)
+        player_result = self.session.execute(player_query)
         player_id = player_result.scalar_one_or_none()
 
         if player_id is None:
@@ -376,7 +375,7 @@ class PlayerService:
 
         # Get season
         season_query = select(Season.season_id).where(Season.year == season_year)
-        season_result = await self.session.execute(season_query)
+        season_result = self.session.execute(season_query)
         season_id = season_result.scalar_one_or_none()
 
         if season_id is None:
@@ -391,7 +390,7 @@ class PlayerService:
             .where(Game.season_id == season_id)
         )
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         rows = result.all()
 
         # Calculate splits
@@ -443,7 +442,7 @@ class PlayerService:
             },
         }
 
-    async def search_players(self, query: str, limit: int = 10) -> list[dict]:
+    def search_players(self, query: str, limit: int = 10) -> list[dict]:
         """Search players by name.
 
         Args:
@@ -464,10 +463,10 @@ class PlayerService:
             .limit(limit)
         )
 
-        result = await self.session.execute(search_query)
+        result = self.session.execute(search_query)
         players = result.scalars().all()
 
-        current_teams = await self._get_current_teams(
+        current_teams = self._get_current_teams(
             [player.player_id for player in players]
         )
         return [
@@ -476,7 +475,7 @@ class PlayerService:
         ]
 
     # Helper methods for serialization
-    async def _get_current_teams(self, player_ids: list[int]) -> dict[int, str]:
+    def _get_current_teams(self, player_ids: list[int]) -> dict[int, str]:
         """Get the most recent team abbreviation for a list of players."""
         if not player_ids:
             return {}
@@ -489,7 +488,7 @@ class PlayerService:
             .where(PlayerSeason.team_id.isnot(None))
             .where(PlayerSeason.season_type == SeasonType.REGULAR)
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         latest: dict[int, tuple[int, str]] = {}
 
         for player_id, season_year, abbrev in result.all():

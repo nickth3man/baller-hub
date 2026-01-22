@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.scraper.common.data import PlayerData
+from src.core.domain import PlayerData
 
 
 class TestPlayerData(TestCase):

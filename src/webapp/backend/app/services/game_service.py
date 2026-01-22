@@ -3,7 +3,7 @@
 from datetime import date, timedelta
 
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from app.models.game import BoxScore, Game, Location, PlayByPlay
 from app.models.player import Player, PlayerBoxScore
@@ -12,10 +12,10 @@ from app.models.team import Team
 
 
 class GameService:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: Session):
         self.session = session
 
-    async def list_games(
+    def list_games(
         self,
         start_date: date | None = None,
         end_date: date | None = None,
@@ -49,7 +49,7 @@ class GameService:
             team_query = select(Team.team_id).where(
                 Team.abbreviation == team_abbrev.upper()
             )
-            team_result = await self.session.execute(team_query)
+            team_result = self.session.execute(team_query)
             team_id = team_result.scalar_one_or_none()
             if team_id:
                 query = query.where(
@@ -66,7 +66,7 @@ class GameService:
 
         # Count total
         count_query = select(func.count()).select_from(query.subquery())
-        total_result = await self.session.execute(count_query)
+        total_result = self.session.execute(count_query)
         total = total_result.scalar() or 0
 
         # Apply pagination
@@ -76,9 +76,9 @@ class GameService:
             .limit(per_page)
         )
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         games = result.scalars().all()
-        team_map = await self._get_team_abbrev_map(
+        team_map = self._get_team_abbrev_map(
             {game.home_team_id for game in games}
             | {game.away_team_id for game in games}
         )
@@ -91,7 +91,7 @@ class GameService:
             "pages": (total + per_page - 1) // per_page,
         }
 
-    async def get_todays_games(self, target_date: date | None = None) -> list[dict]:
+    def get_todays_games(self, target_date: date | None = None) -> list[dict]:
         """Get all games for today (or specified date).
 
         Args:
@@ -107,31 +107,27 @@ class GameService:
             select(Game).where(Game.game_date == target_date).order_by(Game.game_time)
         )
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         games = result.scalars().all()
-        team_map = await self._get_team_abbrev_map(
+        team_map = self._get_team_abbrev_map(
             {game.home_team_id for game in games}
             | {game.away_team_id for game in games}
         )
 
         return [self._game_to_dict(g, team_map) for g in games]
 
-    async def get_games_by_date(self, game_date: date) -> list[dict]:
+    def get_games_by_date(self, game_date: date) -> list[dict]:
         """Get games for a specific date."""
-        query = (
-            select(Game).where(Game.game_date == game_date).order_by(Game.game_time)
-        )
-        result = await self.session.execute(query)
+        query = select(Game).where(Game.game_date == game_date).order_by(Game.game_time)
+        result = self.session.execute(query)
         games = result.scalars().all()
-        team_map = await self._get_team_abbrev_map(
+        team_map = self._get_team_abbrev_map(
             {game.home_team_id for game in games}
             | {game.away_team_id for game in games}
         )
         return [self._game_to_dict(game, team_map) for game in games]
 
-    async def get_games_by_date_range(
-        self, start_date: date, end_date: date
-    ) -> list[dict]:
+    def get_games_by_date_range(self, start_date: date, end_date: date) -> list[dict]:
         """Get games within a date range.
 
         Args:
@@ -148,16 +144,16 @@ class GameService:
             .order_by(Game.game_date, Game.game_time)
         )
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         games = result.scalars().all()
-        team_map = await self._get_team_abbrev_map(
+        team_map = self._get_team_abbrev_map(
             {game.home_team_id for game in games}
             | {game.away_team_id for game in games}
         )
 
         return [self._game_to_dict(g, team_map) for g in games]
 
-    async def get_game_by_id(self, game_id: int) -> dict | None:
+    def get_game_by_id(self, game_id: int) -> dict | None:
         """Get game details by ID.
 
         Args:
@@ -168,18 +164,16 @@ class GameService:
         """
         query = select(Game).where(Game.game_id == game_id)
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         game = result.scalar_one_or_none()
 
         if game is None:
             return None
 
-        team_map = await self._get_team_abbrev_map(
-            {game.home_team_id, game.away_team_id}
-        )
+        team_map = self._get_team_abbrev_map({game.home_team_id, game.away_team_id})
         return self._game_to_dict(game, team_map)
 
-    async def get_box_score(self, game_id: int) -> dict | None:
+    def get_box_score(self, game_id: int) -> dict | None:
         """Get full box score for a game.
 
         Args:
@@ -190,22 +184,20 @@ class GameService:
         """
         # Get game
         game_query = select(Game).where(Game.game_id == game_id)
-        game_result = await self.session.execute(game_query)
+        game_result = self.session.execute(game_query)
         game = game_result.scalar_one_or_none()
 
         if game is None:
             return None
 
-        team_info = await self._get_team_info_map(
-            {game.home_team_id, game.away_team_id}
-        )
+        team_info = self._get_team_info_map({game.home_team_id, game.away_team_id})
         team_abbrevs = {
             team_id: info.get("abbrev") for team_id, info in team_info.items()
         }
 
         # Get team box scores
         team_bs_query = select(BoxScore).where(BoxScore.game_id == game_id)
-        team_bs_result = await self.session.execute(team_bs_query)
+        team_bs_result = self.session.execute(team_bs_query)
         team_box_scores = team_bs_result.scalars().all()
 
         # Get player box scores
@@ -215,7 +207,7 @@ class GameService:
             .where(PlayerBoxScore.game_id == game_id)
             .order_by(PlayerBoxScore.is_starter.desc(), Player.last_name)
         )
-        player_bs_result = await self.session.execute(player_bs_query)
+        player_bs_result = self.session.execute(player_bs_query)
         player_box_scores = player_bs_result.all()
 
         # Organize by team
@@ -263,12 +255,10 @@ class GameService:
             },
         }
 
-    async def get_play_by_play(
-        self, game_id: int, period: int | None = None
-    ) -> dict | None:
+    def get_play_by_play(self, game_id: int, period: int | None = None) -> dict | None:
         """Get play-by-play data for a game."""
         game_query = select(Game).where(Game.game_id == game_id)
-        game_result = await self.session.execute(game_query)
+        game_result = self.session.execute(game_query)
         game = game_result.scalar_one_or_none()
         if game is None:
             return None
@@ -278,12 +268,10 @@ class GameService:
             query = query.where(PlayByPlay.period == period)
         query = query.order_by(PlayByPlay.period, PlayByPlay.seconds_remaining.desc())
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         plays = result.scalars().all()
 
-        team_map = await self._get_team_abbrev_map(
-            {game.home_team_id, game.away_team_id}
-        )
+        team_map = self._get_team_abbrev_map({game.home_team_id, game.away_team_id})
         return {
             "game_id": game.game_id,
             "home_team_abbrev": team_map.get(game.home_team_id, ""),
@@ -292,7 +280,7 @@ class GameService:
             "period_filter": period,
         }
 
-    async def get_games_week(self, reference_date: date | None = None) -> dict:
+    def get_games_week(self, reference_date: date | None = None) -> dict:
         """Get games for a week around a reference date.
 
         Args:
@@ -308,7 +296,7 @@ class GameService:
         start_date = reference_date - timedelta(days=3)
         end_date = reference_date + timedelta(days=3)
 
-        games = await self.get_games_by_date_range(start_date, end_date)
+        games = self.get_games_by_date_range(start_date, end_date)
 
         # Group by date
         games_by_date: dict[str, list[dict]] = {}
@@ -324,24 +312,22 @@ class GameService:
             "games_by_date": games_by_date,
         }
 
-    async def _get_team_abbrev_map(self, team_ids: set[int]) -> dict[int, str]:
+    def _get_team_abbrev_map(self, team_ids: set[int]) -> dict[int, str]:
         if not team_ids:
             return {}
         query = select(Team.team_id, Team.abbreviation).where(
             Team.team_id.in_(team_ids)
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         return dict(result.all())
 
-    async def _get_team_info_map(
-        self, team_ids: set[int]
-    ) -> dict[int, dict[str, str]]:
+    def _get_team_info_map(self, team_ids: set[int]) -> dict[int, dict[str, str]]:
         if not team_ids:
             return {}
         query = select(Team.team_id, Team.abbreviation, Team.name).where(
             Team.team_id.in_(team_ids)
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         return {
             team_id: {"abbrev": abbrev, "name": name}
             for team_id, abbrev, name in result.all()
@@ -352,8 +338,12 @@ class GameService:
         self, game: Game, team_abbrev_map: dict[int, str] | None = None
     ) -> dict:
         """Convert Game to basic dict."""
-        home_abbrev = team_abbrev_map.get(game.home_team_id) if team_abbrev_map else None
-        away_abbrev = team_abbrev_map.get(game.away_team_id) if team_abbrev_map else None
+        home_abbrev = (
+            team_abbrev_map.get(game.home_team_id) if team_abbrev_map else None
+        )
+        away_abbrev = (
+            team_abbrev_map.get(game.away_team_id) if team_abbrev_map else None
+        )
         return {
             "game_id": game.game_id,
             "date": game.game_date.isoformat(),
@@ -445,9 +435,7 @@ class GameService:
             "game_score": float(pbs.game_score) if pbs.game_score else None,
         }
 
-    def _play_to_dict(
-        self, play: PlayByPlay, team_abbrev_map: dict[int, str]
-    ) -> dict:
+    def _play_to_dict(self, play: PlayByPlay, team_abbrev_map: dict[int, str]) -> dict:
         """Convert PlayByPlay to dict."""
         minutes = play.seconds_remaining // 60
         seconds = play.seconds_remaining % 60
@@ -459,9 +447,7 @@ class GameService:
             "seconds_remaining": play.seconds_remaining,
             "home_score": play.home_score,
             "away_score": play.away_score,
-            "team_abbrev": team_abbrev_map.get(play.team_id)
-            if play.team_id
-            else None,
+            "team_abbrev": team_abbrev_map.get(play.team_id) if play.team_id else None,
             "play_type": play.play_type.value,
             "description": play.description,
             "player_id": play.player_involved_id,

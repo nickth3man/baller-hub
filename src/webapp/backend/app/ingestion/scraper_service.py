@@ -15,7 +15,7 @@ import structlog
 sys.path.insert(0, str(__file__).split("webapp")[0])
 
 from src.scraper.api import client as scraper_client
-from src.scraper.common.data import Team as ScraperTeam
+from src.core.domain import Team as ScraperTeam
 from src.scraper.common.errors import InvalidDate, InvalidPlayerAndSeason, InvalidSeason
 
 logger = structlog.get_logger(__name__)
@@ -300,7 +300,7 @@ class ScraperService:
     def _get_team_enum(self, abbreviation: str) -> ScraperTeam | None:
         """Convert team abbreviation to ScraperTeam enum."""
         try:
-            from src.scraper.common.data import TEAM_ABBREVIATIONS_TO_TEAM
+            from src.core.domain import TEAM_ABBREVIATIONS_TO_TEAM
 
             return TEAM_ABBREVIATIONS_TO_TEAM.get(abbreviation)
         except (ImportError, KeyError):

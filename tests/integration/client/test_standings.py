@@ -8,7 +8,7 @@ from unittest.mock import patch
 import requests_mock
 
 from src.scraper.api.client import standings
-from src.scraper.common.data import (
+from src.core.domain import (
     Conference,
     Division,
     OutputType,

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.scraper.common.data import Location, Outcome, Position, Team
+from src.core.domain import Location, Outcome, Position, Team
 from src.scraper.output.fields import format_value
 
 

@@ -6,7 +6,7 @@ from unittest import TestCase
 import requests_mock
 
 from src.scraper.api.client import player_box_scores
-from src.scraper.common.data import OutputType, OutputWriteOption
+from src.core.domain import OutputType, OutputWriteOption
 from src.scraper.common.errors import InvalidDate
 
 

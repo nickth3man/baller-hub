@@ -3,7 +3,7 @@ from unittest import TestCase, mock
 from requests import HTTPError, codes
 
 from src.scraper.api.client import play_by_play
-from src.scraper.common.data import Team
+from src.core.domain import Team
 from src.scraper.common.errors import InvalidDate
 from src.scraper.services.http import HTTPService
 

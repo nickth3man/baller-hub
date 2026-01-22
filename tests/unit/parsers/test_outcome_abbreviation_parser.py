@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.scraper.common.data import OUTCOME_ABBREVIATIONS_TO_OUTCOME, Outcome
+from src.core.domain import OUTCOME_ABBREVIATIONS_TO_OUTCOME, Outcome
 from src.scraper.parsers import OutcomeAbbreviationParser
 
 
