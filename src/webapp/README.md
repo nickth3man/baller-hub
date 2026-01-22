@@ -5,7 +5,7 @@ A local clone of basketball-reference.com built on top of the existing Python sc
 ## Architecture
 
 ```
-webapp/
+src/webapp/
 ├── backend/                    # Python FastAPI backend
 │   ├── app/
 │   │   ├── api/v1/endpoints/  # REST API endpoints
@@ -55,7 +55,7 @@ webapp/
 ### Development with Docker
 
 ```bash
-cd webapp
+cd src/webapp
 docker compose up -d
 ```
 
@@ -71,16 +71,32 @@ Services:
 
 **Backend:**
 ```bash
-cd webapp/backend
+cd src/webapp/backend
 uv sync
 uv run uvicorn app.main:app --reload
 ```
 
 **Frontend:**
 ```bash
-cd webapp/frontend
+cd src/webapp/frontend
 npm install
 npm run dev
+```
+
+### Populate the Database
+
+For a full historical load, run the CSV ingestion pipeline and then rebuild
+search indices:
+
+```bash
+cd src/webapp
+python -m scripts.seed_db --bootstrap
+```
+
+To seed a specific season from the scraper:
+
+```bash
+python -m scripts.seed_db --season 2024
 ```
 
 ## API Endpoints
@@ -96,6 +112,7 @@ npm run dev
 - `GET /api/v1/teams/{abbrev}` - Team details
 - `GET /api/v1/teams/{abbrev}/roster/{year}` - Team roster
 - `GET /api/v1/teams/{abbrev}/schedule/{year}` - Team schedule
+- `GET /api/v1/teams/{abbrev}/history` - Franchise history
 
 ### Games
 - `GET /api/v1/games` - List games with filters
@@ -145,7 +162,7 @@ npm run dev
 The webapp integrates with the existing scraper (`src/`) for data ingestion:
 
 ```python
-from src.api import client
+from src.scraper.api import client
 
 # Scrape and ingest daily box scores
 box_scores = client.player_box_scores(day=15, month=1, year=2025)
@@ -165,6 +182,13 @@ A Celery worker handles scheduled scraping tasks to keep data fresh.
 - [x] Frontend skeleton
 - [ ] Database migrations
 - [ ] Scraper integration pipeline
+
+## Documentation
+
+- `docs/overview.md` - Architecture and setup
+- `docs/api.md` - REST API reference
+- `docs/data-ingestion.md` - CSV and scraper ingestion
+- `docs/frontend.md` - Frontend routing and styling
 
 ### Phase 2: Core Features
 - [ ] Player pages with full stats

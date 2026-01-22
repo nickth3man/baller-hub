@@ -51,9 +51,9 @@ Transform test infrastructure from 102 outdated fixtures to ~433 fixtures coveri
 - `/awards/smoy.html` - Sixth Man of the Year
 - `/awards/mip.html` - Most Improved Player
 - `/awards/coy.html` - Coach of the Year
-- `/awards/all_nba.html` - All-NBA teams
+- `/awards/all_league.html` - All-League teams (All-NBA/All-ABA)
 - `/awards/all_rookie.html` - All-Rookie teams
-- `/awards/all_defensive.html` - All-Defensive teams
+- `/awards/all_defense.html` - All-Defensive teams
 - `/awards/hof.html` - Hall of Fame
 
 **Playoffs:**
@@ -70,8 +70,8 @@ Transform test infrastructure from 102 outdated fixtures to ~433 fixtures coveri
 **Leaders:**
 
 - `/leaders/` - Leaders index
-- `/leaders/career_{stat}.html` - Career leaders
-- `/leaders/active_{stat}.html` - Active player leaders
+- `/leaders/{stat}_career.html` - Career leaders
+- `/leaders/{stat}_active.html` - Active player leaders
 - `/trailers/{stat}_yearly_p.html` - Progressive/trailing leaders
 
 **Team Pages:**
@@ -218,21 +218,21 @@ Note: some queries resolve to direct player pages (e.g., lebron). Validate those
 Missing files to re-scrape or replace:
 
 - `tests/integration/files/standings/1950.html`
-- `tests/integration/files/boxscores/201606190CLE.html`
-- `tests/integration/files/boxscores/202006060LAL.html`
-- `tests/integration/files/boxscores/202106200MIL.html`
-- `tests/integration/files/boxscores/202206160GSW.html`
-- `tests/integration/files/play_by_play/199606160CHI.html`
-- `tests/integration/files/play_by_play/201606190CLE.html`
-- `tests/integration/files/play_by_play/202006060LAL.html`
-- `tests/integration/files/play_by_play/202106200MIL.html`
-- `tests/integration/files/play_by_play/202206160GSW.html`
+  - `tests/integration/files/boxscores/201606190GSW.html`
+  - `tests/integration/files/boxscores/202010110MIA.html`
+  - `tests/integration/files/boxscores/202107200MIL.html`
+  - `tests/integration/files/boxscores/202206160BOS.html`
+  - `tests/integration/files/play_by_play/199806140UTA.html`
+  - `tests/integration/files/play_by_play/201606190GSW.html`
+  - `tests/integration/files/play_by_play/202010110MIA.html`
+  - `tests/integration/files/play_by_play/202107200MIL.html`
+  - `tests/integration/files/play_by_play/202206160BOS.html`
 - `tests/integration/files/players/onealsh01.html`
 - `tests/integration/files/players/duranke01.html`
 - `tests/integration/files/players/antetgi01.html`
-- `tests/integration/files/players/johnear01.html`
+  - `tests/integration/files/players/johnsma02.html`
 - `tests/integration/files/players/mikange01.html`
-- `tests/integration/files/players/edwardan01.html`
+  - `tests/integration/files/players/edwaran01.html`
 - `tests/integration/files/boxscores/shot_chart/202306120DEN.html`
 - `tests/integration/files/boxscores/shot_chart/202406170BOS.html`
 - `tests/integration/files/boxscores/plus_minus/202306120DEN.html`
@@ -252,9 +252,9 @@ uv run python src/scraper/scripts/validate_fixtures.py --manifest src/scraper/sc
 
 ```
 /coaches/jacksph01c.html - Phil Jackson
-/coaches/popovgr01c.html - Gregg Popovich
-/coaches/rileypt01c.html - Pat Riley
-/coaches/auerbch01c.html - Red Auerbach
+/coaches/popovgr99c.html - Gregg Popovich
+/coaches/rileypa01c.html - Pat Riley
+/coaches/auerbre99c.html - Red Auerbach
 ... (11 more legendary/active coaches)
 ```
 
@@ -275,9 +275,9 @@ uv run python src/scraper/scripts/validate_fixtures.py --manifest src/scraper/sc
 /awards/smoy.html
 /awards/mip.html
 /awards/coy.html
-/awards/all_nba.html
+/awards/all_league.html
 /awards/all_rookie.html
-/awards/all_defensive.html
+/awards/all_defense.html
 /awards/hof.html
 ... (15 more award-specific pages)
 ```
@@ -301,10 +301,10 @@ uv run python src/scraper/scripts/validate_fixtures.py --manifest src/scraper/sc
 **Leaders (20 pages):**
 
 ```
-/leaders/career_pts.html
-/leaders/career_trb.html
-/leaders/career_ast.html
-/leaders/active_pts.html
+/leaders/pts_career.html
+/leaders/trb_career.html
+/leaders/ast_career.html
+/leaders/pts_active.html
 /trailers/pts_yearly_p.html
 ... (15 more leader pages)
 ```

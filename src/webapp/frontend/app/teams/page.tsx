@@ -69,7 +69,7 @@ export default async function TeamsPage() {
   return (
     <div className="space-y-12 animate-in slide-in-from-bottom-4 duration-700">
       <div className="max-w-3xl">
-        <h1 className="text-5xl font-black text-gray-900 tracking-tighter">
+        <h1 className="text-5xl font-display uppercase tracking-[0.2em] text-gray-900">
           The Associations
         </h1>
         <p className="mt-4 text-xl text-gray-500 font-medium leading-relaxed">

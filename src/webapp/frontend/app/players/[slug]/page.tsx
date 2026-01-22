@@ -20,7 +20,7 @@ function formatPercentage(made: number, attempted: number): string {
 
 function PlayerBio({ player }: { player: Player }) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
       <div className="flex items-start gap-6">
         {/* Photo placeholder */}
         <div className="w-32 h-40 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
@@ -85,8 +85,8 @@ function PlayerBio({ player }: { player: Player }) {
 
 function CareerStatsTable({ stats }: { stats: PlayerSeasonStats[] }) {
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-      <div className="px-6 py-4 bg-blue-900 text-white">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+      <div className="px-6 py-4 bg-slate-900 text-white">
         <h2 className="text-lg font-semibold">Career Statistics</h2>
       </div>
       
@@ -154,6 +154,26 @@ export default async function PlayerPage({ params }: PageProps) {
   }
 
   const latestSeason = careerStats[0]?.season_year;
+  const careerTotals = careerStats.reduce(
+    (totals, season) => ({
+      games: totals.games + season.games_played,
+      points: totals.points + season.points,
+      rebounds: totals.rebounds + season.rebounds,
+      assists: totals.assists + season.assists,
+    }),
+    { games: 0, points: 0, rebounds: 0, assists: 0 }
+  );
+  const peakSeason = careerStats.reduce(
+    (best, season) => {
+      const gp = Math.max(season.games_played, 1);
+      const ppg = season.points / gp;
+      if (!best || ppg > best.ppg) {
+        return { year: season.season_year, ppg };
+      }
+      return best;
+    },
+    null as { year: number; ppg: number } | null
+  );
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -173,9 +193,8 @@ export default async function PlayerPage({ params }: PageProps) {
           <CareerStatsTable stats={careerStats} />
         )}
 
-        {/* Additional sections placeholder */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Games</h2>
             {latestSeason ? (
               <Link
@@ -188,10 +207,35 @@ export default async function PlayerPage({ params }: PageProps) {
               <p className="text-gray-500 text-sm">Game log data will appear here</p>
             )}
           </div>
-          
-          <div className="bg-white rounded-lg shadow-md p-6">
+
+          <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Career Highlights</h2>
-            <p className="text-gray-500 text-sm">Awards and achievements will appear here</p>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="rounded-xl bg-orange-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Career Points</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {careerTotals.points.toLocaleString()}
+                </p>
+              </div>
+              <div className="rounded-xl bg-orange-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Career Games</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {careerTotals.games.toLocaleString()}
+                </p>
+              </div>
+              <div className="rounded-xl bg-orange-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Career Assists</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {careerTotals.assists.toLocaleString()}
+                </p>
+              </div>
+              <div className="rounded-xl bg-orange-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Peak Season</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {peakSeason ? `${peakSeason.year} (${peakSeason.ppg.toFixed(1)} PPG)` : '-'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

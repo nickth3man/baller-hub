@@ -18,8 +18,10 @@ export async function TodaysGames() {
   const teamMap = buildTeamMap(teams);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Today's Games</h2>
+    <div className="bg-white rounded-2xl shadow-lg p-6">
+      <h2 className="text-xs uppercase tracking-[0.3em] text-slate-500 mb-4">
+        Today's Games
+      </h2>
       <div className="space-y-4">
         {games.map((game) => (
           <GameCard key={game.game_id} game={game} teamMap={teamMap} />

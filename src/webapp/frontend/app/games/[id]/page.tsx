@@ -19,9 +19,11 @@ function GameHeader({ boxScore }: { boxScore: BoxScoreResponse }) {
   const homeLabel = home_team.team_abbrev ?? String(home_team.team_id);
   const awayName = away_team.team_name ?? 'Away';
   const homeName = home_team.team_name ?? 'Home';
+  const awayScore = away_team.score ?? 0;
+  const homeScore = home_team.score ?? 0;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
       <div className="text-center text-sm text-gray-500 mb-4">
         {new Date(game.date).toLocaleDateString('en-US', {
           weekday: 'long',
@@ -39,7 +41,7 @@ function GameHeader({ boxScore }: { boxScore: BoxScoreResponse }) {
             {awayLabel}
           </div>
           <p className="text-lg font-semibold text-gray-900">{awayName}</p>
-          <p className={`text-4xl font-bold ${!isFinal ? 'text-gray-400' : away_team.score! > home_team.score! ? 'text-green-600' : 'text-gray-900'}`}>
+          <p className={`text-4xl font-bold ${!isFinal ? 'text-gray-400' : awayScore > homeScore ? 'text-green-600' : 'text-gray-900'}`}>
             {away_team.score ?? '-'}
           </p>
         </div>
@@ -57,7 +59,7 @@ function GameHeader({ boxScore }: { boxScore: BoxScoreResponse }) {
             {homeLabel}
           </div>
           <p className="text-lg font-semibold text-gray-900">{homeName}</p>
-          <p className={`text-4xl font-bold ${!isFinal ? 'text-gray-400' : home_team.score! > away_team.score! ? 'text-green-600' : 'text-gray-900'}`}>
+          <p className={`text-4xl font-bold ${!isFinal ? 'text-gray-400' : homeScore > awayScore ? 'text-green-600' : 'text-gray-900'}`}>
             {home_team.score ?? '-'}
           </p>
         </div>
@@ -136,8 +138,8 @@ function PlayerStatsTable({ players, teamLabel }: { players: PlayerBoxScore[]; t
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-      <div className="px-6 py-4 bg-blue-900 text-white">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+      <div className="px-6 py-4 bg-slate-900 text-white">
         <h2 className="text-lg font-semibold">{teamLabel}</h2>
       </div>
       
@@ -208,7 +210,7 @@ export default async function GamePage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <nav className="mb-4 text-sm text-gray-600">

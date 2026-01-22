@@ -28,7 +28,7 @@ export default async function PlayerGameLogPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <nav className="mb-4 text-sm text-gray-600">
           <Link href="/" className="hover:text-blue-600">Home</Link>
@@ -40,8 +40,8 @@ export default async function PlayerGameLogPage({ params }: PageProps) {
           <span className="text-gray-900">{seasonYear} Game Log</span>
         </nav>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="px-6 py-4 bg-blue-900 text-white flex justify-between items-center">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
             <h1 className="text-lg font-semibold">
               {gameLog.player_name} - {seasonYear} Game Log
             </h1>

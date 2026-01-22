@@ -23,7 +23,7 @@ class CoachPage:
     @property
     def name_query(self) -> str:
         """XPath query for coach name."""
-        return '//h1[@itemprop="name"]/span'
+        return '//div[@id="meta"]//h1/span | //h1[@itemprop="name"]/span | //h1/span'
 
     @property
     def biography_section_query(self) -> str:
@@ -61,7 +61,7 @@ class CoachingRecordRow:
     @property
     def season_query(self) -> str:
         """XPath query for season."""
-        return 'th[@data-stat="season"]/a'
+        return 'th[@data-stat="season"]/a | th[@data-stat="season"]'
 
     @property
     def team_query(self) -> str:

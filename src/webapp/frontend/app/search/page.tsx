@@ -15,13 +15,18 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const query = params.q || '';
   
-  const results = query ? await apiSearch(query) : { players: [], teams: [] };
-  const hasResults = results.players.length > 0 || results.teams.length > 0;
+  const results = query
+    ? await apiSearch(query)
+    : { players: [], teams: [], games: [] };
+  const hasResults =
+    results.players.length > 0 ||
+    results.teams.length > 0 ||
+    results.games.length > 0;
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 py-8 animate-in fade-in duration-500">
       <section className="border-b-4 border-black pb-8">
-        <h1 className="text-6xl font-black text-gray-900 tracking-tighter uppercase">
+        <h1 className="text-6xl font-display uppercase tracking-[0.2em] text-gray-900">
           Search
         </h1>
         <div className="mt-6">
@@ -57,7 +62,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
       )}
 
       {hasResults && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Players Column */}
           <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -121,6 +126,51 @@ export default async function SearchPage({ searchParams }: PageProps) {
                   </div>
                 </Link>
               ))}
+            </div>
+          </div>
+
+          {/* Games Column */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <h2 className="text-3xl font-black uppercase tracking-tight text-white bg-slate-900 px-4 py-1">
+                Games
+              </h2>
+              <span className="text-sm font-black text-gray-400 uppercase">
+                {results.games.length} Matches
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              {results.games.map((game) => (
+                <Link
+                  key={game.game_id}
+                  href={`/games/${game.game_id}`}
+                  className="group block bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1 transition-all"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-black group-hover:text-orange-600 transition-colors">
+                        {game.matchup}
+                      </h3>
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">
+                        {new Date(game.game_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </p>
+                    </div>
+                    <span className="text-lg font-black text-gray-400">
+                      {game.score || 'TBD'}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+              {results.games.length === 0 && (
+                <div className="text-sm text-gray-400 border-2 border-dashed border-gray-200 p-6">
+                  No game matches for this query.
+                </div>
+              )}
             </div>
           </div>
         </div>

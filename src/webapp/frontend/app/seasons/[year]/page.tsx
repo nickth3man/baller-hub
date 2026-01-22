@@ -21,8 +21,8 @@ const LEADER_CATEGORIES = [
 
 function ScheduleTable({ games }: { games: SeasonScheduleGame[] }) {
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="px-6 py-4 bg-gray-900 text-white">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="px-6 py-4 bg-slate-900 text-white">
         <h2 className="text-lg font-semibold">Season Schedule</h2>
       </div>
       <div className="overflow-x-auto">
@@ -69,7 +69,7 @@ function ScheduleTable({ games }: { games: SeasonScheduleGame[] }) {
 
 function LeadersCard({ title, unit, leaders }: { title: string; unit: string; leaders: SeasonLeaders }) {
   return (
-    <div className="bg-white rounded-lg shadow p-4">
+    <div className="bg-white rounded-2xl shadow-lg p-4">
       <h3 className="font-semibold text-gray-900 mb-3">{title}</h3>
       <ol className="space-y-2">
         {leaders.leaders.map((leader) => (
@@ -122,7 +122,7 @@ export default async function SeasonDetailPage({ params, searchParams }: PagePro
   return (
     <div className="max-w-6xl mx-auto py-12 space-y-10">
       <header className="text-center">
-        <h1 className="text-5xl font-black text-gray-900 tracking-tight">
+        <h1 className="text-5xl font-display uppercase tracking-[0.2em] text-gray-900">
           {season.season_name}
         </h1>
         <p className="mt-3 text-lg text-gray-500">
@@ -148,6 +148,29 @@ export default async function SeasonDetailPage({ params, searchParams }: PagePro
       </section>
 
       <section>
+        <form method="GET" className="mb-4 flex flex-wrap gap-3 items-center">
+          <label className="text-xs uppercase tracking-[0.3em] text-slate-500">
+            Filter Month
+          </label>
+          <select
+            name="month"
+            defaultValue={monthValue ?? ''}
+            className="px-4 py-2 rounded-full border border-slate-300 text-sm uppercase tracking-[0.2em]"
+          >
+            <option value="">All</option>
+            {Array.from({ length: 12 }, (_, idx) => idx + 1).map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            className="px-5 py-2 rounded-full bg-slate-900 text-white text-xs uppercase tracking-[0.3em]"
+          >
+            Apply
+          </button>
+        </form>
         <ScheduleTable games={schedule.games} />
       </section>
     </div>

@@ -36,7 +36,7 @@ export default async function PlayersPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="border-b border-gray-200 pb-5">
-        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+        <h1 className="text-4xl font-display uppercase tracking-[0.2em] text-gray-900">
           Player Directory
         </h1>
         <p className="mt-2 text-lg text-gray-500">

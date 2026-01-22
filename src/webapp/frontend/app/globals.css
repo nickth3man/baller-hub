@@ -3,13 +3,49 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 249, 250, 251;
+  --ink-rgb: 12, 18, 28;
+  --paper-rgb: 247, 244, 238;
+  --accent-rgb: 227, 98, 36;
+  --court-rgb: 200, 165, 107;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+  color: rgb(var(--ink-rgb));
+  background: radial-gradient(
+      circle at 10% 20%,
+      rgba(var(--court-rgb), 0.18),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 85% 15%,
+      rgba(var(--accent-rgb), 0.12),
+      transparent 45%
+    ),
+    linear-gradient(180deg, rgba(var(--paper-rgb), 1), rgba(var(--paper-rgb), 0.95));
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+      0deg,
+      rgba(var(--ink-rgb), 0.04),
+      rgba(var(--ink-rgb), 0.04) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(var(--ink-rgb), 0.03),
+      rgba(var(--ink-rgb), 0.03) 1px,
+      transparent 1px,
+      transparent 10px
+    );
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: -1;
 }
 
 @layer utilities {

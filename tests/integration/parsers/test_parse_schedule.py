@@ -7,7 +7,11 @@ from lxml import html
 
 from src.scraper.common.data import TEAM_NAME_TO_TEAM, Team
 from src.scraper.html import SchedulePage
-from src.scraper.parsers import ScheduledGamesParser, ScheduledStartTimeParser, TeamNameParser
+from src.scraper.parsers import (
+    ScheduledGamesParser,
+    ScheduledStartTimeParser,
+    TeamNameParser,
+)
 
 
 class BaseTest(TestCase):

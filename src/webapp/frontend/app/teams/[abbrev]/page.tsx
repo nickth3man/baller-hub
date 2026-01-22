@@ -1,31 +1,42 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getTeam, getTeamRoster, getTeamSchedule, getTeamStats, Team, RosterPlayer, TeamSeasonStats, TeamScheduleGame } from '@/lib/api';
+import {
+  getTeam,
+  getTeamHistory,
+  getTeamRoster,
+  getTeamSchedule,
+  getTeamStats,
+  RosterPlayer,
+  Team,
+  TeamHistorySeason,
+  TeamScheduleGame,
+  TeamSeasonStats,
+} from '@/lib/api';
 
 interface PageProps {
   params: Promise<{ abbrev: string }>;
 }
 
-const currentYear = new Date().getFullYear();
+const now = new Date();
+const currentSeasonYear = now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
 
 function TeamHeader({ team }: { team: Team }) {
   return (
-    <div className="bg-blue-900 text-white rounded-lg shadow-md p-6 mb-6">
-      <div className="flex items-center gap-6">
-        {/* Logo placeholder */}
-        <div className="w-24 h-24 bg-blue-800 rounded-lg flex items-center justify-center text-4xl font-bold">
+    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-orange-600 text-white rounded-2xl shadow-xl p-6 mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+        <div className="w-24 h-24 bg-white/10 rounded-2xl flex items-center justify-center text-4xl font-display uppercase">
           {team.abbreviation}
         </div>
-        
+
         <div className="flex-1">
-          <h1 className="text-3xl font-bold mb-1">
+          <h1 className="text-4xl font-display uppercase tracking-[0.1em] mb-1">
             {team.city} {team.name}
           </h1>
-          <p className="text-blue-200">
+          <p className="text-orange-100">
             {team.arena && `${team.arena}`}
             {team.arena_capacity && ` - Capacity: ${team.arena_capacity.toLocaleString()}`}
           </p>
-          <p className="text-blue-200 text-sm mt-1">
+          <p className="text-orange-200 text-sm mt-1">
             Est. {team.founded_year}
             {team.franchise && ` - ${team.franchise.name} Franchise`}
           </p>
@@ -37,10 +48,12 @@ function TeamHeader({ team }: { team: Team }) {
 
 function RosterTable({ roster }: { roster: RosterPlayer[] }) {
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-      <div className="px-6 py-4 bg-gray-800 text-white flex justify-between items-center">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+      <div className="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
         <h2 className="text-lg font-semibold">Current Roster</h2>
-        <span className="text-sm text-gray-300">{currentYear} Season</span>
+        <span className="text-xs uppercase tracking-[0.2em] text-orange-200">
+          {currentSeasonYear} Season
+        </span>
       </div>
       
       <div className="overflow-x-auto">
@@ -58,7 +71,7 @@ function RosterTable({ roster }: { roster: RosterPlayer[] }) {
             {roster.map((player, idx) => (
               <tr 
                 key={player.player_id}
-                className={`${idx % 2 === 0 - 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
+                className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
               >
                 <td className="px-4 py-3">
                   <Link 
@@ -69,11 +82,21 @@ function RosterTable({ roster }: { roster: RosterPlayer[] }) {
                   </Link>
                 </td>
                 <td className="px-3 py-3 text-center text-gray-600">
-                  {player.position-.replace('_', ' ').split(' ').map(w => w[0]).join('') || '-'}
+                  {player.position
+                    ? player.position
+                        .replace('_', ' ')
+                        .split(' ')
+                        .map((word) => word[0])
+                        .join('')
+                    : '-'}
                 </td>
                 <td className="px-3 py-3 text-center">{player.games_played}</td>
                 <td className="px-3 py-3 text-center">{player.games_started}</td>
-                <td className="px-3 py-3 text-center font-medium">{player.ppg-.toFixed(1) || '-'}</td>
+                <td className="px-3 py-3 text-center font-medium">
+                  {player.ppg !== null && player.ppg !== undefined
+                    ? player.ppg.toFixed(1)
+                    : '-'}
+                </td>
               </tr>
             ))}
             {roster.length === 0 && (
@@ -101,28 +124,28 @@ function TeamStats({ stats }: { stats: TeamSeasonStats | null }) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Season Stats</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-2xl font-bold text-blue-900">{stats.wins}</p>
-          <p className="text-sm text-gray-500">Wins</p>
+        <div className="text-center p-4 bg-orange-50 rounded-xl">
+          <p className="text-2xl font-bold text-slate-900">{stats.wins}</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Wins</p>
         </div>
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-2xl font-bold text-blue-900">{stats.losses}</p>
-          <p className="text-sm text-gray-500">Losses</p>
+        <div className="text-center p-4 bg-orange-50 rounded-xl">
+          <p className="text-2xl font-bold text-slate-900">{stats.losses}</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Losses</p>
         </div>
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-2xl font-bold text-blue-900">
+        <div className="text-center p-4 bg-orange-50 rounded-xl">
+          <p className="text-2xl font-bold text-slate-900">
             {stats.points_per_game?.toFixed(1) ?? '-'}
           </p>
-          <p className="text-sm text-gray-500">PPG</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">PPG</p>
         </div>
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-2xl font-bold text-blue-900">
+        <div className="text-center p-4 bg-orange-50 rounded-xl">
+          <p className="text-2xl font-bold text-slate-900">
             {stats.points_allowed_per_game?.toFixed(1) ?? '-'}
           </p>
-          <p className="text-sm text-gray-500">Opp PPG</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Opp PPG</p>
         </div>
       </div>
     </div>
@@ -132,7 +155,7 @@ function TeamStats({ stats }: { stats: TeamSeasonStats | null }) {
 function RecentGames({ games }: { games: TeamScheduleGame[] }) {
   const recentGames = games.slice(-5).reverse();
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white rounded-2xl shadow-lg p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Games</h2>
       <div className="space-y-3">
         {recentGames.map((game) => (
@@ -159,6 +182,51 @@ function RecentGames({ games }: { games: TeamScheduleGame[] }) {
   );
 }
 
+function TeamHistory({ seasons }: { seasons: TeamHistorySeason[] }) {
+  return (
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="px-6 py-4 bg-slate-900 text-white">
+        <h2 className="text-lg font-semibold">Franchise History</h2>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-100 text-gray-700">
+            <tr>
+              <th className="px-4 py-3 text-left">Season</th>
+              <th className="px-3 py-3 text-center">W</th>
+              <th className="px-3 py-3 text-center">L</th>
+              <th className="px-3 py-3 text-center">Win%</th>
+              <th className="px-3 py-3 text-center">Playoffs</th>
+            </tr>
+          </thead>
+          <tbody>
+            {seasons.map((season, idx) => (
+              <tr key={season.year} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                <td className="px-4 py-3 font-medium">{season.year}</td>
+                <td className="px-3 py-3 text-center">{season.wins}</td>
+                <td className="px-3 py-3 text-center">{season.losses}</td>
+                <td className="px-3 py-3 text-center">
+                  {(season.win_pct * 100).toFixed(1)}%
+                </td>
+                <td className="px-3 py-3 text-center text-xs uppercase tracking-[0.2em]">
+                  {season.made_playoffs ? season.playoff_round || 'Yes' : 'No'}
+                </td>
+              </tr>
+            ))}
+            {seasons.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                  No historical records available.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export default async function TeamPage({ params }: PageProps) {
   const { abbrev } = await params;
   
@@ -170,10 +238,11 @@ export default async function TeamPage({ params }: PageProps) {
   }
 
   const [rosterResult, statsResult, scheduleResult] = await Promise.allSettled([
-    getTeamRoster(abbrev, currentYear),
-    getTeamStats(abbrev, currentYear),
-    getTeamSchedule(abbrev, currentYear),
+    getTeamRoster(abbrev, currentSeasonYear),
+    getTeamStats(abbrev, currentSeasonYear),
+    getTeamSchedule(abbrev, currentSeasonYear),
   ]);
+  const historyResult = await getTeamHistory(abbrev).catch(() => []);
 
   const roster =
     rosterResult.status === 'fulfilled' ? rosterResult.value : [];
@@ -199,6 +268,7 @@ export default async function TeamPage({ params }: PageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <RosterTable roster={roster} />
+            <TeamHistory seasons={historyResult.slice(0, 10)} />
           </div>
           
           <div>

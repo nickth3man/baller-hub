@@ -55,7 +55,7 @@ function LeaderCategory({
   leaders: SeasonLeaders;
 }) {
   return (
-    <div className="bg-white rounded-lg shadow p-4">
+    <div className="bg-white rounded-2xl shadow-lg p-4">
       <h3 className="font-semibold text-gray-900 mb-3">{title}</h3>
       <ol className="space-y-2">
         {leaders.leaders.map((leader, i) => (

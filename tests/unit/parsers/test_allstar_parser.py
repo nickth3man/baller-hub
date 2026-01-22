@@ -13,23 +13,23 @@ class TestAllStarParser(TestCase):
         """Test parsing All-Star page."""
         mock_page = MagicMock()
         mock_page.mvp = "Giannis Antetokounmpo"
-        
+
         mock_row_east = MagicMock()
         mock_row_east.player_name = "Joel Embiid"
         mock_row_east.player_id = "embiijo01"
         mock_row_east.points = "30"
-        
+
         mock_row_west = MagicMock()
         mock_row_west.player_name = "LeBron James"
         mock_row_west.player_id = "jamesle01"
         mock_row_west.points = "25"
-        
+
         mock_page.east_rows = [mock_row_east]
         mock_page.west_rows = [mock_row_west]
-        
+
         parser = AllStarParser()
         result = parser.parse(mock_page)
-        
+
         self.assertEqual(result["mvp"], "Giannis Antetokounmpo")
         self.assertEqual(len(result["east_roster"]), 1)
         self.assertEqual(result["east_roster"][0]["player"], "Joel Embiid")

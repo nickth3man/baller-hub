@@ -1,9 +1,9 @@
-import { getSeasons, getStandings, StandingsTeam } from '@/lib/api';
+import { getSeasons, getStandings, StandingsTeam, StandingsView } from '@/lib/api';
 
 function StandingsTable({ title, teams }: { title: string; teams: StandingsTeam[] }) {
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="px-6 py-4 bg-blue-900 text-white">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="px-6 py-4 bg-slate-900 text-white">
         <h2 className="text-lg font-semibold">{title}</h2>
       </div>
       <div className="overflow-x-auto">
@@ -41,8 +41,13 @@ function StandingsTable({ title, teams }: { title: string; teams: StandingsTeam[
   );
 }
 
-export default async function StandingsPage() {
+interface PageProps {
+  searchParams: Promise<{ year?: string; view?: StandingsView }>;
+}
+
+export default async function StandingsPage({ searchParams }: PageProps) {
   const seasons = await getSeasons();
+  const params = await searchParams;
   const current = seasons.find((season) => season.is_active) || seasons[0];
 
   if (!current) {
@@ -53,21 +58,57 @@ export default async function StandingsPage() {
     );
   }
 
-  const standings = await getStandings(current.year);
+  const seasonYear = params.year ? Number(params.year) || current.year : current.year;
+  const view = params.view === 'league' ? 'league' : 'conference';
+  const standings = await getStandings(seasonYear, view);
 
   return (
     <div className="max-w-6xl mx-auto py-12 space-y-8">
       <header className="text-center">
-        <h1 className="text-5xl font-black text-gray-900">Standings</h1>
+        <h1 className="text-5xl font-display uppercase tracking-[0.2em] text-gray-900">
+          Standings
+        </h1>
         <p className="mt-3 text-lg text-gray-500">
-          {current.season_name} conference standings
+          {seasonYear} season snapshot
         </p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <StandingsTable title="Eastern Conference" teams={standings.eastern || []} />
-        <StandingsTable title="Western Conference" teams={standings.western || []} />
-      </div>
+      <form method="GET" className="flex flex-col md:flex-row gap-4 items-center justify-center">
+        <select
+          name="year"
+          defaultValue={seasonYear}
+          className="px-4 py-2 rounded-full border border-slate-300 text-sm uppercase tracking-[0.2em]"
+        >
+          {seasons.map((season) => (
+            <option key={season.season_id} value={season.year}>
+              {season.year}
+            </option>
+          ))}
+        </select>
+        <select
+          name="view"
+          defaultValue={view}
+          className="px-4 py-2 rounded-full border border-slate-300 text-sm uppercase tracking-[0.2em]"
+        >
+          <option value="conference">Conference</option>
+          <option value="league">League</option>
+        </select>
+        <button
+          type="submit"
+          className="px-6 py-2 rounded-full bg-slate-900 text-white text-xs uppercase tracking-[0.3em]"
+        >
+          Update
+        </button>
+      </form>
+
+      {view === 'league' ? (
+        <StandingsTable title="League Standings" teams={standings.league || []} />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <StandingsTable title="Eastern Conference" teams={standings.eastern || []} />
+          <StandingsTable title="Western Conference" teams={standings.western || []} />
+        </div>
+      )}
     </div>
   );
 }

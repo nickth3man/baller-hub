@@ -109,9 +109,8 @@ class AllStarPlayerRow:
     @property
     def starter_query(self) -> str:
         """XPath query for starter status."""
-        # Starters are usually the first 5 rows and not marked with specific data-stat
-        # But we can check if they have a 'span' or specific class if applicable
-        return None
+        # Some seasons mark starters with a class or badge; fall back to no match.
+        return './/span[contains(@class, "starter")]'
 
     @property
     def player_name(self) -> str | None:

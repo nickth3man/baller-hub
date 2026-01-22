@@ -18,7 +18,7 @@ export default async function SeasonsPage() {
   return (
     <div className="max-w-4xl mx-auto py-12 animate-in fade-in slide-in-from-top-4 duration-1000">
       <header className="mb-16 text-center">
-        <h1 className="text-7xl font-black text-gray-900 tracking-tighter mb-4">
+        <h1 className="text-7xl font-display uppercase tracking-[0.2em] text-gray-900 mb-4">
           Seasons
         </h1>
         <div className="h-1.5 w-24 bg-blue-900 mx-auto rounded-full"></div>

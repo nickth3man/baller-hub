@@ -18,20 +18,20 @@ class TestCoachParser(TestCase):
         """Test parsing coach page."""
         mock_page = MagicMock()
         mock_page.name = "Phil Jackson"
-        
+
         mock_row = MagicMock()
         mock_row.season = "1995-96"
         mock_row.team = "CHI"
         mock_row.wins = "72"
         mock_row.losses = "10"
         mock_row.win_pct = ".878"
-        
+
         mock_page.rows = [mock_row]
-        
+
         self.team_abbreviation_parser.from_abbreviation.return_value = "CHICAGO_BULLS"
-        
+
         result = self.parser.parse(mock_page)
-        
+
         self.assertEqual(result["name"], "Phil Jackson")
         self.assertEqual(len(result["record"]), 1)
         self.assertEqual(result["record"][0]["season"], "1995-96")

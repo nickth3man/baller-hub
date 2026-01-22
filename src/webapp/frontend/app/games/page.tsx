@@ -35,14 +35,16 @@ export default async function GamesPage() {
   return (
     <div className="max-w-6xl mx-auto py-12 space-y-8">
       <header className="text-center">
-        <h1 className="text-5xl font-black text-gray-900">Games</h1>
+        <h1 className="text-5xl font-display uppercase tracking-[0.2em] text-gray-900">
+          Games
+        </h1>
         <p className="mt-3 text-lg text-gray-500">Recent results and matchups.</p>
       </header>
 
       <div className="space-y-6">
         {sortedDates.map((date) => (
-          <div key={date} className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="px-6 py-4 bg-gray-900 text-white">
+          <div key={date} className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="px-6 py-4 bg-slate-900 text-white">
               <h2 className="text-base font-semibold">{formatDate(date)}</h2>
             </div>
             <div className="divide-y divide-gray-100">

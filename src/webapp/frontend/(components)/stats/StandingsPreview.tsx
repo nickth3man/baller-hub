@@ -16,9 +16,11 @@ export async function StandingsPreview() {
   const standings = await getStandings(current.year);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-2xl shadow-lg p-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Standings</h2>
+        <h2 className="text-xs uppercase tracking-[0.3em] text-slate-500">
+          Standings
+        </h2>
         <Link
           href="/standings"
           className="text-sm text-primary-600 hover:underline"
