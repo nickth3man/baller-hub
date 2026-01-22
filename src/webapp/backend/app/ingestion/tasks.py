@@ -6,7 +6,7 @@ basketball-reference.com and persist it to our database.
 
 import asyncio
 import csv
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4

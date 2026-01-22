@@ -374,70 +374,70 @@ class SearchService:
     ) -> str | None:
         if debut_year and final_year:
             return (
-                f\"{debut_year}-Present\" if is_active else f\"{debut_year}-{final_year}\"
+                f"{debut_year}-Present" if is_active else f"{debut_year}-{final_year}"
             )
         if debut_year:
-            return f\"{debut_year}-Present\" if is_active else str(debut_year)
+            return f"{debut_year}-Present" if is_active else str(debut_year)
         if final_year:
             return str(final_year)
         return None
 
     def _normalize_player_hit(self, hit: dict[str, Any]) -> dict[str, Any]:
-        debut_year = hit.get(\"debut_year\")
-        final_year = hit.get(\"final_year\")
-        is_active = hit.get(\"is_active\", False)
+        debut_year = hit.get("debut_year")
+        final_year = hit.get("final_year")
+        is_active = hit.get("is_active", False)
         return {
-            \"player_id\": hit.get(\"player_id\"),
-            \"slug\": hit.get(\"slug\"),
-            \"full_name\": hit.get(\"full_name\") or hit.get(\"name\") or \"\",
-            \"name\": hit.get(\"full_name\") or hit.get(\"name\"),
-            \"position\": hit.get(\"position\"),
-            \"years_active\": self._format_years_active(
+            "player_id": hit.get("player_id"),
+            "slug": hit.get("slug"),
+            "full_name": hit.get("full_name") or hit.get("name") or "",
+            "name": hit.get("full_name") or hit.get("name"),
+            "position": hit.get("position"),
+            "years_active": self._format_years_active(
                 debut_year, final_year, is_active
             ),
-            \"is_active\": is_active,
+            "is_active": is_active,
         }
 
     def _normalize_team_hit(self, hit: dict[str, Any]) -> dict[str, Any]:
         return {
-            \"team_id\": hit.get(\"team_id\"),
-            \"abbreviation\": hit.get(\"abbreviation\"),
-            \"name\": hit.get(\"name\"),
-            \"city\": hit.get(\"city\"),
-            \"is_active\": hit.get(\"is_active\", True),
+            "team_id": hit.get("team_id"),
+            "abbreviation": hit.get("abbreviation"),
+            "name": hit.get("name"),
+            "city": hit.get("city"),
+            "is_active": hit.get("is_active", True),
         }
 
     def _normalize_game_hit(self, hit: dict[str, Any]) -> dict[str, Any]:
         score = None
-        if hit.get(\"away_score\") is not None and hit.get(\"home_score\") is not None:
-            score = f\"{hit.get('away_score')}-{hit.get('home_score')}\"
+        if hit.get("away_score") is not None and hit.get("home_score") is not None:
+            score = f"{hit.get('away_score')}-{hit.get('home_score')}"
         return {
-            \"game_id\": hit.get(\"game_id\"),
-            \"game_date\": hit.get(\"game_date\") or hit.get(\"date\"),
-            \"matchup\": hit.get(\"matchup\") or f\"Game {hit.get('game_id')}\",
-            \"score\": score,
+            "game_id": hit.get("game_id"),
+            "game_date": hit.get("game_date") or hit.get("date"),
+            "matchup": hit.get("matchup") or f"Game {hit.get('game_id')}",
+            "score": score,
         }
 
     def _normalize_player_model(self, player: Player) -> dict[str, Any]:
         return {
-            \"player_id\": player.player_id,
-            \"slug\": player.slug,
-            \"full_name\": player.full_name,
-            \"name\": player.full_name,
-            \"position\": player.position.value if player.position else None,
-            \"years_active\": self._format_years_active(
+            "player_id": player.player_id,
+            "slug": player.slug,
+            "full_name": player.full_name,
+            "name": player.full_name,
+            "position": player.position.value if player.position else None,
+            "years_active": self._format_years_active(
                 player.debut_year, player.final_year, player.is_active
             ),
-            \"is_active\": player.is_active,
+            "is_active": player.is_active,
         }
 
     def _normalize_team_model(self, team: Team) -> dict[str, Any]:
         return {
-            \"team_id\": team.team_id,
-            \"abbreviation\": team.abbreviation,
-            \"name\": team.name,
-            \"city\": team.city,
-            \"is_active\": team.is_active,
+            "team_id": team.team_id,
+            "abbreviation": team.abbreviation,
+            "name": team.name,
+            "city": team.city,
+            "is_active": team.is_active,
         }
 
     def _game_to_dict(
@@ -445,13 +445,13 @@ class SearchService:
     ) -> dict[str, Any]:
         score = None
         if game.home_score is not None and game.away_score is not None:
-            score = f\"{game.away_score}-{game.home_score}\"
-        matchup = \"Game {0}\".format(game.game_id)
+            score = f"{game.away_score}-{game.home_score}"
+        matchup = "Game {0}".format(game.game_id)
         if home_abbrev and away_abbrev:
-            matchup = f\"{away_abbrev} @ {home_abbrev}\"
+            matchup = f"{away_abbrev} @ {home_abbrev}"
         return {
-            \"game_id\": game.game_id,
-            \"game_date\": game.game_date.isoformat() if game.game_date else None,
-            \"matchup\": matchup,
-            \"score\": score,
+            "game_id": game.game_id,
+            "game_date": game.game_date.isoformat() if game.game_date else None,
+            "matchup": matchup,
+            "score": score,
         }

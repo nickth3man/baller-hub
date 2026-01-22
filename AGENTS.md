@@ -1,296 +1,166 @@
 # AGENTS.md
 
 ## Project Overview
-
-Baller Hub is a basketball-reference.com clone consisting of a Python web scraper that extracts NBA
-data and a full-stack web application (FastAPI backend + Next.js frontend) that serves it. The
-scraper uses `lxml` for fast HTML parsing and outputs JSON/CSV. The webapp stores scraped data in
-PostgreSQL and provides REST APIs for a modern React frontend.
+Baller Hub is a basketball-reference.com clone that includes a Python scraper plus a FastAPI backend and Next.js frontend; the scraper depends on lxml and emits JSON/CSV outputs. (README.md:3, pyproject.toml:26, src/scraper/output/writers.py:135, src/scraper/output/writers.py:172, src/webapp/backend/pyproject.toml:13, src/webapp/frontend/package.json:13)
 
 ## Repository Structure
-
-- **src/scraper/** - Core scraping library: HTML parsing, data extraction, JSON/CSV output
-- **src/webapp/backend/** - FastAPI REST API with PostgreSQL, Redis caching, Celery tasks
-- **src/webapp/frontend/** - Next.js 15 App Router frontend with Tailwind CSS
-- **tests/** - Three-tier test suite: unit (mocked), integration (fixtures), end-to-end (live HTTP)
-- **scripts/** - Utility scripts for fixture validation and data rescraping
-- **docs/** - Project documentation, specs, and strategy blueprints
-- **raw-data/** - CSV data files for reference
+- **src/scraper/** - Scraper library (client facade, HTML wrappers, parsers, output). (src/scraper/api/client.py:1, src/scraper/html/box_scores.py:1, src/scraper/parsers/box_scores.py:1, src/scraper/output/service.py:1)
+- **src/webapp/backend/** - FastAPI API entrypoint and routers. (src/webapp/backend/app/main.py:1, src/webapp/backend/app/api/v1/router.py:1)
+- **src/webapp/frontend/** - Next.js App Router pages and components. (src/webapp/README.md:48, src/webapp/frontend/app/layout.tsx:1)
+- **tests/** - Unit, integration, and end-to-end test suites. (tests/unit/test_http_service.py:1, tests/integration/parsers/test_parse_draft.py:1, tests/end to end/test_client.py:1)
+- **docs/** - Scraper/fixture guidance and repo docs. (docs/scraping-guide.md:1)
+- **raw-data/** - CSV datasets used by ingestion. (src/webapp/docs/data-ingestion.md:5)
+- **.github/workflows/** - CI pipeline definitions. (.github/workflows/ci.yml:1)
 
 ## Tech Stack
-
-- **Language(s):** Python 3.12+ (scraper/backend), TypeScript 5.7 (frontend)
-- **Framework(s):** FastAPI 0.115+, Next.js 15, SQLModel ORM
-- **Package Manager:** uv (Python), npm (frontend)
-- **Key Libraries:**
-  - Scraper: lxml, requests, pytz
-  - Backend: uvicorn, asyncpg, alembic, redis, meilisearch, celery
-  - Frontend: React 18, TanStack Query, Zustand, Recharts, Tailwind CSS
+- **Language(s):** Python >=3.12 (scraper/backend), TypeScript 5.7 (frontend). (pyproject.toml:19, src/webapp/backend/pyproject.toml:10, src/webapp/frontend/package.json:31)
+- **Framework(s):** FastAPI 0.115, Next.js 15, SQLModel ORM. (src/webapp/backend/pyproject.toml:13, src/webapp/frontend/package.json:13, src/webapp/backend/pyproject.toml:17)
+- **Package Manager:** uv, npm. (README.md:18, src/webapp/README.md:82)
+- **Key Libraries:** lxml, requests, asyncpg, meilisearch, @tanstack/react-query. (pyproject.toml:26, pyproject.toml:28, src/webapp/backend/pyproject.toml:18, src/webapp/backend/pyproject.toml:26, src/webapp/frontend/package.json:16)
 
 ## Build & Development Commands
 
 ### File-Scoped Commands (Preferred for Fast Feedback)
 
 ```bash
-# Type check single file
+# Type check single file (CLAUDE.md:36)
 uv run ty check path/to/file.py
 
-# Lint single file
+# Lint single file (CLAUDE.md:39)
 uv run ruff check path/to/file.py
 
-# Format single file
+# Format single file (CLAUDE.md:42)
 uv run ruff format path/to/file.py
 
-# Test single file
+# Test single file (CLAUDE.md:45)
 uv run pytest tests/unit/path/to/test_file.py -v
 ```
 
 ### Project-Wide Commands (Use Sparingly)
 
 ```bash
-# Install dependencies
+# Install dependencies (CI: .github/workflows/ci.yml:29)
 uv sync
 
-# Run scraper tests
+# Full test suite (CI: .github/workflows/ci.yml:35)
 uv run pytest
 
-# Run with coverage
-uv run pytest --cov=src/scraper --cov-report=term-missing
-
-# Full lint
+# Full lint (CI: .github/workflows/ci.yml:31)
 uv run ruff check .
 
-# Full format
-uv run ruff format .
-
-# Full type check
+# Full type check (CI: .github/workflows/ci.yml:33)
 uv run ty check .
-
-# Run pre-commit hooks
-uv run pre-commit run --all-files
-```
-
-### Webapp Commands
-
-```bash
-# Backend - start dev server
-cd src/webapp/backend && uv run uvicorn app.main:app --reload
-
-# Frontend - install deps and start
-cd src/webapp/frontend && npm install && npm run dev
-
-# Full stack with Docker
-cd src/webapp && docker compose up -d
 ```
 
 ## Code Style & Conventions
 
 ### Formatting
-
-- **Indentation:** 4 spaces (Python), 2 spaces (TypeScript/JSON)
-- **Formatter:** ruff format (Python), prettier (TypeScript)
-- **Line Length:** 88 characters (Python), default (TypeScript)
+- **Indentation:** 4 spaces (Python), 2 spaces (TypeScript/TSX). (src/scraper/api/client.py:67, src/webapp/frontend/app/page.tsx:7)
+- **Formatter:** ruff (Python) and prettier (frontend). (pyproject.toml:63, src/webapp/frontend/package.json:10)
+- **Line Length:** 88 characters (Python). (pyproject.toml:64)
 
 ### Naming Conventions
-
-- **Variables/Functions:** snake_case (Python), camelCase (TypeScript)
-- **Types/Classes:** PascalCase (both)
-- **Constants:** SCREAMING_SNAKE_CASE (Python), SCREAMING_SNAKE_CASE (TypeScript)
-- **Files:** snake_case.py (Python), PascalCase.tsx or kebab-case.ts (TypeScript)
+- **Variables/Functions:** snake_case in Python (e.g., `player_box_scores`). (src/scraper/api/client.py:88)
+- **Types/Classes:** PascalCase (e.g., `HTTPService`). (src/scraper/services/http.py:31)
+- **Constants:** SCREAMING_SNAKE_CASE (e.g., `PLAYER_SEASON_BOX_SCORES_OUTCOME_REGEX`). (src/scraper/parsers/base.py:3)
 
 ### Import Organization
-
-Python imports are organized by ruff's isort rules:
-1. Standard library imports
-2. Third-party imports
-3. First-party imports (known: `src.scraper`, `app`)
-
-All imports must be **absolute** (e.g., `from src.scraper.common.data import Team`).
+Python uses ruff-isort with first-party packages `src.scraper` and `app`, and code uses absolute imports from those roots. (pyproject.toml:85, src/webapp/backend/pyproject.toml:79, src/scraper/api/client.py:15, src/webapp/backend/app/main.py:8)
 
 ## Architecture Notes
 
 ### High-Level Overview
 
+```text
+[Next.js frontend] -> [FastAPI API] -> [PostgreSQL/Redis/Meilisearch]
+           |
+           v
+[Scraper client -> HTTPService -> ParserService -> OutputService]
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                           User / Frontend                            │
-└─────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                     FastAPI Backend (REST API)                       │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  │
-│  │  Endpoints  │→ │  Services   │→ │   Models    │→ │ PostgreSQL │  │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘  │
-│         │                                                            │
-│         ▼                                                            │
-│  ┌─────────────────────────────────────────────────────────────┐    │
-│  │                    Scraper Integration                       │    │
-│  │  client.py → HTTPService → ParserService → OutputService     │    │
-│  └─────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────┘
-```
+
+(Sources: src/webapp/README.md:41, src/webapp/README.md:42, src/webapp/README.md:43, src/scraper/api/client.py:5)
 
 ### Key Components
+- **Entry Point(s):** Scraper facade `src/scraper/api/client.py`, backend app `src/webapp/backend/app/main.py`, frontend homepage `src/webapp/frontend/app/page.tsx`. (src/scraper/api/client.py:1, src/webapp/backend/app/main.py:1, src/webapp/frontend/app/page.tsx:6)
+- **Core Modules:** `src/scraper/html/` (XPath wrappers), `src/scraper/parsers/` (type conversion), `src/scraper/services/` (HTTP + parsing services), `src/scraper/output/` (JSON/CSV writers), `src/scraper/common/data.py` (domain enums). (src/scraper/html/box_scores.py:6, src/scraper/parsers/box_scores.py:54, src/scraper/services/http.py:13, src/scraper/output/writers.py:135, src/scraper/common/data.py:41)
+- **Data Flow:** Client builds HTTPService + ParserService, HTTPService fetches HTML and page wrappers, ParserService converts raw strings to typed values, OutputService serializes JSON/CSV. (src/scraper/api/client.py:5, src/scraper/api/client.py:41, src/scraper/services/http.py:13, src/scraper/parsers/box_scores.py:59, src/scraper/output/service.py:6, src/scraper/output/writers.py:135)
 
-- **Entry Point(s):**
-  - Scraper: `src/scraper/api/client.py` (Facade API)
-  - Backend: `src/webapp/backend/app/main.py` (FastAPI app)
-  - Frontend: `src/webapp/frontend/app/page.tsx` (Next.js home)
-
-- **Core Modules:**
-  - `src/scraper/html/` - DOM wrappers using lxml xpath selectors (returns raw strings)
-  - `src/scraper/parsers/` - Type conversion from strings to Python types/enums
-  - `src/scraper/services/` - HTTP fetching, caching, rate limiting
-  - `src/scraper/output/` - JSON/CSV serialization
-  - `src/scraper/common/data.py` - **Source of truth** for Team enums and mappings
-
-- **Data Flow (Scraper):**
-  1. User calls `client.py` function (e.g., `player_box_scores()`)
-  2. `HTTPService` builds URL and fetches HTML from basketball-reference.com
-  3. Response wrapped in `lxml` tree and passed to page wrapper (`html/*.py`)
-  4. `ParserService` extracts data using parsers (`parsers/*.py`)
-  5. `OutputService` formats output (JSON, CSV, or raw dict)
-
-### Module Organization
-
-- **Scraper:** Layer-based (html/ for DOM, parsers/ for logic, output/ for serialization)
-- **Backend:** Feature-based with shared layers (api/endpoints, services, models, schemas)
-- **Frontend:** App Router structure with (components)/ for shared React components
+### Coupling Analysis
+- **Scraper parsing stack:** HTTPService depends on ParserService and HTML wrappers; changes in parser outputs or wrapper APIs will affect HTTPService consumers. (src/scraper/services/http.py:13, src/scraper/services/parsing.py:44)
+- **Webapp ingestion:** Scraper integration relies on `sys.path` injection and direct `src.scraper` imports; path or API signature changes will break ingestion. (src/webapp/backend/app/ingestion/scraper_service.py:15, src/webapp/backend/app/ingestion/scraper_service.py:17)
+- **Frontend API base:** Next.js rewrites fall back to `http://localhost:8000/api/v1` when `NEXT_PUBLIC_API_URL` is unset. (src/webapp/frontend/next.config.js:19)
+- **Search fallback:** SearchService prefers Meilisearch and falls back to DB on failure, changing latency/consistency when Meilisearch is down. (src/webapp/backend/app/services/search_service.py:3, src/webapp/backend/app/services/search_service.py:90)
 
 ## Dos and Don'ts
 
 ### Do
-
-- Use `Team` enum from `src.scraper.common.data` - never raw team strings
-- Use absolute imports (e.g., `from src.scraper.common.data import Team`)
-- Use lxml xpath for HTML element selection (fast, explicit)
-- Keep HTML wrappers pure - return raw strings, no type conversion
-- Keep parsers pure - only convert strings to typed values
-- Add fixtures to `tests/integration/files/` for new HTML parsing tests
-- Follow the naming pattern: `{Entity}Page`, `{Entity}Table`, `{Entity}Row` for HTML wrappers
-- Follow the naming pattern: `{Entity}Parser` for parsers
-- Use `@requests_mock.Mocker()` for integration tests
-- Use `unittest.mock.patch` for unit tests
+- Use enums from `src/scraper/common/data.py` instead of raw strings. (src/scraper/common/data.py:9)
+- Keep HTML wrappers using XPath and return raw strings. (src/scraper/html/box_scores.py:6)
+- Convert raw strings to typed values in parsers. (src/scraper/parsers/box_scores.py:59)
+- Validate fixtures immediately after scraping. (docs/scraping-guide.md:212)
+- Use `requests_mock` for integration tests. (tests/integration/client/test_search.py:6, tests/integration/client/test_search.py:22)
 
 ### Don't
-
-- Use BeautifulSoup - lxml is explicitly chosen for performance
-- Use raw strings for teams, positions, or leagues - use enums
-- Modify `data.py` mappings without understanding the full impact
-- Skip type hints - the codebase uses ty for type checking
-- Commit untested HTML parsing changes - always add fixtures
-- Use relative imports - always use absolute imports from `src.`
-- Push without running `uv run ruff check .` and `uv run ty check .`
+- Run multiple scraper instances simultaneously. (docs/scraping-guide.md:217)
+- Modify fixtures manually without re-validating. (docs/scraping-guide.md:220)
 
 ## Testing Strategy
 
 ### Test Types
-
-- **Unit Tests:** `tests/unit/` - Mocked HTTP, fast (<1s). Tests parsers/components in isolation.
-- **Integration Tests:** `tests/integration/` - Local HTML fixtures from `files/`. Tests full pipeline.
-- **End-to-End Tests:** `tests/end to end/` - Live HTTP calls with rate limiting. Verifies site unchanged.
+- **Unit Tests:** `tests/unit/` (unittest-based). (tests/unit/test_http_service.py:1)
+- **Integration Tests:** `tests/integration/` with HTML fixtures. (tests/integration/parsers/test_parse_draft.py:21)
+- **E2E Tests:** `tests/end to end/` with VCR recordings. (tests/end to end/test_client.py:26)
 
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all tests (tests/CLAUDE.md:47)
 uv run pytest
 
-# Run single test file
+# Run single test file (tests/CLAUDE.md:59)
 uv run pytest tests/unit/parsers/test_team_totals_parser.py -v
 
-# Run with coverage
+# Run with coverage (tests/CLAUDE.md:65)
 uv run pytest --cov=src/scraper --cov-report=term-missing
-
-# Run specific test class
-uv run pytest tests/unit/html/test_schedule_page.py::TestSchedulePage -v
-
-# Run tests matching pattern
-uv run pytest -k "box_score" -v
 ```
 
-### Coverage Requirements
-
-Coverage tracked via `.coveragerc`. Excludes test files and specific patterns like
-`pragma: no cover`. No explicit threshold enforced in CI but coverage reports generated.
-
 ## Good Examples
-
-- **Facade Pattern (Public API):** See `src/scraper/api/client.py:40-86` (standings function)
-- **DOM Wrapper Pattern:** See `src/scraper/html/box_scores.py:19-51` (BoxScoresPage class)
-- **Parser Pattern:** See `src/scraper/parsers/box_scores.py:54-124` (PlayerBoxScoresParser)
-- **Enum Usage:** See `src/scraper/common/data.py:41-93` (Team enum with deprecated teams)
-- **HTTPService Pattern:** See `src/scraper/services/http.py:31-81` (session and retry logic)
-- **Unit Test Structure:** See `tests/unit/parsers/test_team_totals_parser.py:1-21`
-- **Integration Test Structure:** See `tests/integration/client/test_search.py:12-96`
+- **Facade API:** See `src/scraper/api/client.py:44` (public client functions).
+- **DOM Wrapper:** See `src/scraper/html/box_scores.py:19` (BoxScoresPage).
+- **Parser:** See `src/scraper/parsers/box_scores.py:54` (PlayerBoxScoresParser).
+- **Backend Service:** See `src/webapp/backend/app/services/search_service.py:22` (SearchService).
+- **Frontend Page:** See `src/webapp/frontend/app/page.tsx:6` (HomePage).
 
 ## Legacy/Avoid
-
-- Avoid patterns in: Old webapp structure at root `/webapp/` (migrated to `src/webapp/`)
-- Avoid: Imports from root `src/` that bypass `src/scraper/` (e.g., never `from src.common`)
-- Avoid: BeautifulSoup for HTML parsing - lxml is explicitly chosen for performance
+- Avoid patterns in: `docs/scraping-guide.md:217` - Running multiple scraper instances simultaneously.
+- Avoid patterns in: `docs/scraping-guide.md:220` - Modifying fixtures manually without re-validating.
 
 ## Security & Compliance
 
 ### Secrets Handling
-
-- Environment variables stored in `.env` files (not committed)
-- `.env.example` provided in `src/webapp/backend/` for reference
-- `.secrets.baseline` tracks known secrets patterns to prevent accidental commits
-- Never hardcode API keys, database credentials, or tokens
-
-### Dependencies
-
-- Pre-commit hooks run `detect-secrets` baseline scan
-- ruff lint rules include security-related checks (B prefix)
-- No explicit dependency audit tool configured
+- Backend settings load environment variables from `.env`. (src/webapp/backend/app/core/config.py:11)
+- `.env.example` documents required secrets (DATABASE_URL, JWT_SECRET_KEY, etc.). (src/webapp/backend/.env.example:2)
+- JWT secret is required and validated for length. (src/webapp/backend/app/core/config.py:32, src/webapp/backend/app/core/config.py:46)
 
 ### License
-
-- **Type:** MIT
-- **Location:** Referenced in `pyproject.toml` and `README.md`
+- **Type:** MIT. (pyproject.toml:11)
+- **Location:** `pyproject.toml`. (pyproject.toml:11)
 
 ## Agent Guardrails
 
 ### Allowed Without Asking
-
-- Reading any file
-- Running file-scoped linting/formatting (`uv run ruff check/format path/to/file.py`)
-- Running file-scoped type checking (`uv run ty check path/to/file.py`)
-- Running single-file tests (`uv run pytest tests/.../test_file.py`)
-- Searching code with grep/rg
+> TODO: Repo does not document agent-specific allowances.
 
 ### Ask Before Doing
-
-- Installing new dependencies (modifying `pyproject.toml` or `package.json`)
-- Deleting files or directories
-- Modifying CI/CD configuration (`.github/workflows/`)
-- Running full test suites (`uv run pytest` without file filter)
-- Modifying `src/scraper/common/data.py` (source of truth for enums)
-- Making changes to build configuration
-- Creating or pushing git commits
-- Modifying Docker configuration
+> TODO: Repo does not document agent-specific approval rules.
 
 ### Files Never to Modify
+- `tests/integration/files/**` - Fixture edits require re-validation. (docs/scraping-guide.md:220)
 
-- `uv.lock`, `poetry.lock`, `package-lock.json` (generated lock files)
-- `.git/` directory
-- `tests/integration/files/*.html` (frozen HTML fixtures)
-- `tests/integration/output/expected/` (frozen expected outputs)
-- `.cache/` directories
-- `raw-data/` CSV files (source data)
-
-## Current Project Goal
-
-See [`PLAN.md`](PLAN.md) for the active roadmap, milestones, and implementation priorities.
+## Unknowns & TODOs
+> TODO: Confirm any additional agent guardrails or protected files beyond fixture validation guidance.
 
 ## Further Reading
-
-- **Scraper Details:** `src/scraper/AGENTS.md`
-- **Testing Strategy:** `tests/AGENTS.md`
-- **Webapp Details:** `src/webapp/AGENTS.md`
-- **Webapp Overview:** `src/webapp/README.md`
-- **API Reference:** `docs/reference/api.md`, `docs/reference/schema.md`
-- **Specifications:** `docs/specs/implementation.md`
-- **Strategy:** `docs/strategy/blueprint.md`
+- `docs/scraping-guide.md` (docs/scraping-guide.md:1)
+- `src/webapp/README.md` (src/webapp/README.md:1)
+- `src/webapp/docs/data-ingestion.md` (src/webapp/docs/data-ingestion.md:1)
