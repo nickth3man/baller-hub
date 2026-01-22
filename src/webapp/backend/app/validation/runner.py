@@ -4,21 +4,20 @@ This module provides comprehensive validation for Baller Hub database
 including referential integrity, data consistency, business logic, and data quality.
 """
 
-import asyncio
 import uuid
 from datetime import datetime
 from typing import Any
 
+import structlog
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-import structlog
 
 from app.validation.models import (
+    Category,
+    Severity,
     ValidationIssue,
     ValidationResult,
     ValidationSummary,
-    Severity,
-    Category,
 )
 
 logger = structlog.get_logger(__name__)

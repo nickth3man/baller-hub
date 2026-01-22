@@ -108,7 +108,7 @@ Trust but verify.
   - **Logic Checks**: `assert points == 2*fg2 + 3*fg3 + ft`
   - **Referential Integrity**: `assert count(orphaned_game_ids) == 0`
 
-- [ ] 10. Run Full Migration
+- [x] 10. Run Full Migration
   - **Script**: Create `scripts/run_migration.py`
   - **Execution**: Init DB -> Build Identity Bridge -> Load Data -> Run Validation
   - **Deliverable**: `baller.duckdb` (Verified)
@@ -116,7 +116,7 @@ Trust but verify.
 ### Phase 5: Webapp Wiring
 Connect the UI to the new engine.
 
-- [ ] 11. Connect Webapp to DuckDB
+- [x] 11. Connect Webapp to DuckDB
   - **Config**: Update `config.py` to point to `./baller.duckdb`
   - **Verify**: Start backend `uv run fastapi dev`
   - **Test**: Hit `/api/v1/players` -> Verify data loads
@@ -130,7 +130,7 @@ Connect the UI to the new engine.
 - **Performance Check**: Webapp endpoints must respond without blocking (verified by converting to `def`).
 
 ## Success Criteria
-- [ ] Codebase is syntactically valid (no Sync/Async mixing).
-- [ ] `baller.duckdb` exists and passes validation.
-- [ ] Webapp loads player data from DuckDB.
-- [ ] No PostgreSQL artifacts remain.
+- [x] Codebase is syntactically valid (no Sync/Async mixing).
+- [x] `baller.duckdb` exists and passes validation.
+- [x] Webapp loads player data from DuckDB.
+- [x] No PostgreSQL artifacts remain.

@@ -5,21 +5,17 @@ basketball-reference.com and persist it to our database.
 """
 
 import csv
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
-from typing import Any
 from uuid import UUID
 
 import structlog
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from src.core.domain import TEAM_TO_TEAM_ABBREVIATION
 
 from app.celery_app import celery_app
-from app.core.config import settings
 from app.db.session import session_factory
 from app.ingestion.repositories import get_or_create_season
-from app.ingestion.scraper_service import ScraperService
 
 logger = structlog.get_logger(__name__)
 
@@ -774,7 +770,6 @@ def _upsert_games(session: Session) -> None:
 
 
 def _upsert_schedule_games(session: Session) -> None:
-    from app.ingestion.repositories import get_or_create_season
 
     existing_team_ids = {
         row[0]
