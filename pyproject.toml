@@ -114,11 +114,11 @@ ignore = [
     "B008",
 ]
 
-[tool.ruff.lint.isort]
-known-first-party = ["src.scraper"]
-
 [tool.ruff.lint.per-file-ignores]
 "src/scraper/html/**/*.py" = ["D102", "D107"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src.scraper"]
 
 
 [tool.ty.environment]
