@@ -110,6 +110,5 @@ tests/integration/files/**/*.html
 !tests/integration/files/**/.gitkeep
 /.antigravity
 baller.duckdb
-/.sisyphus
 /tests/integration/files
 /.cline

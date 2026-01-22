@@ -1,0 +1,1 @@
+- Decided to remove Alembic as it is no longer needed with the new DuckDB strategy.
