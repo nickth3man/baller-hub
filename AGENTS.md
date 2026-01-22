@@ -4,50 +4,29 @@
 **Structure:** Monorepo (Scraper + Webapp)
 
 ## OVERVIEW
-Basketball Reference clone. Python scraper + FastAPI backend + Next.js frontend.
+Baller Hub is a Basketball Reference clone comprising a Python-based scraper core, a FastAPI backend, and a Next.js frontend. The project is organized as a monorepo managed by `uv` for Python and `npm` for JavaScript/TypeScript.
 
-## STRUCTURE
-```
-./
-├── src/
-│   ├── scraper/     # Core library (See src/scraper/AGENTS.md)
-│   └── webapp/      # Full stack app (See src/webapp/AGENTS.md)
-│       ├── backend/ # FastAPI (See src/webapp/backend/AGENTS.md)
-│       └── frontend/# Next.js (See src/webapp/frontend/AGENTS.md)
-├── tests/           # Global suite (See tests/AGENTS.md)
-└── docs/            # Project documentation
-```
+## FOLDER STRUCTURE
+- `src/scraper/`: Core data extraction library (Python).
+- `src/webapp/backend/`: FastAPI backend service (Python).
+- `src/webapp/frontend/`: Next.js 15 frontend application (TypeScript).
+- `tests/`: Global test suite covering unit, integration, and end-to-end scenarios.
+- `docs/`: Project documentation.
 
-## WHERE TO LOOK
-| Task | Location | Documentation |
-|------|----------|---------------|
-| **Scraping Logic** | `src/scraper/` | `src/scraper/AGENTS.md` |
-| **API Endpoints** | `src/webapp/backend/` | `src/webapp/backend/AGENTS.md` |
-| **UI Components** | `src/webapp/frontend/` | `src/webapp/frontend/AGENTS.md` |
-| **Testing** | `tests/` | `tests/AGENTS.md` |
-
-## COMMANDS (GLOBAL)
-```bash
-# Install Dependencies
-uv sync
-
-# Run Tests
-uv run pytest
-
-# Lint/Type Check
-uv run ruff check .
-uv run ty check .
-```
-
-## CODE MAP
-- **Entry Points:** `src/scraper/api/client.py` (Lib), `src/webapp/backend/app/main.py` (API), `src/webapp/frontend/app/page.tsx` (UI).
-- **Key Configs:** `pyproject.toml` (Python), `src/webapp/frontend/package.json` (JS).
+## CORE BEHAVIORS & PATTERNS
+- **Monorepo Architecture**: Shared Python environment via `uv`, distinct frontend management via `npm`.
+- **Data Flow**: Scraper -> Raw Data -> FastAPI -> Frontend.
+- **Testing Strategy**: Hierarchical testing with frozen fixtures for stability.
 
 ## CONVENTIONS
-- **Python:** Snake_case, typed (beartype/mypy-friendly), ruff format.
-- **TS/JS:** PascalCase components, prettier format.
-- **Git:** Atomic commits, descriptive messages.
+- **Python**: Strict typing (`beartype`, `mypy`/`ty`), `snake_case`, `ruff` formatting.
+- **TypeScript**: `PascalCase` for components, `prettier` formatting, `npm` for dependency management.
+- **Git**: Atomic commits with descriptive messages.
+- **Commands**:
+    - Python: `uv sync`, `uv run pytest`, `uv run ruff check`, `uv run ty check`.
+    - Frontend: `npm install`, `npm run lint`, `npm run format`.
 
-## NOTES
-- **State:** Transitioning to `src/` root structure.
-- **Dependency Manager:** `uv` is the source of truth for Python.
+## WORKING AGREEMENTS
+- **Directory Integrity**: Respect the `src/` root structure. Do not create top-level code directories outside `src/` or `tests/`.
+- **Dependency Management**: Always use `uv` for Python packages and `npm` for Node packages.
+- **Documentation**: Update sub-directory `AGENTS.md` files when modifying architecture.

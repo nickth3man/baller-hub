@@ -1,33 +1,29 @@
 # src/scraper AGENTS.md
 
+**Generated:** 2026-01-22
 **Context:** Data extraction engine (Python).
-**Parent:** `../../AGENTS.md`
 
-## STRUCTURE
-```
-scraper/
-├── api/             # Public facade (client.py)
-├── html/            # XPath wrappers
-├── parsers/         # String -> Type conversion
-├── services/        # HTTP & Parsing orchestration
-└── output/          # CSV/JSON writers
-```
+## OVERVIEW
+The core scraping library for Baller Hub, responsible for extracting data from basketball-reference.com. It uses XPath for parsing and Pydantic for data validation.
 
-## COMMANDS
-```bash
-# Scrape Fixtures
-uv run python -m src.scraper.scripts.scrape_fixtures.main
+## FOLDER STRUCTURE
+- `api/`: Public facade (`client.py`) for consuming applications.
+- `html/`: Wrapper classes around raw HTML strings to facilitate XPath queries.
+- `parsers/`: Pure functions transforming `html` wrappers into Pydantic models.
+- `services/`: Orchestration logic (HTTP client, Rate Limiter, Caching).
+- `output/`: Utilities for writing data to CSV/JSON.
 
-# Validate
-uv run python src/scraper/scripts/validate_fixtures.py
-```
+## CORE BEHAVIORS & PATTERNS
+- **Pure Parsers**: Parsing logic is strictly separated from network logic.
+- **Fixture-First**: All parsers are developed and tested against frozen HTML fixtures.
+- **Data Validation**: Pydantic models ensure type safety for all extracted data.
 
 ## CONVENTIONS
-- **HTML:** Wrappers return raw strings; Logic uses XPath.
-- **Parsers:** Pure functions (Input: HTML wrapper -> Output: Pydantic/TypedDict).
-- **Validation:** Validate fixtures immediately after scraping.
-- **Data:** Use enums from `common/data.py`.
+- **Naming**: Snake_case for Python modules and variables.
+- **Type Safety**: strict `beartype` usage on public methods.
+- **Imports**: Relative imports within the package are allowed, but absolute imports are preferred for clarity.
 
-## ANTI-PATTERNS
-- Modifying `tests/integration/files` manually (must re-scrape).
-- Network calls inside Parsers (keep them pure).
+## WORKING AGREEMENTS
+- **No Network in Parsers**: Parsers must never make HTTP requests.
+- **Fixture Integrity**: Validate fixtures immediately after scraping (`uv run python src/scraper/scripts/validate_fixtures.py`).
+- **Data Enum**: Use enums from `common/data.py` for standardizing strings (e.g., Team names).
