@@ -30,3 +30,4 @@ Baller Hub is a Basketball Reference clone comprising a Python-based scraper cor
 - **Directory Integrity**: Respect the `src/` root structure. Do not create top-level code directories outside `src/` or `tests/`.
 - **Dependency Management**: Always use `uv` for Python packages and `npm` for Node packages.
 - **Documentation**: Update sub-directory `AGENTS.md` files when modifying architecture.
+- **Code Search**: If you are unsure how to do something, use `gh_grep` to search code examples from GitHub.

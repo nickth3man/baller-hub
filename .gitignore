@@ -112,3 +112,4 @@ tests/integration/files/**/*.html
 baller.duckdb
 /.sisyphus
 /tests/integration/files
+/.cline
