@@ -17,7 +17,8 @@ const bodyFont = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "Basketball Reference Clone",
-  description: "Local clone of basketball-reference.com with comprehensive NBA statistics",
+  description:
+    "Local clone of basketball-reference.com with comprehensive NBA statistics",
 };
 
 export default function RootLayout({
@@ -31,9 +32,9 @@ export default function RootLayout({
         className={`${displayFont.variable} ${bodyFont.variable} font-sans`}
       >
         <Providers>
-          <div className="min-h-screen flex flex-col">
+          <div className="flex min-h-screen flex-col">
             <Header />
-            <main className="flex-1 container mx-auto px-4 py-6">
+            <main className="container mx-auto flex-1 px-4 py-6">
               {children}
             </main>
             <Footer />
