@@ -1,10 +1,10 @@
 import logging
-import os
 from pathlib import Path
 
 import duckdb
 
 from src.etl import schema
+from src.etl.validate import validate_etl
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -23,12 +23,12 @@ def find_project_root() -> Path:
 
 
 def load_staging(con: duckdb.DuckDBPyConnection, root: Path) -> None:
-    """Loads raw CSV data into staging tables."""
+    """Loads raw CSV data into staging tables using COPY."""
     raw_data_dir = root / "raw-data"
     logger.info("Loading staging tables from %s...", raw_data_dir)
 
     for table_name in schema.STAGING_TABLES:
-        # Map staging_players -> players.csv
+        # Map table name to filename (e.g., staging_players -> players.csv)
         file_name = table_name.replace("staging_", "") + ".csv"
         file_path = raw_data_dir / file_name
 
@@ -37,8 +37,6 @@ def load_staging(con: duckdb.DuckDBPyConnection, root: Path) -> None:
             continue
 
         logger.info("Loading %s from %s...", table_name, file_name)
-        # Use strict COPY command
-        # Quote path to handle spaces if necessary, though pathlib handles it well
         con.execute(f"COPY {table_name} FROM '{file_path.as_posix()}'")
 
 
@@ -56,8 +54,7 @@ def transform_dims(con: duckdb.DuckDBPyConnection) -> None:
     """)
 
     logger.info("Transforming dim_players (generating slugs)...")
-    # Clean/normalize text and generate slugs matches legacy logic
-    # We strip special chars to ensure clean slugs (e.g. O'Neal -> oneal)
+    # Generate slugs matching legacy logic: first 5 chars of last name + first 2 of first name + count
     con.execute("""
         WITH player_source AS (
             SELECT
@@ -99,7 +96,6 @@ def transform_dims(con: duckdb.DuckDBPyConnection) -> None:
     """)
 
     logger.info("Transforming fact_player_gamelogs...")
-    # Join with dim_players to get the generated slug (bref_id)
     con.execute("""
         INSERT OR REPLACE INTO fact_player_gamelogs (
             player_id,
@@ -147,7 +143,45 @@ def transform_dims(con: duckdb.DuckDBPyConnection) -> None:
     """)
 
 
-def build():
+def perform_atomic_swap(target_db_path: Path, tmp_db_path: Path) -> None:
+    """Safely swaps the temporary database with the target database."""
+    logger.info("Performing atomic swap...")
+
+    if target_db_path.exists():
+        backup_path = target_db_path.with_suffix(".duckdb.bak")
+        if backup_path.exists():
+            try:
+                backup_path.unlink()
+            except OSError:
+                logger.warning("Could not remove old backup: %s", backup_path)
+
+        try:
+            target_db_path.rename(backup_path)
+        except OSError:
+            logger.warning("Could not rename target to backup (file locking?)")
+            try:
+                target_db_path.unlink()
+            except OSError:
+                logger.exception("Could not delete target DB. Aborting swap.")
+                raise
+
+    try:
+        tmp_db_path.rename(target_db_path)
+        logger.info("Swap successful. New DB is live at %s", target_db_path)
+    except OSError:
+        logger.exception("Failed to rename temp DB to target DB")
+        raise
+
+    # Cleanup backup
+    backup_path = target_db_path.with_suffix(".duckdb.bak")
+    if backup_path.exists():
+        try:
+            backup_path.unlink()
+        except OSError:
+            logger.warning("Could not clean up backup file: %s", backup_path)
+
+
+def build() -> None:
     """Orchestrates the DuckDB creation process."""
     try:
         root = find_project_root()
@@ -176,11 +210,11 @@ def build():
         logger.info("Setting up schema...")
         schema.setup_schema(con)
 
-        logger.info("Loading staging data...")
         load_staging(con, root)
-
-        logger.info("Transforming dimensions and facts...")
         transform_dims(con)
+
+        logger.info("Running validation...")
+        validate_etl(con)
 
         logger.info("Build complete. Verifying tables...")
         tables = con.execute("SHOW TABLES").fetchall()
@@ -189,48 +223,11 @@ def build():
     except Exception:
         logger.exception("Build failed")
         con.close()
-        if tmp_db_path.exists():
-            tmp_db_path.unlink()
+        logger.warning("Build failed. Keeping temp DB for inspection: %s", tmp_db_path)
         raise
 
     con.close()
-
-    logger.info("Performing atomic swap...")
-
-    # Atomic swap logic with Windows safety
-    if target_db_path.exists():
-        backup_path = target_db_path.with_suffix(".duckdb.bak")
-        if backup_path.exists():
-            try:
-                backup_path.unlink()
-            except OSError:
-                logger.warning("Could not remove old backup: %s", backup_path)
-
-        try:
-            target_db_path.rename(backup_path)
-        except OSError:
-            logger.warning("Could not rename target to backup (file locking?)")
-            # If we can't rename, we might fail the next step, or we can try to delete
-            try:
-                target_db_path.unlink()
-            except OSError:
-                logger.error("Could not delete target DB. Aborting swap.")
-                raise
-
-    try:
-        tmp_db_path.rename(target_db_path)
-        logger.info("Swap successful. New DB is live at %s", target_db_path)
-    except OSError:
-        logger.error("Failed to rename temp DB to target DB")
-        raise
-
-    # Cleanup backup
-    backup_path = target_db_path.with_suffix(".duckdb.bak")
-    if backup_path.exists():
-        try:
-            backup_path.unlink()
-        except OSError:
-            logger.warning("Could not clean up backup file: %s", backup_path)
+    perform_atomic_swap(target_db_path, tmp_db_path)
 
 
 if __name__ == "__main__":
