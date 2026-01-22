@@ -111,3 +111,4 @@ tests/integration/files/**/*.html
 /.antigravity
 baller.duckdb
 /.sisyphus
+/tests/integration/files
