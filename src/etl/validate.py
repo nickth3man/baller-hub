@@ -1,4 +1,15 @@
 def validate_etl(con):
+    """
+    Validate ETL consistency and integrity for the fact_player_gamelogs table.
+    
+    Performs a parity check between the database table and a filtered CSV, validates the points calculation formula, and verifies referential integrity for player_id and team_id. If the database count is zero, logs a warning and returns early, skipping the strict validations. Each validation uses assertions and will raise an AssertionError on failure.
+    
+    Parameters:
+        con: Database connection or cursor with an execute(sql).fetchone() API used to run validation queries.
+    
+    Raises:
+        AssertionError: If the DB/CSV counts differ, if any records fail the points formula, or if any orphaned player or team records are found.
+    """
     print("Starting validation...")
 
     db_count = con.execute("SELECT count(*) FROM fact_player_gamelogs").fetchone()[0]

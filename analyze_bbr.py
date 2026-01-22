@@ -3,6 +3,14 @@ from lxml import html
 import re
 
 def get_table_info(url):
+    """
+    Fetches a web page and prints summaries of HTML tables with IDs, including tables that are inside HTML comments.
+    
+    Prints the HTTP status code, response content length, a list of visible tables (ID and up to five header names), a list of tables found inside HTML comments (ID and up to five header names), and counts for each category. On error or non-200 responses, prints an error message.
+    
+    Parameters:
+        url (str): The fully qualified URL to fetch and analyze.
+    """
     print(f"\n--- Analyzing {url} ---")
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
