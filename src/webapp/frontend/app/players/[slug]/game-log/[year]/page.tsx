@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { getPlayerGameLog } from '@/lib/api';
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getPlayerGameLog } from "@/lib/api";
 
 interface PageProps {
   params: Promise<{ slug: string; year: string }>;
@@ -9,7 +9,7 @@ interface PageProps {
 function formatMinutes(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
 export default async function PlayerGameLogPage({ params }: PageProps) {
@@ -29,19 +29,25 @@ export default async function PlayerGameLogPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8">
         <nav className="mb-4 text-sm text-gray-600">
-          <Link href="/" className="hover:text-blue-600">Home</Link>
+          <Link href="/" className="hover:text-blue-600">
+            Home
+          </Link>
           <span className="mx-2">/</span>
-          <Link href="/players" className="hover:text-blue-600">Players</Link>
+          <Link href="/players" className="hover:text-blue-600">
+            Players
+          </Link>
           <span className="mx-2">/</span>
-          <Link href={`/players/${slug}`} className="hover:text-blue-600">{gameLog.player_name}</Link>
+          <Link href={`/players/${slug}`} className="hover:text-blue-600">
+            {gameLog.player_name}
+          </Link>
           <span className="mx-2">/</span>
           <span className="text-gray-900">{seasonYear} Game Log</span>
         </nav>
 
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+        <div className="overflow-hidden rounded-2xl bg-white shadow-lg">
+          <div className="flex items-center justify-between bg-slate-900 px-6 py-4 text-white">
             <h1 className="text-lg font-semibold">
               {gameLog.player_name} - {seasonYear} Game Log
             </h1>
@@ -68,18 +74,25 @@ export default async function PlayerGameLogPage({ params }: PageProps) {
               </thead>
               <tbody>
                 {gameLog.games.map((game, idx) => (
-                  <tr key={game.game_id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                  <tr
+                    key={game.game_id}
+                    className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                  >
                     <td className="px-3 py-2">
-                      {new Date(game.game_date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
+                      {new Date(game.game_date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
                       })}
                     </td>
                     <td className="px-3 py-2">{game.opponent_abbrev}</td>
                     <td className="px-3 py-2 text-center">{game.location}</td>
                     <td className="px-3 py-2 text-center">{game.outcome}</td>
-                    <td className="px-3 py-2 text-center">{formatMinutes(game.seconds_played)}</td>
-                    <td className="px-3 py-2 text-center font-medium">{game.points}</td>
+                    <td className="px-3 py-2 text-center">
+                      {formatMinutes(game.seconds_played)}
+                    </td>
+                    <td className="px-3 py-2 text-center font-medium">
+                      {game.points}
+                    </td>
                     <td className="px-3 py-2 text-center">{game.rebounds}</td>
                     <td className="px-3 py-2 text-center">{game.assists}</td>
                     <td className="px-3 py-2 text-center">{game.steals}</td>
@@ -88,7 +101,10 @@ export default async function PlayerGameLogPage({ params }: PageProps) {
                 ))}
                 {gameLog.games.length === 0 && (
                   <tr>
-                    <td colSpan={10} className="px-3 py-6 text-center text-gray-500">
+                    <td
+                      colSpan={10}
+                      className="px-3 py-6 text-center text-gray-500"
+                    >
                       No game log entries found.
                     </td>
                   </tr>
