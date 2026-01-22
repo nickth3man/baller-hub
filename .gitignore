@@ -112,3 +112,9 @@ tests/integration/files/**/*.html
 baller.duckdb
 /tests/integration/files
 /.cline
+/PR_FEEDBACK_DETAILED.md
+analyze_all_comments.py
+generate_feedback_report.py
+parse_comments.py
+pr_issue_comments.json
+pr_review_comments.json
