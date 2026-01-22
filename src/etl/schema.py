@@ -355,8 +355,9 @@ STAGING_TABLES: dict[str, list[str]] = {
 
 def setup_views(con: duckdb.DuckDBPyConnection) -> None:
     """
-    Sets up views to bridge the Star Schema to SQLModel expectations.
-    Based on legacy logic.
+    Create SQL views (player, team, season, player_season) that expose the star-schema tables in the shape expected by SQLModel, and create placeholder empty tables for a set of models to prevent runtime errors.
+    
+    The views surface data from dim_players, dim_teams, and fact_player_gamelogs into normalized shapes used by downstream code; placeholder tables are created with a single integer `id` column if they do not already exist.
     """
     con.execute("""
         CREATE OR REPLACE VIEW player AS
@@ -471,11 +472,12 @@ def setup_views(con: duckdb.DuckDBPyConnection) -> None:
 
 def setup_schema(con: duckdb.DuckDBPyConnection) -> None:
     """
-    Sets up the DuckDB schema for the Baller Hub ETL process.
-    Includes staging tables, dimensional tables, and views.
-
-    Args:
-        con: A duckdb connection object.
+    Create the DuckDB schema, staging tables, and supporting views required by the Baller Hub ETL.
+    
+    Creates core dimensional and fact tables (dim_players, dim_teams, bridge_ids, fact_player_gamelogs), creates staging tables defined in STAGING_TABLES with all columns as VARCHAR, and invokes setup_views to create additional views and placeholder tables.
+    
+    Parameters:
+        con (duckdb.DuckDBPyConnection): Connection used to execute DDL statements.
     """
     # Create Core Dimensional Tables (Preserved from existing schema)
     con.execute("""

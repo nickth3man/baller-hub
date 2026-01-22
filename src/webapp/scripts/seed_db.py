@@ -34,7 +34,12 @@ sys.path[:0] = [str(backend_dir), str(repo_root)]
 
 
 async def seed_season(season_end_year: int) -> None:
-    """Seed a full season of data."""
+    """
+    Prints season headers and a deprecation notice for seeding the specified season.
+    
+    Parameters:
+        season_end_year (int): The calendar year in which the season ends (e.g., 2024 for the 2023–24 season).
+    """
     print(f"\n{'=' * 60}")
     print(f"Seeding season {season_end_year - 1}-{str(season_end_year)[2:]}")
     print(f"{'=' * 60}")
@@ -45,7 +50,12 @@ async def seed_season(season_end_year: int) -> None:
 
 
 async def seed_daily(target_date: date) -> None:
-    """Seed box scores for a specific date."""
+    """
+    Prints a header and a deprecation notice for seeding box scores for the given date.
+    
+    Parameters:
+        target_date (date): The date for which box score seeding would have been performed.
+    """
     print(f"\n{'=' * 60}")
     print(f"Seeding box scores for {target_date.isoformat()}")
     print(f"{'=' * 60}")
@@ -56,7 +66,11 @@ async def seed_daily(target_date: date) -> None:
 
 
 async def seed_teams() -> None:
-    """Seed the 30 current NBA teams."""
+    """
+    Print a header and a deprecation notice for the team seeding routine.
+    
+    This function no longer performs any data ingestion; it only emits a banner and a message explaining that the legacy ingestion module for seeding the 30 NBA teams has been removed.
+    """
     print(f"\n{'=' * 60}")
     print("Seeding NBA teams")
     print(f"{'=' * 60}")
@@ -67,7 +81,14 @@ async def seed_teams() -> None:
 
 
 async def seed_csv_datasets(include_play_by_play: bool = False) -> None:
-    """Seed database using the CSV ingestion pipeline."""
+    """
+    Seed the database from CSV datasets (deprecated).
+    
+    This function is deprecated and no longer performs CSV ingestion; it remains as a CLI placeholder and emits a deprecation notice.
+    
+    Parameters:
+    	include_play_by_play (bool): If true, would include play-by-play CSV ingestion in the operation; otherwise only summary datasets would be considered.
+    """
     print(f"\n{'=' * 60}")
     print("Seeding database from CSV datasets")
     print(f"{'=' * 60}")
