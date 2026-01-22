@@ -23,89 +23,104 @@ Options:
 
 import argparse
 import asyncio
+import logging
 import sys
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+from app.search.tasks import _reindex_all_async
+
 # Add the backend and repo root directories to sys.path for imports.
+
 repo_root = Path(__file__).resolve().parents[3]
 backend_dir = repo_root / "src" / "webapp" / "backend"
 sys.path[:0] = [str(backend_dir), str(repo_root)]
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+
+JULY = 7
 
 
 async def seed_season(season_end_year: int) -> None:
     """
     Prints season headers and a deprecation notice for seeding the specified season.
-    
-    Parameters:
-        season_end_year (int): The calendar year in which the season ends (e.g., 2024 for the 2023–24 season).
-    """
-    print(f"\n{'=' * 60}")
-    print(f"Seeding season {season_end_year - 1}-{str(season_end_year)[2:]}")
-    print(f"{'=' * 60}")
-    print(
-        "\n[DEPRECATED] seed_season relies on the ingestion module which has been removed."
-    )
 
+    Parameters:
+        season_end_year (int): The calendar year in which the season ends (e.g., 2024 for the 2023-24 season).
+    """
+    logger.info("=" * 60)
+    logger.info("Seeding season %d-%s", season_end_year - 1, str(season_end_year)[2:])
+    logger.info("=" * 60)
+
+    msg = "[DEPRECATED] seed_season relies on the ingestion module which has been removed."
+    logger.error(msg)
+    raise RuntimeError(msg)
 
 
 async def seed_daily(target_date: date) -> None:
     """
     Prints a header and a deprecation notice for seeding box scores for the given date.
-    
+
     Parameters:
         target_date (date): The date for which box score seeding would have been performed.
     """
-    print(f"\n{'=' * 60}")
-    print(f"Seeding box scores for {target_date.isoformat()}")
-    print(f"{'=' * 60}")
-    print(
-        "\n[DEPRECATED] seed_daily relies on the ingestion module which has been removed."
-    )
+    logger.info("=" * 60)
+    logger.info("Seeding box scores for %s", target_date.isoformat())
+    logger.info("=" * 60)
 
+    msg = (
+        "[DEPRECATED] seed_daily relies on the ingestion module which has been removed."
+    )
+    logger.error(msg)
+    raise RuntimeError(msg)
 
 
 async def seed_teams() -> None:
     """
     Print a header and a deprecation notice for the team seeding routine.
-    
+
     This function no longer performs any data ingestion; it only emits a banner and a message explaining that the legacy ingestion module for seeding the 30 NBA teams has been removed.
     """
-    print(f"\n{'=' * 60}")
-    print("Seeding NBA teams")
-    print(f"{'=' * 60}")
-    print(
-        "\n[DEPRECATED] seed_teams relies on the ingestion module which has been removed."
+    logger.info("=" * 60)
+    logger.info("Seeding NBA teams")
+    logger.info("=" * 60)
+
+    msg = (
+        "[DEPRECATED] seed_teams relies on the ingestion module which has been removed."
     )
+    logger.error(msg)
+    raise RuntimeError(msg)
 
 
-
-async def seed_csv_datasets(include_play_by_play: bool = False) -> None:
+async def seed_csv_datasets(_include_play_by_play: bool = False) -> None:
     """
     Seed the database from CSV datasets (deprecated).
-    
+
     This function is deprecated and no longer performs CSV ingestion; it remains as a CLI placeholder and emits a deprecation notice.
-    
+
     Parameters:
-    	include_play_by_play (bool): If true, would include play-by-play CSV ingestion in the operation; otherwise only summary datasets would be considered.
+        include_play_by_play (bool): If true, would include play-by-play CSV ingestion in the operation; otherwise only summary datasets would be considered.
     """
-    print(f"\n{'=' * 60}")
-    print("Seeding database from CSV datasets")
-    print(f"{'=' * 60}")
-    print(
-        "\n[DEPRECATED] seed_csv_datasets relies on the ingestion module which has been removed."
-    )
+    logger.info("=" * 60)
+    logger.info("Seeding database from CSV datasets")
+    logger.info("=" * 60)
+
+    msg = "[DEPRECATED] seed_csv_datasets relies on the ingestion module which has been removed."
+    logger.error(msg)
+    raise RuntimeError(msg)
 
 
 async def reindex_search() -> None:
     """Rebuild Meilisearch indices from database."""
-    from app.search.tasks import _reindex_all_async
-
-    print(f"\n{'=' * 60}")
-    print("Reindexing search data")
-    print(f"{'=' * 60}")
+    logger.info("=" * 60)
+    logger.info("Reindexing search data")
+    logger.info("=" * 60)
     await _reindex_all_async()
-    print("\nOK: Search indices rebuilt successfully.")
+    logger.info("OK: Search indices rebuilt successfully.")
 
 
 async def main() -> None:
@@ -173,15 +188,15 @@ async def main() -> None:
         ]
     ):
         parser.print_help()
-        print("\n\nExamples:")
-        print("  python -m scripts.seed_db --teams")
-        print("  python -m scripts.seed_db --season 2024")
-        print("  python -m scripts.seed_db --yesterday")
-        print("  python -m scripts.seed_db --daily 2024-01-15")
-        print("  python -m scripts.seed_db --csv")
-        print("  python -m scripts.seed_db --csv --csv-play-by-play")
-        print("  python -m scripts.seed_db --index")
-        print("  python -m scripts.seed_db --bootstrap")
+        sys.stdout.write("\n\nExamples:\n")
+        sys.stdout.write("  python -m scripts.seed_db --teams\n")
+        sys.stdout.write("  python -m scripts.seed_db --season 2024\n")
+        sys.stdout.write("  python -m scripts.seed_db --yesterday\n")
+        sys.stdout.write("  python -m scripts.seed_db --daily 2024-01-15\n")
+        sys.stdout.write("  python -m scripts.seed_db --csv\n")
+        sys.stdout.write("  python -m scripts.seed_db --csv --csv-play-by-play\n")
+        sys.stdout.write("  python -m scripts.seed_db --index\n")
+        sys.stdout.write("  python -m scripts.seed_db --bootstrap\n")
         return
 
     if args.teams:
@@ -191,18 +206,21 @@ async def main() -> None:
         await seed_season(args.season)
 
     if args.all:
-        current_year = date.today().year
-        end_year = current_year + 1 if date.today().month >= 7 else current_year
+        current_date = datetime.now(UTC).date()
+        current_year = current_date.year
+        end_year = current_year + 1 if current_date.month >= JULY else current_year
 
         for year in range(2020, end_year + 1):
             await seed_season(year)
 
     if args.daily:
-        target_date = datetime.strptime(args.daily, "%Y-%m-%d").date()
+        target_date = (
+            datetime.strptime(args.daily, "%Y-%m-%d").replace(tzinfo=UTC).date()
+        )
         await seed_daily(target_date)
 
     if args.yesterday:
-        yesterday = date.today() - timedelta(days=1)
+        yesterday = datetime.now(UTC).date() - timedelta(days=1)
         await seed_daily(yesterday)
 
     if args.csv or args.bootstrap:
@@ -211,9 +229,9 @@ async def main() -> None:
     if args.index or args.bootstrap:
         await reindex_search()
 
-    print("\n" + "=" * 60)
-    print("Seeding complete!")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("Seeding complete!")
+    logger.info("=" * 60)
 
 
 if __name__ == "__main__":

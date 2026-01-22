@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 def find_project_root() -> Path:
     """
     Locate the project root directory by searching this file's directory and its ancestors for a `raw-data` directory or a `.git` directory.
-    
+
     Returns:
         Path: Path to the discovered project root directory.
-    
+
     Raises:
         FileNotFoundError: If no ancestor contains a `raw-data` directory or a `.git` directory.
     """
@@ -33,11 +33,11 @@ def find_project_root() -> Path:
 def load_staging(con: duckdb.DuckDBPyConnection, root: Path) -> None:
     """
     Load raw CSV files from the project's raw-data directory into DuckDB staging tables.
-    
+
     For each table name in schema.STAGING_TABLES, expects a CSV file named by removing the
     "staging_" prefix and appending ".csv" (for example, "staging_players" -> "players.csv")
     located under root / "raw-data". Missing source files are skipped and a warning is logged.
-    
+
     Parameters:
         con (duckdb.DuckDBPyConnection): Open DuckDB connection to execute COPY commands.
         root (Path): Project root directory containing the "raw-data" directory.
@@ -55,13 +55,19 @@ def load_staging(con: duckdb.DuckDBPyConnection, root: Path) -> None:
             continue
 
         logger.info("Loading %s from %s...", table_name, file_name)
-        con.execute(f"COPY {table_name} FROM '{file_path.as_posix()}'")
+        con.execute(
+            f"""
+            COPY {table_name}
+            FROM '{file_path.as_posix()}'
+            (FORMAT CSV, HEADER, DELIMITER ',', AUTO_DETECT=TRUE)
+            """
+        )
 
 
 def transform_dims(con: duckdb.DuckDBPyConnection) -> None:
     """
     Transform staging tables into the application's dimensional and fact tables.
-    
+
     Populates dim_teams from staging_team_histories; populates dim_players from staging_players while generating legacy-format player slugs; and populates fact_player_gamelogs from staging_player_statistics, applying safe casts for dates and numeric fields. Inserts use "INSERT OR REPLACE" semantics to update existing rows.
     """
     logger.info("Transforming dim_teams...")
@@ -145,8 +151,9 @@ def transform_dims(con: duckdb.DuckDBPyConnection) -> None:
             sps.playerteam_name,
             sps.game_id,
             TRY_CAST(sps.game_date_time_est AS DATE),
-            sps.num_minutes,
+            TRY_CAST(sps.num_minutes AS INTEGER),
             TRY_CAST(sps.field_goals_made AS INTEGER),
+
             TRY_CAST(sps.field_goals_attempted AS INTEGER),
             TRY_CAST(sps.three_pointers_made AS INTEGER),
             TRY_CAST(sps.three_pointers_attempted AS INTEGER),
@@ -168,13 +175,13 @@ def transform_dims(con: duckdb.DuckDBPyConnection) -> None:
 def perform_atomic_swap(target_db_path: Path, tmp_db_path: Path) -> None:
     """
     Perform an atomic swap of a temporary DuckDB file into the target location, preserving a backup.
-    
+
     This moves the existing target file to a backup with the suffix ".duckdb.bak" (removing any prior backup), then renames the temporary database into the target path. After a successful swap the backup is removed when possible.
-    
+
     Parameters:
         target_db_path (Path): Filesystem path of the live DuckDB to be replaced.
         tmp_db_path (Path): Filesystem path of the newly built temporary DuckDB to promote.
-    
+
     Raises:
         OSError: If filesystem operations (rename or delete) fail and prevent completing the swap.
     """
@@ -217,7 +224,7 @@ def perform_atomic_swap(target_db_path: Path, tmp_db_path: Path) -> None:
 def build() -> None:
     """
     Builds a DuckDB database from raw data and atomically installs it into the webapp.
-    
+
     Performs the end-to-end ETL: locates the project root, ensures the webapp directory exists, creates a temporary DuckDB, loads raw CSVs into staging tables, transforms staging data into dimensional and fact tables, runs validation, and on success atomically swaps the temporary database into the target location (with backup handling). If the project root cannot be found the build aborts; on build failure the temporary database is preserved for inspection.
     """
     try:
