@@ -4,13 +4,13 @@ Provides methods to find-or-create entities by their natural keys,
 handling the foreign key dependencies during data ingestion.
 """
 
-import asyncio
+import threading
 from datetime import date
 from typing import Any
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from src.scraper.common.data import (
+from sqlalchemy.orm import Session
+from src.core.domain import (
     TEAM_ABBREVIATIONS_TO_TEAM,
     TEAM_NAME_TO_TEAM,
     TEAM_TO_TEAM_ABBREVIATION,
@@ -22,25 +22,25 @@ from app.models.season import League, LeagueType, Season
 from app.models.team import Franchise, Team, TeamSeason
 
 # Cache for frequently accessed entities to avoid repeated queries
-_cache_lock = asyncio.Lock()
+_cache_lock = threading.Lock()
 _team_cache: dict[str, int] = {}
 _player_cache: dict[str, int] = {}
 _season_cache: dict[int, int] = {}
 
 
-async def clear_caches():
+def clear_caches():
     """Clear all entity caches. Call at start of new ingestion session."""
-    async with _cache_lock:
+    with _cache_lock:
         global _team_cache, _player_cache, _season_cache
         _team_cache = {}
         _player_cache = {}
         _season_cache = {}
 
 
-async def get_or_create_league(session: AsyncSession) -> int:
+def get_or_create_league(session: Session) -> int:
     """Get or create the NBA league record."""
     query = select(League).where(League.league_type == LeagueType.NBA)
-    result = await session.execute(query)
+    result = session.execute(query)
     league = result.scalar_one_or_none()
 
     if league is None:
@@ -51,12 +51,12 @@ async def get_or_create_league(session: AsyncSession) -> int:
             is_active=True,
         )
         session.add(league)
-        await session.flush()
+        session.flush()
 
     return league.league_id
 
 
-async def get_or_create_season(session: AsyncSession, season_end_year: int) -> int:
+def get_or_create_season(session: Session, season_end_year: int) -> int:
     """Get or create a season by its end year.
 
     Args:
@@ -66,12 +66,12 @@ async def get_or_create_season(session: AsyncSession, season_end_year: int) -> i
     Returns:
         The season_id.
     """
-    async with _cache_lock:
+    with _cache_lock:
         if season_end_year in _season_cache:
             return _season_cache[season_end_year]
 
     query = select(Season).where(Season.year == season_end_year)
-    result = await session.execute(query)
+    result = session.execute(query)
     season = result.scalar_one_or_none()
 
     if season is None:
@@ -85,15 +85,15 @@ async def get_or_create_season(session: AsyncSession, season_end_year: int) -> i
             is_active=(season_end_year >= date.today().year),
         )
         session.add(season)
-        await session.flush()
+        session.flush()
 
-    async with _cache_lock:
+    with _cache_lock:
         _season_cache[season_end_year] = season.season_id
     return season.season_id
 
 
-async def get_or_create_team(
-    session: AsyncSession, abbreviation: str, name: str | None = None
+def get_or_create_team(
+    session: Session, abbreviation: str, name: str | None = None
 ) -> int:
     """Get or create a team by abbreviation.
 
@@ -119,12 +119,12 @@ async def get_or_create_team(
         team_abbrev = normalized[:3]
         team_name = team_name or abbreviation
 
-    async with _cache_lock:
+    with _cache_lock:
         if team_abbrev in _team_cache:
             return _team_cache[team_abbrev]
 
     query = select(Team).where(Team.abbreviation == team_abbrev)
-    result = await session.execute(query)
+    result = session.execute(query)
     team = result.scalar_one_or_none()
 
     if team is None:
@@ -135,7 +135,7 @@ async def get_or_create_team(
             founded_year=1946,  # Default
         )
         session.add(franchise)
-        await session.flush()
+        session.flush()
 
         team = Team(
             name=team_name or team_abbrev,
@@ -145,15 +145,15 @@ async def get_or_create_team(
             is_active=True,
         )
         session.add(team)
-        await session.flush()
+        session.flush()
 
-    async with _cache_lock:
+    with _cache_lock:
         _team_cache[team_abbrev] = team.team_id
     return team.team_id
 
 
-async def get_or_create_player(
-    session: AsyncSession,
+def get_or_create_player(
+    session: Session,
     slug: str,
     name: str | None = None,
 ) -> int:
@@ -167,12 +167,12 @@ async def get_or_create_player(
     Returns:
         The player_id.
     """
-    async with _cache_lock:
+    with _cache_lock:
         if slug in _player_cache:
             return _player_cache[slug]
 
     query = select(Player).where(Player.slug == slug)
-    result = await session.execute(query)
+    result = session.execute(query)
     player = result.scalar_one_or_none()
 
     if player is None:
@@ -194,15 +194,15 @@ async def get_or_create_player(
             is_active=True,
         )
         session.add(player)
-        await session.flush()
+        session.flush()
 
-    async with _cache_lock:
+    with _cache_lock:
         _player_cache[slug] = player.player_id
     return player.player_id
 
 
-async def get_or_create_game(
-    session: AsyncSession,
+def get_or_create_game(
+    session: Session,
     game_date: date,
     home_team_id: int,
     away_team_id: int,
@@ -230,7 +230,7 @@ async def get_or_create_game(
         .where(Game.home_team_id == home_team_id)
         .where(Game.away_team_id == away_team_id)
     )
-    result = await session.execute(query)
+    result = session.execute(query)
     game = result.scalar_one_or_none()
 
     if game is None:
@@ -244,18 +244,18 @@ async def get_or_create_game(
             season_type="REGULAR",
         )
         session.add(game)
-        await session.flush()
+        session.flush()
     elif home_score is not None and game.home_score is None:
         # Update scores if we have them now
         game.home_score = home_score
         game.away_score = away_score
-        await session.flush()
+        session.flush()
 
     return game.game_id
 
 
-async def get_or_create_box_score(
-    session: AsyncSession,
+def get_or_create_box_score(
+    session: Session,
     game_id: int,
     team_id: int,
     opponent_team_id: int,
@@ -282,7 +282,7 @@ async def get_or_create_box_score(
         .where(BoxScore.game_id == game_id)
         .where(BoxScore.team_id == team_id)
     )
-    result = await session.execute(query)
+    result = session.execute(query)
     box = result.scalar_one_or_none()
 
     if box is None:
@@ -310,13 +310,13 @@ async def get_or_create_box_score(
             box.points_scored = stats.get("points", 0)
 
         session.add(box)
-        await session.flush()
+        session.flush()
 
     return box.box_id
 
 
-async def upsert_player_box_score(
-    session: AsyncSession,
+def upsert_player_box_score(
+    session: Session,
     player_id: int,
     box_id: int,
     game_id: int,
@@ -339,7 +339,7 @@ async def upsert_player_box_score(
         .where(PlayerBoxScore.player_id == player_id)
         .where(PlayerBoxScore.box_id == box_id)
     )
-    result = await session.execute(query)
+    result = session.execute(query)
     existing = result.scalar_one_or_none()
 
     if existing is None:
@@ -351,8 +351,8 @@ async def upsert_player_box_score(
     # If exists, we skip (no update needed for historical data)
 
 
-async def upsert_player_season(
-    session: AsyncSession,
+def upsert_player_season(
+    session: Session,
     player_season: "PlayerSeason",
 ) -> None:
     """Insert or update player season totals.
@@ -367,7 +367,7 @@ async def upsert_player_season(
         .where(PlayerSeason.season_id == player_season.season_id)
         .where(PlayerSeason.season_type == player_season.season_type)
     )
-    result = await session.execute(query)
+    result = session.execute(query)
     existing = result.scalar_one_or_none()
 
     if existing is None:
@@ -394,8 +394,8 @@ async def upsert_player_season(
         existing.points_scored = player_season.points_scored
 
 
-async def upsert_player_season_advanced(
-    session: AsyncSession,
+def upsert_player_season_advanced(
+    session: Session,
     player_advanced: "PlayerSeasonAdvanced",
 ) -> None:
     """Insert or update player advanced season stats.
@@ -410,7 +410,7 @@ async def upsert_player_season_advanced(
         .where(PlayerSeasonAdvanced.season_id == player_advanced.season_id)
         .where(PlayerSeasonAdvanced.season_type == player_advanced.season_type)
     )
-    result = await session.execute(query)
+    result = session.execute(query)
     existing = result.scalar_one_or_none()
 
     if existing is None:
@@ -431,8 +431,8 @@ async def upsert_player_season_advanced(
         existing.win_shares_per_48 = player_advanced.win_shares_per_48
 
 
-async def upsert_team_season(
-    session: AsyncSession,
+def upsert_team_season(
+    session: Session,
     team_season: "TeamSeason",
 ) -> None:
     """Insert or update team season standings.
@@ -447,7 +447,7 @@ async def upsert_team_season(
         .where(TeamSeason.season_id == team_season.season_id)
         .where(TeamSeason.season_type == team_season.season_type)
     )
-    result = await session.execute(query)
+    result = session.execute(query)
     existing = result.scalar_one_or_none()
 
     if existing is None:

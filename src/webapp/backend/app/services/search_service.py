@@ -9,9 +9,9 @@ from typing import Any
 
 import structlog
 from sqlalchemy import or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session, aliased
 
-from app.models.player import Player
+from app.models.player import Player, PlayerSeason, SeasonType
 from app.models.team import Team
 from app.search.indexer import SearchIndexer
 
@@ -21,7 +21,7 @@ logger = structlog.get_logger(__name__)
 class SearchService:
     """Service for searching players, teams, and games."""
 
-    def __init__(self, session: AsyncSession, use_meilisearch: bool = True):
+    def __init__(self, session: Session, use_meilisearch: bool = True):
         self.session = session
         self.use_meilisearch = use_meilisearch
         self._indexer: SearchIndexer | None = None
@@ -33,7 +33,7 @@ class SearchService:
             self._indexer = SearchIndexer()
         return self._indexer
 
-    async def search(
+    def search(
         self,
         query: str,
         entity_type: str | None = None,
@@ -63,11 +63,20 @@ class SearchService:
                 meili_results = self.indexer.search_all(query, limit_per_index=limit)
 
                 if entity_type is None or entity_type == "player":
-                    results["players"] = meili_results.get("players", [])
+                    results["players"] = [
+                        self._normalize_player_hit(hit)
+                        for hit in meili_results.get("players", [])
+                    ]
                 if entity_type is None or entity_type == "team":
-                    results["teams"] = meili_results.get("teams", [])
+                    results["teams"] = [
+                        self._normalize_team_hit(hit)
+                        for hit in meili_results.get("teams", [])
+                    ]
                 if entity_type is None or entity_type == "game":
-                    results["games"] = meili_results.get("games", [])
+                    results["games"] = [
+                        self._normalize_game_hit(hit)
+                        for hit in meili_results.get("games", [])
+                    ]
 
                 results["total_results"] = (
                     len(results["players"])
@@ -82,17 +91,17 @@ class SearchService:
 
         # Fallback to database search
         if entity_type is None or entity_type == "player":
-            players = await self._db_search_players(query, limit)
-            results["players"] = [self._player_to_dict(p) for p in players]
+            players = self._db_search_players(query, limit)
+            results["players"] = [self._normalize_player_model(p) for p in players]
 
         if entity_type is None or entity_type == "team":
-            teams = await self._db_search_teams(query, limit)
-            results["teams"] = [self._team_to_dict(t) for t in teams]
+            teams = self._db_search_teams(query, limit)
+            results["teams"] = [self._normalize_team_model(t) for t in teams]
 
         results["total_results"] = len(results["players"]) + len(results["teams"])
         return results
 
-    async def autocomplete(
+    def autocomplete(
         self,
         query: str,
         limit: int = 10,
@@ -120,7 +129,7 @@ class SearchService:
         player_query = (
             select(Player).where(Player.last_name.ilike(f"{query}%")).limit(limit // 2)
         )
-        player_result = await self.session.execute(player_query)
+        player_result = self.session.execute(player_query)
 
         for player in player_result.scalars():
             suggestions.append(
@@ -138,7 +147,7 @@ class SearchService:
 
         # Search teams
         team_query = select(Team).where(Team.name.ilike(f"%{query}%")).limit(limit // 2)
-        team_result = await self.session.execute(team_query)
+        team_result = self.session.execute(team_query)
 
         for team in team_result.scalars():
             suggestions.append(
@@ -153,10 +162,11 @@ class SearchService:
 
         return {"query": query, "suggestions": suggestions}
 
-    async def search_players(
+    def search_players(
         self,
         query: str,
         position: str | None = None,
+        team_abbrev: str | None = None,
         active_only: bool = False,
         limit: int = 20,
     ) -> list[dict[str, Any]]:
@@ -171,7 +181,7 @@ class SearchService:
         Returns:
             List of player dictionaries.
         """
-        if self.use_meilisearch:
+        if self.use_meilisearch and team_abbrev is None:
             try:
                 filters = {}
                 if position:
@@ -180,15 +190,19 @@ class SearchService:
                     filters["is_active"] = True
 
                 results = self.indexer.search_players(query, limit, filters)
-                return results.get("hits", [])
+                return [
+                    self._normalize_player_hit(hit) for hit in results.get("hits", [])
+                ]
             except Exception as e:
                 logger.warning("Meilisearch player search failed", error=str(e))
 
         # Fallback to database
-        players = await self._db_search_players(query, limit, position, active_only)
-        return [self._player_to_dict(p) for p in players]
+        players = self._db_search_players(
+            query, limit, position, active_only, team_abbrev
+        )
+        return [self._normalize_player_model(p) for p in players]
 
-    async def search_teams(
+    def search_teams(
         self,
         query: str,
         active_only: bool = True,
@@ -210,14 +224,14 @@ class SearchService:
                 hits = results.get("hits", [])
                 if active_only:
                     hits = [h for h in hits if h.get("is_active", True)]
-                return hits
+                return [self._normalize_team_hit(hit) for hit in hits]
             except Exception as e:
                 logger.warning("Meilisearch team search failed", error=str(e))
 
-        teams = await self._db_search_teams(query, limit, active_only)
-        return [self._team_to_dict(t) for t in teams]
+        teams = self._db_search_teams(query, limit, active_only)
+        return [self._normalize_team_model(t) for t in teams]
 
-    async def search_games(
+    def search_games(
         self,
         team1: str | None = None,
         team2: str | None = None,
@@ -245,12 +259,18 @@ class SearchService:
 
         from app.models.game import Game
 
-        query = select(Game)
+        home_team = aliased(Team)
+        away_team = aliased(Team)
+        query = (
+            select(Game, home_team.abbreviation, away_team.abbreviation)
+            .join(home_team, Game.home_team_id == home_team.team_id)
+            .join(away_team, Game.away_team_id == away_team.team_id)
+        )
 
         if team1:
             # Get team ID from abbreviation
             team_query = select(Team.team_id).where(Team.abbreviation == team1.upper())
-            team_result = await self.session.execute(team_query)
+            team_result = self.session.execute(team_query)
             team_id = team_result.scalar_one_or_none()
 
             if team_id:
@@ -260,7 +280,7 @@ class SearchService:
 
         if team2:
             team_query = select(Team.team_id).where(Team.abbreviation == team2.upper())
-            team_result = await self.session.execute(team_query)
+            team_result = self.session.execute(team_query)
             team_id = team_result.scalar_one_or_none()
 
             if team_id:
@@ -284,18 +304,22 @@ class SearchService:
                 query = query.where(Game.season_type == "REGULAR")
 
         query = query.order_by(Game.game_date.desc()).limit(limit)
-        result = await self.session.execute(query)
-        games = result.scalars().all()
+        result = self.session.execute(query)
+        rows = result.all()
 
-        return [self._game_to_dict(g) for g in games]
+        return [
+            self._game_to_dict(game, home_abbrev, away_abbrev)
+            for game, home_abbrev, away_abbrev in rows
+        ]
 
     # Private database fallback methods
-    async def _db_search_players(
+    def _db_search_players(
         self,
         query: str,
         limit: int,
         position: str | None = None,
         active_only: bool = False,
+        team_abbrev: str | None = None,
     ) -> list[Player]:
         """Database fallback for player search."""
         player_query = select(Player).where(
@@ -309,12 +333,21 @@ class SearchService:
             player_query = player_query.where(Player.is_active)
         if position:
             player_query = player_query.where(Player.position == position)
+        if team_abbrev:
+            player_ids = (
+                select(PlayerSeason.player_id)
+                .join(Team, PlayerSeason.team_id == Team.team_id)
+                .where(Team.abbreviation == team_abbrev.upper())
+                .where(PlayerSeason.season_type == SeasonType.REGULAR)
+                .distinct()
+            )
+            player_query = player_query.where(Player.player_id.in_(player_ids))
 
         player_query = player_query.limit(limit)
-        result = await self.session.execute(player_query)
+        result = self.session.execute(player_query)
         return list(result.scalars().all())
 
-    async def _db_search_teams(
+    def _db_search_teams(
         self,
         query: str,
         limit: int,
@@ -333,42 +366,93 @@ class SearchService:
             team_query = team_query.where(Team.is_active)
 
         team_query = team_query.limit(limit)
-        result = await self.session.execute(team_query)
+        result = self.session.execute(team_query)
         return list(result.scalars().all())
 
     # Serialization helpers
-    def _player_to_dict(self, player: Player) -> dict[str, Any]:
-        """Convert Player to dict for search results."""
+    def _format_years_active(
+        self, debut_year: int | None, final_year: int | None, is_active: bool
+    ) -> str | None:
+        if debut_year and final_year:
+            return (
+                f"{debut_year}-Present" if is_active else f"{debut_year}-{final_year}"
+            )
+        if debut_year:
+            return f"{debut_year}-Present" if is_active else str(debut_year)
+        if final_year:
+            return str(final_year)
+        return None
+
+    def _normalize_player_hit(self, hit: dict[str, Any]) -> dict[str, Any]:
+        debut_year = hit.get("debut_year")
+        final_year = hit.get("final_year")
+        is_active = hit.get("is_active", False)
+        return {
+            "player_id": hit.get("player_id"),
+            "slug": hit.get("slug"),
+            "full_name": hit.get("full_name") or hit.get("name") or "",
+            "name": hit.get("full_name") or hit.get("name"),
+            "position": hit.get("position"),
+            "years_active": self._format_years_active(
+                debut_year, final_year, is_active
+            ),
+            "is_active": is_active,
+        }
+
+    def _normalize_team_hit(self, hit: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "team_id": hit.get("team_id"),
+            "abbreviation": hit.get("abbreviation"),
+            "name": hit.get("name"),
+            "city": hit.get("city"),
+            "is_active": hit.get("is_active", True),
+        }
+
+    def _normalize_game_hit(self, hit: dict[str, Any]) -> dict[str, Any]:
+        score = None
+        if hit.get("away_score") is not None and hit.get("home_score") is not None:
+            score = f"{hit.get('away_score')}-{hit.get('home_score')}"
+        return {
+            "game_id": hit.get("game_id"),
+            "game_date": hit.get("game_date") or hit.get("date"),
+            "matchup": hit.get("matchup") or f"Game {hit.get('game_id')}",
+            "score": score,
+        }
+
+    def _normalize_player_model(self, player: Player) -> dict[str, Any]:
         return {
             "player_id": player.player_id,
             "slug": player.slug,
             "full_name": player.full_name,
             "name": player.full_name,
-            "first_name": player.first_name,
-            "last_name": player.last_name,
             "position": player.position.value if player.position else None,
+            "years_active": self._format_years_active(
+                player.debut_year, player.final_year, player.is_active
+            ),
             "is_active": player.is_active,
         }
 
-    def _team_to_dict(self, team: Team) -> dict[str, Any]:
-        """Convert Team to dict for search results."""
+    def _normalize_team_model(self, team: Team) -> dict[str, Any]:
         return {
             "team_id": team.team_id,
+            "abbreviation": team.abbreviation,
             "name": team.name,
             "city": team.city,
-            "abbreviation": team.abbreviation,
-            "full_name": f"{team.city} {team.name}",
             "is_active": team.is_active,
         }
 
-    def _game_to_dict(self, game) -> dict[str, Any]:
-        """Convert Game to dict for search results."""
+    def _game_to_dict(
+        self, game, home_abbrev: str | None = None, away_abbrev: str | None = None
+    ) -> dict[str, Any]:
+        score = None
+        if game.home_score is not None and game.away_score is not None:
+            score = f"{game.away_score}-{game.home_score}"
+        matchup = f"Game {game.game_id}"
+        if home_abbrev and away_abbrev:
+            matchup = f"{away_abbrev} @ {home_abbrev}"
         return {
             "game_id": game.game_id,
-            "date": game.game_date.isoformat() if game.game_date else None,
-            "home_team_id": game.home_team_id,
-            "away_team_id": game.away_team_id,
-            "home_score": game.home_score,
-            "away_score": game.away_score,
-            "season_type": game.season_type,
+            "game_date": game.game_date.isoformat() if game.game_date else None,
+            "matchup": matchup,
+            "score": score,
         }

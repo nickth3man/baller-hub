@@ -7,7 +7,11 @@ from app.ingestion.mappers import (
     map_schedule_game,
     map_standings,
 )
-from app.ingestion.scraper_service import ScraperService
+
+try:
+    from app.ingestion.scraper_service import ScraperService
+except ModuleNotFoundError:  # pragma: no cover - optional during isolated tests
+    ScraperService = None
 
 __all__ = [
     "ScraperService",

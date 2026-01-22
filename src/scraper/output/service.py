@@ -1,6 +1,6 @@
 """Service for handling data output (JSON/CSV)."""
 
-from src.scraper.common.data import OutputType
+from src.core.domain import OutputType
 
 
 class OutputService:

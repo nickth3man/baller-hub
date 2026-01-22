@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import patch
 
-from src.scraper.common.data import PeriodType
+from src.core.domain import PeriodType
 from src.scraper.parsers import PeriodDetailsParser
 
 

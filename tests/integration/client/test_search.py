@@ -5,8 +5,18 @@ from unittest import TestCase
 
 import requests_mock
 
+from src.core.domain import OutputType, OutputWriteOption
 from src.scraper.api import client
-from src.scraper.common.data import OutputType, OutputWriteOption
+
+ARCHIVE_SEARCH_DIR = os.path.join(
+    os.path.dirname(__file__),
+    "..",
+    "..",
+    "..",
+    ".archive",
+    "oldfiles",
+    "search",
+)
 
 
 @requests_mock.Mocker()
@@ -224,8 +234,8 @@ class TestKobeBryant(TestCase):
 class TestKobe(TestCase):
     def setUp(self):
         with open(os.path.join(
-                os.path.dirname(__file__),
-                "../files/search/kobe.html"
+                ARCHIVE_SEARCH_DIR,
+                "kobe.html"
         ), encoding="utf-8") as file_input:
             self._html = file_input.read()
 
@@ -280,8 +290,8 @@ class TestKobe(TestCase):
 class TestSearchJSONFileOutput(TestCase):
     def setUp(self):
         with open(os.path.join(
-                os.path.dirname(__file__),
-                "../files/search/kobe.html"
+                ARCHIVE_SEARCH_DIR,
+                "kobe.html"
         ), encoding="utf-8") as file_input:
             self._html = file_input.read()
         self.output_file_path = os.path.join(
@@ -317,8 +327,8 @@ class TestSearchJSONFileOutput(TestCase):
 class TestSearchJSONInMemoryOutput(TestCase):
     def setUp(self):
         with open(os.path.join(
-                os.path.dirname(__file__),
-                "../files/search/kobe.html"
+                ARCHIVE_SEARCH_DIR,
+                "kobe.html"
         ), encoding="utf-8") as file_input:
             self._html = file_input.read()
         self.output_file_path = os.path.join(
@@ -350,8 +360,8 @@ class TestSearchJSONInMemoryOutput(TestCase):
 class TestSearchCSVOutput(TestCase):
     def setUp(self):
         with open(os.path.join(
-                os.path.dirname(__file__),
-                "../files/search/kobe.html"
+                ARCHIVE_SEARCH_DIR,
+                "kobe.html"
         ), encoding="utf-8") as file_input:
             self._html = file_input.read()
         self.output_file_path = os.path.join(

@@ -8,7 +8,7 @@ from lxml import html
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from src.scraper.common.data import PlayerData, TeamTotal
+from src.core.domain import PlayerData, TeamTotal
 from src.scraper.common.errors import InvalidDate, InvalidPlayerAndSeason
 from src.scraper.html import (
     BoxScoresPage,

@@ -15,7 +15,7 @@ export async function LeagueLeaders() {
 
   if (!current) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 text-sm text-gray-500">
+      <div className="rounded-lg bg-white p-6 text-sm text-gray-500 shadow">
         Season data unavailable.
       </div>
     );
@@ -32,7 +32,7 @@ export async function LeagueLeaders() {
   );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-5">
       {leaders.map((leaderSet, index) => (
         <LeaderCategory
           key={CATEGORIES[index].key}
@@ -55,20 +55,20 @@ function LeaderCategory({
   leaders: SeasonLeaders;
 }) {
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <h3 className="font-semibold text-gray-900 mb-3">{title}</h3>
+    <div className="rounded-2xl bg-white p-4 shadow-lg">
+      <h3 className="mb-3 font-semibold text-gray-900">{title}</h3>
       <ol className="space-y-2">
         {leaders.leaders.map((leader, i) => (
           <li key={leader.player_slug} className="flex items-start">
-            <span className="text-gray-400 text-sm mr-2">{i + 1}.</span>
-            <div className="flex-1 min-w-0">
+            <span className="mr-2 text-sm text-gray-400">{i + 1}.</span>
+            <div className="min-w-0 flex-1">
               <Link
                 href={`/players/${leader.player_slug}`}
-                className="text-sm font-medium text-gray-900 hover:text-primary-600 truncate block"
+                className="block truncate text-sm font-medium text-gray-900 hover:text-primary-600"
               >
                 {leader.player_name}
               </Link>
-              <span className="text-sm text-primary-600 font-semibold">
+              <span className="text-sm font-semibold text-primary-600">
                 {leader.value.toFixed(1)} {unit}
               </span>
             </div>

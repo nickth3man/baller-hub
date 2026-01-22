@@ -5,7 +5,7 @@ from datetime import date
 from unittest import TestCase
 
 import src.scraper.api.client as client
-from src.scraper.common.data import Outcome, OutputType, OutputWriteOption, Team
+from src.core.domain import Outcome, OutputType, OutputWriteOption, Team
 from tests.integration.client.utilities import ResponseMocker
 
 
@@ -13,22 +13,29 @@ class BoxScoresResponseMocker(ResponseMocker):
 
     def __init__(self, boxscore_date: date):
         year, month, day = boxscore_date.year, boxscore_date.month, boxscore_date.day
-        boxscores_directory = os.path.join(
-            os.path.dirname(__file__),
-            f"../files/boxscores/{year}/{month}/{day}")
+        files_base = os.path.join(os.path.dirname(__file__), "../files")
+
+        # New structure: boxscores/index/{YYYY-MM-DD}.html and boxscores/{YYYYMMDD0}{TEAM}.html
+        index_path = os.path.join(files_base, f"boxscores/index/{year}-{month:02d}-{day:02d}.html")
+        boxscores_dir = os.path.join(files_base, "boxscores")
 
         basketball_reference_paths_by_filename = {}
-        for file in os.listdir(os.fsencode(boxscores_directory)):
-            filename = os.fsdecode(file)
-            if not filename.endswith(".html"):
-                raise ValueError(
-                    f"Unexpected prefix for {filename}. Expected all files in {boxscores_directory} to end with .html.")
 
-            if filename.startswith("index"):
-                key = f"boxscores/?day={day}&month={month}&year={year}"
-            else:
-                key = f"boxscores/{filename}"
-            basketball_reference_paths_by_filename[os.path.join(boxscores_directory, filename)] = key
+        # Add daily index page
+        if os.path.exists(index_path):
+            key = f"boxscores/?day={day}&month={month}&year={year}"
+            basketball_reference_paths_by_filename[index_path] = key
+
+        # Add individual boxscore files for this date
+        # Format: {YYYYMMDD0}{TEAM}.html (e.g., 201801010TOR.html)
+        date_prefix = f"{year}{month:02d}{day:02d}0"
+        if os.path.exists(boxscores_dir):
+            for file in os.listdir(os.fsencode(boxscores_dir)):
+                filename = os.fsdecode(file)
+                if filename.endswith(".html") and filename.startswith(date_prefix):
+                    file_path = os.path.join(boxscores_dir, filename)
+                    key = f"boxscores/{filename}"
+                    basketball_reference_paths_by_filename[file_path] = key
 
         super().__init__(basketball_reference_paths_by_filename=basketball_reference_paths_by_filename)
 

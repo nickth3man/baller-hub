@@ -5,8 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import Session, aliased
 
 from app.models.game import Game
 from app.models.player import (
@@ -21,10 +20,10 @@ from app.models.team import Team
 
 
 class SeasonService:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: Session):
         self.session = session
 
-    async def list_seasons(self, league: str = "NBA", limit: int = 20):
+    def list_seasons(self, league: str = "NBA", limit: int = 20):
         champion = aliased(Team)
         query = (
             select(Season, champion.name, League.league_type)
@@ -36,14 +35,14 @@ class SeasonService:
         if league:
             query = query.where(League.league_type == league)
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         rows = result.all()
         return [
             self._season_to_dict(season, champion_name)
             for season, champion_name, _ in rows
         ]
 
-    async def get_current_season(self):
+    def get_current_season(self):
         champion = aliased(Team)
         runner_up = aliased(Team)
         query = (
@@ -52,14 +51,14 @@ class SeasonService:
             .outerjoin(runner_up, Season.runner_up_team_id == runner_up.team_id)
             .where(Season.is_active)
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         row = result.first()
         if row is None:
             return None
         season, champion_name, runner_up_name = row
         return self._season_detail_to_dict(season, champion_name, runner_up_name)
 
-    async def get_season_by_year(self, year: int):
+    def get_season_by_year(self, year: int):
         champion = aliased(Team)
         runner_up = aliased(Team)
         query = (
@@ -68,15 +67,15 @@ class SeasonService:
             .outerjoin(runner_up, Season.runner_up_team_id == runner_up.team_id)
             .where(Season.year == year)
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         row = result.first()
         if row is None:
             return None
         season, champion_name, runner_up_name = row
         return self._season_detail_to_dict(season, champion_name, runner_up_name)
 
-    async def get_season_schedule(self, season_year: int, month: int | None = None):
-        season_id = await self._get_season_id(season_year)
+    def get_season_schedule(self, season_year: int, month: int | None = None):
+        season_id = self._get_season_id(season_year)
         if season_id is None:
             return {"season_year": season_year, "month": month, "games": []}
 
@@ -92,7 +91,7 @@ class SeasonService:
         if month is not None:
             query = query.where(func.extract("month", Game.game_date) == month)
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         games = []
         for game, home_abbrev, away_abbrev in result.all():
             games.append(
@@ -110,14 +109,14 @@ class SeasonService:
 
         return {"season_year": season_year, "month": month, "games": games}
 
-    async def get_season_leaders(
+    def get_season_leaders(
         self,
         season_year: int,
         category: str = "points",
         per_game: bool = True,
         limit: int = 10,
     ):
-        season_id = await self._get_season_id(season_year)
+        season_id = self._get_season_id(season_year)
         if season_id is None:
             return {
                 "season_year": season_year,
@@ -133,7 +132,7 @@ class SeasonService:
             .where(PlayerSeason.season_id == season_id)
             .where(PlayerSeason.season_type == SeasonType.REGULAR)
         )
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         rows = result.all()
 
         selected = self._select_combined_rows(
@@ -168,7 +167,7 @@ class SeasonService:
             "leaders": leaders,
         }
 
-    async def get_season_player_stats(
+    def get_season_player_stats(
         self,
         season_year: int,
         stat_type: str = "totals",
@@ -179,7 +178,7 @@ class SeasonService:
         sort_by: str = "points",
         sort_order: str = "desc",
     ):
-        season_id = await self._get_season_id(season_year)
+        season_id = self._get_season_id(season_year)
         if season_id is None:
             return {
                 "items": [],
@@ -190,13 +189,11 @@ class SeasonService:
             }
 
         if stat_type == "advanced":
-            items = await self._season_advanced_stats(season_id, position, min_games)
+            items = self._season_advanced_stats(season_id, position, min_games)
         else:
-            items = await self._season_basic_stats(season_id, position, min_games)
+            items = self._season_basic_stats(season_id, position, min_games)
             if stat_type in {"per_game", "per_36", "per_100"}:
-                items = [
-                    self._apply_rate_transform(stat_type, item) for item in items
-                ]
+                items = [self._apply_rate_transform(stat_type, item) for item in items]
 
         if items and sort_by not in items[0]:
             sort_by = "per" if stat_type == "advanced" else "points"
@@ -215,9 +212,9 @@ class SeasonService:
             "pages": (total + per_page - 1) // per_page,
         }
 
-    async def _get_season_id(self, season_year: int) -> int | None:
+    def _get_season_id(self, season_year: int) -> int | None:
         query = select(Season.season_id).where(Season.year == season_year)
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         return result.scalar_one_or_none()
 
     def _season_to_dict(self, season: Season, champion_name: str | None) -> dict:
@@ -266,11 +263,13 @@ class SeasonService:
         selected: dict[int, tuple[PlayerSeason, Player, str | None]] = {}
         for ps, player, team_abbrev in rows:
             existing = selected.get(player.player_id)
-            if existing is None or (ps.is_combined_totals and not existing[0].is_combined_totals):
+            if existing is None or (
+                ps.is_combined_totals and not existing[0].is_combined_totals
+            ):
                 selected[player.player_id] = (ps, player, team_abbrev)
         return list(selected.values())
 
-    async def _season_basic_stats(
+    def _season_basic_stats(
         self, season_id: int, position: str | None, min_games: int
     ) -> list[dict]:
         query = (
@@ -285,7 +284,7 @@ class SeasonService:
         if position_enum is not None:
             query = query.where(PlayerSeason.position == position_enum)
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         rows = result.all()
         selected = self._select_combined_rows(
             [(ps, player, team_abbrev) for ps, player, team_abbrev in rows]
@@ -317,7 +316,7 @@ class SeasonService:
             )
         return items
 
-    async def _season_advanced_stats(
+    def _season_advanced_stats(
         self, season_id: int, position: str | None, min_games: int
     ) -> list[dict]:
         query = (
@@ -332,12 +331,14 @@ class SeasonService:
         if position_enum is not None:
             query = query.where(Player.position == position_enum)
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         rows = result.all()
         selected: dict[int, tuple[PlayerSeasonAdvanced, Player, str | None]] = {}
         for ps, player, team_abbrev in rows:
             existing = selected.get(player.player_id)
-            if existing is None or (ps.is_combined_totals and not existing[0].is_combined_totals):
+            if existing is None or (
+                ps.is_combined_totals and not existing[0].is_combined_totals
+            ):
                 selected[player.player_id] = (ps, player, team_abbrev)
 
         items = []

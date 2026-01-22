@@ -7,7 +7,7 @@ export async function StandingsPreview() {
 
   if (!current) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 text-sm text-gray-500">
+      <div className="rounded-lg bg-white p-6 text-sm text-gray-500 shadow">
         Standings unavailable.
       </div>
     );
@@ -16,9 +16,11 @@ export async function StandingsPreview() {
   const standings = await getStandings(current.year);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Standings</h2>
+    <div className="rounded-2xl bg-white p-6 shadow-lg">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xs uppercase tracking-[0.3em] text-slate-500">
+          Standings
+        </h2>
         <Link
           href="/standings"
           className="text-sm text-primary-600 hover:underline"
@@ -50,14 +52,14 @@ function ConferenceStandings({
 }) {
   return (
     <div>
-      <h3 className="font-semibold text-gray-700 mb-2">{conference}</h3>
+      <h3 className="mb-2 font-semibold text-gray-700">{conference}</h3>
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-gray-500 text-xs">
-            <th className="text-left pb-1">Team</th>
-            <th className="text-right pb-1">W</th>
-            <th className="text-right pb-1">L</th>
-            <th className="text-right pb-1">PCT</th>
+          <tr className="text-xs text-gray-500">
+            <th className="pb-1 text-left">Team</th>
+            <th className="pb-1 text-right">W</th>
+            <th className="pb-1 text-right">L</th>
+            <th className="pb-1 text-right">PCT</th>
           </tr>
         </thead>
         <tbody>
@@ -67,7 +69,7 @@ function ConferenceStandings({
               className="border-b border-gray-100 last:border-0"
             >
               <td className="py-1">
-                <span className="text-gray-400 mr-2">{i + 1}</span>
+                <span className="mr-2 text-gray-400">{i + 1}</span>
                 <Link
                   href={`/teams/${team.abbreviation}`}
                   className="font-medium hover:text-primary-600"
@@ -82,7 +84,10 @@ function ConferenceStandings({
           ))}
           {teams.length === 0 && (
             <tr>
-              <td colSpan={4} className="py-3 text-center text-xs text-gray-400">
+              <td
+                colSpan={4}
+                className="py-3 text-center text-xs text-gray-400"
+              >
                 No standings data.
               </td>
             </tr>

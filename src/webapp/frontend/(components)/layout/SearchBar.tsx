@@ -21,14 +21,14 @@ export function SearchBar() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search players, teams..."
-        className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        className="w-full rounded-full border border-slate-300 bg-white/80 px-4 py-2 text-xs uppercase tracking-[0.25em] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-orange-400"
       />
       <button
         type="submit"
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
       >
         <svg
-          className="w-5 h-5"
+          className="h-5 w-5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

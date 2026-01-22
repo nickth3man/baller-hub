@@ -3,11 +3,18 @@ import functools
 import json
 import os
 from unittest import TestCase
+from unittest.mock import patch
 
 import requests_mock
 
+from src.core.domain import (
+    Conference,
+    Division,
+    OutputType,
+    OutputWriteOption,
+    Team,
+)
 from src.scraper.api.client import standings
-from src.scraper.common.data import Conference, Division, OutputType, OutputWriteOption, Team
 
 
 class StandingsMocker:
@@ -32,20 +39,36 @@ class StandingsMocker:
         @functools.wraps(callable)
         def inner(*args, **kwargs):
             html_files_directory = os.path.join(self._schedules_directory, str(self._season_end_year))
+            standings_fixture_path = os.path.join(
+                os.path.dirname(__file__),
+                "../files/standings",
+                f"{self._season_end_year}.html",
+            )
 
             # Create a single mock context for all files
-            with requests_mock.Mocker() as m:
+            with (
+                patch("src.scraper.services.cache.FileCache.get", return_value=None),
+                patch("src.scraper.services.cache.FileCache.set", return_value=None),
+                requests_mock.Mocker() as m,
+            ):
+                if os.path.exists(standings_fixture_path):
+                    with open(standings_fixture_path, encoding="utf-8") as file_input:
+                        key = (
+                            f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
+                        )
+                        m.get(key, text=file_input.read(), status_code=200)
                 for file in os.listdir(os.fsencode(html_files_directory)):
                     filename = os.fsdecode(file)
                     if not filename.endswith(".html"):
-                        raise ValueError(
-                            f"Unexpected prefix for {filename}. Expected all files in {html_files_directory} to end with .html.")
+                        continue
 
                     filepath = os.path.join(html_files_directory, filename)
                     with open(filepath, encoding="utf-8") as file_input:
                         file_content = file_input.read()
                         # Mock the standings URL (NBA_YEAR.html, not NBA_YEAR_games.html)
                         if filename.startswith(str(self._season_end_year)):
+                            if os.path.exists(standings_fixture_path):
+                                continue
                             key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
                             m.get(key, text=file_content, status_code=200)
                         else:

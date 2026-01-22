@@ -59,7 +59,7 @@ class CareerLeadersPage(LeadersPage):
     @property
     def career_table_query(self) -> str:
         """XPath query for career leaders table."""
-        return '//table[contains(@id, "tot")]'
+        return '//table[contains(@class, "stats_table") and contains(@id, "tot")]'
 
 
 @dataclass
@@ -69,7 +69,7 @@ class ActiveLeadersPage(LeadersPage):
     @property
     def active_table_query(self) -> str:
         """XPath query for active leaders table."""
-        return '//table[contains(@id, "active")]'
+        return '//table[contains(@class, "stats_table") and contains(@id, "active")]'
 
 
 @dataclass

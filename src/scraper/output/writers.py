@@ -2,8 +2,9 @@
 
 import csv
 import json
+from pathlib import Path
 
-from src.scraper.common.data import OutputType, OutputWriteOption
+from src.core.domain import OutputType, OutputWriteOption
 from src.scraper.utils.dictionaries import merge_two_dicts
 
 DEFAULT_JSON_SORT_KEYS = True
@@ -12,6 +13,12 @@ DEFAULT_JSON_OPTIONS = {
     "sort_keys": DEFAULT_JSON_SORT_KEYS,
     "indent": DEFAULT_JSON_INDENT,
 }
+
+
+def _ensure_parent_dir(path):
+    if not path:
+        return
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
 
 
 class FileOptions:
@@ -141,6 +148,7 @@ class JSONWriter(Writer):
         )
 
         if options.file_options.should_write_to_file:
+            _ensure_parent_dir(options.file_options.path)
             with open(
                 options.file_options.path,
                 options.file_options.mode.value,
@@ -182,6 +190,7 @@ class CSVWriter(Writer):
             data (list[dict]): List of data rows.
             options (OutputOptions): Must contain valid file path and column_names.
         """
+        _ensure_parent_dir(options.file_options.path)
         with open(
             options.file_options.path,
             options.file_options.mode.value,

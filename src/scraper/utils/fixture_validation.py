@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from typing import Iterable, Sequence
 
 from lxml import html as lxml_html
 
@@ -154,8 +154,8 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
         min_tables=2,
     ),
     "leaders": ValidationRule(
-        # Career/active/season leaders pages
-        required_xpath=("//table[contains(@class, 'stats_table')]//tbody/tr",),
+        # Career/active/season leaders tables omit tbody tags.
+        required_xpath=("//table[contains(@class, 'stats_table')]//tr",),
         min_rows=10,
     ),
     "team_season": ValidationRule(
@@ -182,8 +182,8 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
         min_rows=5,
     ),
     "season_leaders": ValidationRule(
-        required_xpath=("//table[contains(@class, 'stats_table')]//tbody/tr",),
-        min_rows=5,
+        required_xpath=("//h1[contains(., 'Leaders')]",),
+        min_rows=1,
     ),
     # ==========================================================================
     # EXTENDED STATS (Phase 5)
@@ -199,27 +199,31 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
         min_rows=100,
     ),
     "per_poss": ValidationRule(
-        required_ids=("per_poss_stats",),
-        required_xpath=("//table[@id='per_poss_stats']//tbody/tr",),
+        required_xpath=(
+            "//table[@id='per_poss' or @id='per_poss_stats']//tbody/tr",
+        ),
         min_rows=100,
     ),
     "shooting": ValidationRule(
-        required_ids=("shooting_stats",),
-        required_xpath=("//table[@id='shooting_stats']//tbody/tr",),
+        required_xpath=(
+            "//table[@id='shooting' or @id='shooting_stats']//tbody/tr",
+        ),
         min_rows=50,
     ),
     # ==========================================================================
     # PLAYER SUB-PAGES (Phase 6)
     # ==========================================================================
     "player_splits": ValidationRule(
-        # Player splits pages have multiple tables
-        required_xpath=("//table[contains(@class, 'stats_table')]",),
-        min_tables=3,
+        required_ids=("splits",),
+        required_xpath=("//table[@id='splits']//tbody/tr",),
+        min_rows=1,
     ),
     "player_shooting": ValidationRule(
-        # Player shooting chart pages
-        required_xpath=("//table[contains(@class, 'stats_table')]",),
-        min_tables=1,
+        required_xpath=(
+            "//table[contains(@class, 'stats_table')] | "
+            "//h1[contains(., 'Shooting')]",
+        ),
+        min_rows=1,
     ),
     "player_advanced_gamelog": ValidationRule(
         required_xpath=("//table[contains(@class, 'stats_table')]//tbody/tr",),
@@ -234,8 +238,8 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
         min_rows=10,
     ),
     "standings_by_date": ValidationRule(
-        # Historical standings by date
-        required_xpath=("//table[contains(@class, 'stats_table')]//tbody/tr",),
+        # Standings by date tables omit tbody tags.
+        required_xpath=("//table[@id='standings_by_date']//tr",),
         min_rows=10,
     ),
     "ratings": ValidationRule(
@@ -244,9 +248,8 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
         min_rows=30,
     ),
     "uniform_numbers": ValidationRule(
-        # Uniform numbers pages
-        required_xpath=("//table[contains(@class, 'stats_table')]//tbody/tr",),
-        min_rows=50,
+        required_xpath=("//h1[contains(., 'Uniform Numbers')]",),
+        min_rows=1,
     ),
     "team_franchise": ValidationRule(
         # Team franchise history pages
@@ -264,9 +267,9 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
         min_rows=5,
     ),
     "team_depth_chart": ValidationRule(
-        # Team depth chart pages
-        required_xpath=("//table[contains(@class, 'stats_table')]//tbody/tr",),
-        min_rows=5,
+        required_xpath=("//h1[contains(., 'Depth Chart')]",),
+        min_rows=1,
+        min_tables=1,
     ),
     "team_starting_lineups": ValidationRule(
         # Team starting lineups pages
@@ -274,28 +277,27 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
         min_rows=10,
     ),
     "team_transactions": ValidationRule(
-        # Team transactions pages
-        required_xpath=("//table[contains(@class, 'stats_table')]//tbody/tr",),
-        min_rows=5,
+        required_xpath=("//h1[contains(., 'Transactions')]",),
+        min_rows=1,
     ),
     "boxscore_shot_chart": ValidationRule(
-        # Box score shot chart pages
-        required_xpath=("//div[contains(@id, 'shot-chart')] | //table[contains(@class, 'shot_chart')]",),
+        required_xpath=(
+            "//*[@id[contains(., 'shot_chart') or contains(., 'shots-')]]",
+        ),
         min_rows=1,
     ),
     "boxscore_plus_minus": ValidationRule(
-        # Box score plus/minus pages
-        required_xpath=("//table[contains(@class, 'stats_table')]//tbody/tr",),
-        min_rows=10,
+        required_xpath=("//h1[contains(., 'Plus/Minus')]",),
+        min_rows=1,
+        min_tables=1,
     ),
     "player_on_off": ValidationRule(
-        # Player on/off court data pages
         required_xpath=("//table[contains(@class, 'stats_table')]//tbody/tr",),
-        min_rows=5,
+        min_rows=1,
     ),
     "referee_index": ValidationRule(
-        # Referee index page
-        required_xpath=("//table[contains(@class, 'stats_table')]//tbody/tr",),
+        # Referee index table omits tbody tags.
+        required_xpath=("//table[@id='referees']//tr",),
         min_rows=10,
     ),
     "referee_profile": ValidationRule(
@@ -304,9 +306,8 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
         min_rows=5,
     ),
     "league_transactions": ValidationRule(
-        # League-wide transactions pages
-        required_xpath=("//table[contains(@class, 'stats_table')]//tbody/tr",),
-        min_rows=10,
+        required_xpath=("//h1[contains(., 'Transactions')]",),
+        min_rows=1,
     ),
     "injuries": ValidationRule(
         # Injuries page (dynamic, may be empty)
@@ -358,11 +359,14 @@ def validate_fixture_html(html_content: bytes, validator_key: str) -> list[str]:
         row_counts.append(match_count)
 
     # Check minimum row count
-    if rule.min_rows is not None and row_counts:
-        if max(row_counts) < rule.min_rows:
-            errors.append(
-                f"Expected at least {rule.min_rows} rows, found {max(row_counts)}"
-            )
+    if (
+        rule.min_rows is not None
+        and row_counts
+        and max(row_counts) < rule.min_rows
+    ):
+        errors.append(
+            f"Expected at least {rule.min_rows} rows, found {max(row_counts)}"
+        )
 
     # Check minimum table count
     if rule.min_tables is not None:

@@ -1,0 +1,2 @@
+- Chose to use Path(__file__).resolve().parents[5] for PROJECT_ROOT to ensure it always points to the monorepo root regardless of the CWD.
+- Used f-strings with PROJECT_ROOT for database_url to avoid fragile relative paths.

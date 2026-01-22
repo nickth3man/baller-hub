@@ -6,8 +6,8 @@ from unittest import TestCase
 
 import requests_mock
 
+from src.core.domain import OutputType, Position, Team
 from src.scraper.api.client import players_advanced_season_totals
-from src.scraper.common.data import OutputType, Position, Team
 from src.scraper.common.errors import InvalidSeason
 
 

@@ -1,6 +1,6 @@
 from unittest import TestCase, mock
 
-from src.scraper.common.data import OutputWriteOption
+from src.core.domain import OutputWriteOption
 from src.scraper.output.writers import CSVWriter, FileOptions, OutputOptions, OutputType
 
 

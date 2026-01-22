@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from src.scraper.common.data import LEAGUE_ABBREVIATIONS_TO_LEAGUE, League
+from src.core.domain import LEAGUE_ABBREVIATIONS_TO_LEAGUE, League
 from src.scraper.parsers import (
     LeagueAbbreviationParser,
     ResourceLocationParser,

@@ -1,7 +1,7 @@
 """Unit tests for CoachPage HTML wrapper."""
 
 from unittest import TestCase
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, patch
 
 
 class TestCoachPage(TestCase):
@@ -28,11 +28,11 @@ class TestCoachPage(TestCase):
         """Test xpath query for coach name."""
         from src.scraper.html.coach import CoachPage
 
-        expected = '//h1[@itemprop="name"]/span'
+        expected = '//div[@id="meta"]//h1/span | //h1[@itemprop="name"]/span | //h1/span'
         self.assertEqual(CoachPage(html=self.html).name_query, expected)
 
-    @patch.object(MagicMock, "xpath")
-    def test_coaching_record_table_returns_table_when_found(self, mock_xpath):
+    @patch.object(MagicMock, "xpath", create=True)
+    def test_coaching_record_table_returns_table_when_found(self, _mock_xpath):
         """Test that coaching record table is returned when found."""
         from src.scraper.html.coach import CoachPage
 
@@ -43,8 +43,8 @@ class TestCoachPage(TestCase):
         result = page.coaching_record_table
         self.assertIsNotNone(result)
 
-    @patch.object(MagicMock, "xpath")
-    def test_coaching_record_table_returns_none_when_not_found(self, mock_xpath):
+    @patch.object(MagicMock, "xpath", create=True)
+    def test_coaching_record_table_returns_none_when_not_found(self, _mock_xpath):
         """Test that None is returned when coaching record table not found."""
         from src.scraper.html.coach import CoachPage
 
@@ -74,7 +74,7 @@ class TestCoachingRecordRow(TestCase):
         from src.scraper.html.coach import CoachingRecordRow
 
         row = CoachingRecordRow(html=self.html)
-        self.assertEqual(row.season_query, 'th[@data-stat="season"]/a')
+        self.assertEqual(row.season_query, 'th[@data-stat="season"]/a | th[@data-stat="season"]')
 
     def test_team_query(self):
         """Test xpath query for team."""

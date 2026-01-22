@@ -5,10 +5,10 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.scraper.common.data import TEAM_ABBREVIATIONS_TO_TEAMS, Team
+from src.core.domain import TEAM_ABBREVIATIONS_TO_TEAM, Team
 from src.scraper.html.draft import DraftPage
+from src.scraper.parsers.base import TeamAbbreviationParser
 from src.scraper.parsers.draft import DraftParser
-from src.scraper.parsers.team_abbreviations import TeamAbbreviationParser
 
 
 class TestDraftIntegration(TestCase):
@@ -21,7 +21,7 @@ class TestDraftIntegration(TestCase):
             os.path.dirname(__file__), "../files/draft"
         )
         cls.team_abbreviation_parser = TeamAbbreviationParser(
-            abbreviations_to_teams=TEAM_ABBREVIATIONS_TO_TEAMS
+            abbreviations_to_teams=TEAM_ABBREVIATIONS_TO_TEAM
         )
         cls.parser = DraftParser(team_abbreviation_parser=cls.team_abbreviation_parser)
 
@@ -37,7 +37,7 @@ class TestDraftIntegration(TestCase):
         """Test parsing 2003 draft (LeBron)."""
         page = self._get_page("2003.html")
         result = self.parser.parse(page)
-        
+
         self.assertEqual(result["year"], 2003)
         # LeBron was pick 1
         lebron = next(p for p in result["picks"] if p["pick"] == 1)
@@ -48,7 +48,7 @@ class TestDraftIntegration(TestCase):
         """Test parsing 1984 draft (Jordan)."""
         page = self._get_page("1984.html")
         result = self.parser.parse(page)
-        
+
         self.assertEqual(result["year"], 1984)
         # Jordan was pick 3
         jordan = next(p for p in result["picks"] if p["pick"] == 3)

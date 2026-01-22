@@ -51,6 +51,8 @@ class SeasonScheduleMocker(ResponseMocker):
         html_files_directory = os.path.join(schedules_directory, str(season_end_year))
         for file in os.listdir(os.fsencode(html_files_directory)):
             filename = os.fsdecode(file)
+            if not filename.endswith(".html"):
+                continue
             if filename.startswith(str(season_end_year)):
                 key = f"leagues/NBA_{season_end_year}_games.html"
             else:

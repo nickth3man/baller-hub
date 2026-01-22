@@ -5,10 +5,10 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.scraper.common.data import TEAM_ABBREVIATIONS_TO_TEAMS, Team
+from src.core.domain import TEAM_ABBREVIATIONS_TO_TEAM, Team
 from src.scraper.html.awards import AwardsPage
 from src.scraper.parsers.awards import AwardsParser
-from src.scraper.parsers.team_abbreviations import TeamAbbreviationParser
+from src.scraper.parsers.base import TeamAbbreviationParser
 
 
 class TestAwardsIntegration(TestCase):
@@ -21,7 +21,7 @@ class TestAwardsIntegration(TestCase):
             os.path.dirname(__file__), "../files/awards"
         )
         cls.team_abbreviation_parser = TeamAbbreviationParser(
-            abbreviations_to_teams=TEAM_ABBREVIATIONS_TO_TEAMS
+            abbreviations_to_teams=TEAM_ABBREVIATIONS_TO_TEAM
         )
         cls.parser = AwardsParser(team_abbreviation_parser=cls.team_abbreviation_parser)
 
@@ -37,7 +37,7 @@ class TestAwardsIntegration(TestCase):
         """Test parsing MVP award history."""
         page = self._get_page("mvp.html")
         result = self.parser.parse(page)
-        
+
         self.assertIn("Most Valuable Player", result["award"])
         # Find 2023-24 Jokic
         jokic = next(w for w in result["winners"] if w["season"] == "2023-24")

@@ -4,8 +4,8 @@ from unittest import TestCase
 
 import requests_mock
 
+from src.core.domain import OutputType, OutputWriteOption, PeriodType, Team
 from src.scraper.api.client import play_by_play
-from src.scraper.common.data import OutputType, OutputWriteOption, PeriodType, Team
 from src.scraper.common.errors import InvalidDate
 
 

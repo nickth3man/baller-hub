@@ -163,9 +163,9 @@ Documentation for all basketball-reference.com page types supported by the scrap
 | Sixth Man | `/awards/smoy.html` | `smoy_NBA` |
 | Most Improved | `/awards/mip.html` | `mip_NBA` |
 | Coach of Year | `/awards/coy.html` | `coy_NBA` |
-| All-NBA Teams | `/awards/all_nba.html` | `all_nba` |
+| All-League Teams | `/awards/all_league.html` | `all_league` |
 | All-Rookie Teams | `/awards/all_rookie.html` | `all_rookie` |
-| All-Defensive Teams | `/awards/all_defensive.html` | `all_defense` |
+| All-Defensive Teams | `/awards/all_defense.html` | `all_defense` |
 | Hall of Fame | `/awards/hof.html` | `hof` |
 
 ---
@@ -212,14 +212,14 @@ Documentation for all basketball-reference.com page types supported by the scrap
 
 #### Career Leaders
 
-- **URL**: `/leaders/career_{stat}.html`
-- **Examples**: `/leaders/career_pts.html`, `/leaders/career_ast.html`
+- **URL**: `/leaders/{stat}_career.html`
+- **Examples**: `/leaders/pts_career.html`, `/leaders/ast_career.html`
 - **HTML Wrapper**: `src/scraper/html/leaders.py` → `LeadersPage` 🚧
 - **Data**: Top players all-time for each stat
 
 #### Active Leaders
 
-- **URL**: `/leaders/active_{stat}.html`
+- **URL**: `/leaders/{stat}_active.html`
 - **Data**: Top active players for each stat
 
 #### Progressive/Trailing Leaders

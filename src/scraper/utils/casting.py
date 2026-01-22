@@ -9,7 +9,11 @@ def str_to_int(value, default=0):
     Returns:
         int: The converted integer or the default value.
     """
+    if value is None:
+        return default
     stripped_value = value.strip()
+    if stripped_value == "":
+        return default
     try:
         return int(stripped_value)
     except ValueError:
@@ -27,7 +31,11 @@ def str_to_float(value, default=float(0)):
     Returns:
         float: The converted float or the default value.
     """
+    if value is None:
+        return default
     stripped_value = value.strip()
+    if stripped_value == "":
+        return default
     try:
         return float(stripped_value)
     except ValueError:

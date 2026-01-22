@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from lxml import html
 
-from src.scraper.common.data import TEAM_ABBREVIATIONS_TO_TEAM, Outcome, Team, TeamTotal
+from src.core.domain import TEAM_ABBREVIATIONS_TO_TEAM, Outcome, Team, TeamTotal
 from src.scraper.html import BoxScoresPage
 from src.scraper.parsers import TeamAbbreviationParser, TeamTotalsParser
 

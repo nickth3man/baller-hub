@@ -348,6 +348,7 @@ class SearchIndexer:
             "college": player.college,
             "draft_year": player.draft_year,
             "debut_year": player.debut_year,
+            "final_year": player.final_year,
         }
 
     def _team_to_document(self, team: Team) -> dict[str, Any]:

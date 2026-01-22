@@ -3,33 +3,59 @@ name: CI
 on:
   push:
     branches:
-      - "*main*"
+      - "main"
   pull_request:
     branches:
-      - "*main*"
+      - "main"
 
 jobs:
-  test:
-    name: Python ${{ matrix.python-version }} (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: ["3.12"]
+  backend-check:
+    name: Backend (Python)
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+
       - name: Setup uv
         uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
       - name: Install dependencies
         run: uv sync
-      - name: Ruff lint
+
+      - name: Ruff Check (Strict)
         run: uv run ruff check .
-      - name: Ty check
+
+      - name: Type Check (Ty)
         run: uv run ty check .
+
       - name: Pytest
         run: uv run pytest
+
+  frontend-check:
+    name: Frontend (Node.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/webapp/frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: src/webapp/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint (Strict)
+        run: npm run lint
+
+      - name: Build (Typecheck + Build)
+        run: npm run build

@@ -1,6 +1,6 @@
 from unittest import TestCase, mock
 
-from src.scraper.common.data import OutputType, OutputWriteOption
+from src.core.domain import OutputType, OutputWriteOption
 from src.scraper.output.service import OutputService
 from src.scraper.output.writers import FileOptions, OutputOptions
 

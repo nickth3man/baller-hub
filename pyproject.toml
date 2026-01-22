@@ -22,8 +22,10 @@ dependencies = [
     "aiolimiter>=1.2.1",
     "courlan>=1.3.2",
     "curl-cffi>=0.14.0",
+    "duckdb>=1.4.3",
     "fake-useragent>=2.2.0",
     "lxml>=5.1.0",
+    "python-frontmatter>=1.1.0",
     "pytz>=2024.1",
     "requests>=2.31.0",
     "rich>=14.2.0",
@@ -70,32 +72,66 @@ select = [
     "W",
     "F",
     "I",
+    "N",
     "UP",
     "B",
+    "A",
     "C4",
+    "DTZ",
+    "T10",
+    "EM",
+    "EXE",
+    "ISC",
+    "ICN",
+    "G",
+    "INP",
+    "PIE",
+    "T20",
+    "PT",
+    "Q",
+    "RSE",
+    "RET",
     "SIM",
+    "TID",
+    "TCH",
+    "INT",
     "ARG",
+    "PTH",
+    "ERA",
+    "PD",
+    "PGH",
+    "PL",
+    "TRY",
+    "FLY",
+    "NPY",
+    "PERF",
+    "FURB",
+    "LOG",
+    "RUF",
 ]
 ignore = [
     "E501",
     "B008",
 ]
 
-[tool.ruff.lint.isort]
-known-first-party = ["src.scraper"]
-
 [tool.ruff.lint.per-file-ignores]
 "src/scraper/html/**/*.py" = ["D102", "D107"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src.scraper"]
 
 
 [tool.ty.environment]
 python-version = "3.12"
 
 [tool.ty.rules]
-possibly-unresolved-reference = "warn"
-possibly-missing-attribute = "warn"
-unused-ignore-comment = "warn"
-division-by-zero = "warn"
+possibly-unresolved-reference = "error"
+possibly-missing-attribute = "error"
+unused-ignore-comment = "error"
+division-by-zero = "error"
+missing-argument = "error"
+unresolved-attribute = "error"
+invalid-assignment = "error"
 
 [tool.ty.src]
 include = ["src/scraper/**/*.py", "tests/**/*.py"]

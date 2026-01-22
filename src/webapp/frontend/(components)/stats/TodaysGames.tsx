@@ -18,14 +18,16 @@ export async function TodaysGames() {
   const teamMap = buildTeamMap(teams);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Today's Games</h2>
+    <div className="rounded-2xl bg-white p-6 shadow-lg">
+      <h2 className="mb-4 text-xs uppercase tracking-[0.3em] text-slate-500">
+        Today's Games
+      </h2>
       <div className="space-y-4">
         {games.map((game) => (
           <GameCard key={game.game_id} game={game} teamMap={teamMap} />
         ))}
         {games.length === 0 && (
-          <div className="border border-dashed border-gray-200 rounded-lg p-6 text-center text-sm text-gray-500">
+          <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
             No games scheduled today.
           </div>
         )}
@@ -49,8 +51,8 @@ function GameCard({
   const status = isFinal ? "Final" : formatTime(game.time);
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4">
-      <div className="flex justify-between items-center mb-2">
+    <div className="rounded-lg border border-gray-200 p-4">
+      <div className="mb-2 flex items-center justify-between">
         <span
           className={`text-xs font-medium ${
             isFinal ? "text-gray-500" : "text-green-600"
@@ -89,7 +91,7 @@ function TeamRow({
   isWinner: boolean;
 }) {
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex items-center justify-between">
       <div className="flex items-center space-x-2">
         <span
           className={`font-medium ${
@@ -98,11 +100,11 @@ function TeamRow({
         >
           {abbrev}
         </span>
-        <span className="text-gray-500 text-sm">{name}</span>
+        <span className="text-sm text-gray-500">{name}</span>
       </div>
       {score !== null && score !== undefined && (
         <span
-          className={`font-bold text-lg ${
+          className={`text-lg font-bold ${
             isWinner ? "text-gray-900" : "text-gray-500"
           }`}
         >

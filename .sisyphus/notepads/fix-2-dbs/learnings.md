@@ -1,0 +1,4 @@
+- Centralized database configuration in src/webapp/backend/app/core/config.py using absolute paths derived from PROJECT_ROOT.
+- PROJECT_ROOT is calculated relative to __file__ using parents[5].
+- Verified that baller.duckdb exists only in the project root.
+- Successfully ran scripts/verify_db_connection.py using the backend environment and a dummy JWT_SECRET_KEY.

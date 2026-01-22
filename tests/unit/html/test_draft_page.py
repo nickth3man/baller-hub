@@ -1,7 +1,7 @@
 """Unit tests for DraftPage HTML wrapper."""
 
 from unittest import TestCase
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, patch
 
 
 class TestDraftPage(TestCase):
@@ -29,8 +29,8 @@ class TestDraftPage(TestCase):
             '//table[@id="stats"]//tbody/tr[not(contains(@class, "thead"))]',
         )
 
-    @patch.object(MagicMock, "xpath")
-    def test_rows_returns_draft_rows_when_found(self, mock_xpath):
+    @patch.object(MagicMock, "xpath", create=True)
+    def test_rows_returns_draft_rows_when_found(self, _mock_xpath):
         """Test that draft rows are returned when found."""
         from src.scraper.html.draft import DraftPage, DraftRow
 

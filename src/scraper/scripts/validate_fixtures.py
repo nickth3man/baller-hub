@@ -5,8 +5,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 from src.scraper.utils.fixture_validation import (
     build_validation_context,

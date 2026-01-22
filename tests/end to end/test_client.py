@@ -6,20 +6,20 @@ from unittest import TestCase
 
 import pytest
 
-from src.scraper.api.client import (
-    play_by_play,
-    player_box_scores,
-    players_advanced_season_totals,
-    players_season_totals,
-    season_schedule,
-)
-from src.scraper.common.data import (
+from src.core.domain import (
     Location,
     Outcome,
     OutputType,
     OutputWriteOption,
     PeriodType,
     Team,
+)
+from src.scraper.api.client import (
+    play_by_play,
+    player_box_scores,
+    players_advanced_season_totals,
+    players_season_totals,
+    season_schedule,
 )
 
 

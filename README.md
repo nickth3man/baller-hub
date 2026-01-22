@@ -21,8 +21,9 @@ This project uses [uv](https://docs.astral.sh/uv/) for dependency management.
 # Setup the workspace
 uv sync
 
-# Run the web application (using docker-compose)
-docker-compose up
+# Run the web application
+cd src/webapp/backend
+uv run uvicorn app.main:app --reload
 ```
 
 ## Restructuring Plan

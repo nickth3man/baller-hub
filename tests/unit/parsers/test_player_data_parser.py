@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.scraper.common.data import LEAGUE_ABBREVIATIONS_TO_LEAGUE, League, PlayerData
+from src.core.domain import LEAGUE_ABBREVIATIONS_TO_LEAGUE, League, PlayerData
 from src.scraper.parsers import (
     LeagueAbbreviationParser,
     PlayerDataParser,

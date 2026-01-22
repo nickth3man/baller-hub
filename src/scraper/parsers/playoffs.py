@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from src.scraper.utils.casting import str_to_int
 
 if TYPE_CHECKING:
-    from src.scraper.html.playoffs import PlayoffsPage, PlayoffSeriesPage
+    from src.scraper.html.playoffs import PlayoffSeriesPage, PlayoffsPage
 
 
 class PlayoffsParser:
