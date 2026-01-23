@@ -4,7 +4,7 @@
 The `baller-hub` repository is a well-structured monorepo leveraging modern tooling (`uv` for Python, `npm`/`Next.js 15` for Frontend). The core `scraper` library is mature with excellent test coverage, while the `webapp` (Backend + Frontend) is in early-to-mid development stages with solid scaffolding but lighter test coverage.
 
 **Overall Health Score**: 🟡 **Good (with gaps)**
-- **Infrastructure**: Strong (uv workspaces, Docker, GitHub Actions).
+- **Infrastructure**: Strong (uv workspaces, GitHub Actions).
 - **Code Quality**: Mixed (Strict linters enabled but failing in backend/scripts).
 - **Testing**: Excellent for Scraper, Basic for App.
 
@@ -81,7 +81,7 @@ The `baller-hub` repository is a well-structured monorepo leveraging modern tool
 2.  **Add `__init__.py`**: Create empty `__init__.py` files in all test subdirectories to resolve `INP001`.
 
 ### Short Term (High Value)
-3.  **Flesh out Backend Integration Tests**: Populate `src/webapp/backend/tests/integration` with tests that use the Dockerized DB (or mocked DB session) to verify API-to-DB flows.
+3.  **Flesh out Backend Integration Tests**: Populate `src/webapp/backend/tests/integration` with tests that use a local test DB (or mocked DB session) to verify API-to-DB flows.
 4.  **Enhance Frontend Testing**: Add tests for critical components (e.g., `LeagueLeaders`, `TodaysGames`) beyond just "it renders".
 
 ### Long Term

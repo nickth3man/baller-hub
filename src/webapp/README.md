@@ -16,9 +16,9 @@ src/webapp/
 │   │   ├── services/          # Business logic layer
 │   │   └── utils/             # Utilities
 │   ├── tests/                 # Backend tests
-│   ├── Dockerfile
 │   └── pyproject.toml
 ├── frontend/                   # Next.js 15 frontend
+
 │   ├── app/                   # App Router pages
 │   ├── (components)/          # React components
 │   │   ├── layout/            # Header, Footer, Navigation
@@ -29,9 +29,9 @@ src/webapp/
 │   ├── hooks/                 # Custom React hooks
 │   ├── types/                 # TypeScript types
 │   └── public/                # Static assets
-├── docker/                     # Docker configs
 ├── scripts/                    # CLI scripts
 └── docs/                       # Documentation
+
 ```
 
 ## Tech Stack
@@ -52,22 +52,8 @@ src/webapp/
 
 ## Quick Start
 
-### Development with Docker
-
-```bash
-cd src/webapp
-docker compose up -d
-```
-
-Services:
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/api/docs
-- Frontend: http://localhost:3000
-- PostgreSQL: localhost:5432
-- Redis: localhost:6379
-- Meilisearch: http://localhost:7700
-
 ### Manual Setup
+
 
 **Backend:**
 ```bash
