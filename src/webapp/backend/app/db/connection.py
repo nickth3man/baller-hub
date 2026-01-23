@@ -13,15 +13,19 @@ from app.core.config import settings
 _conn: duckdb.DuckDBPyConnection | None = None
 
 
+from app.db.session import engine
+
+
 def get_connection() -> duckdb.DuckDBPyConnection:
     """Get or create a singleton DuckDB connection.
 
     Returns:
-        duckdb.DuckDBPyConnection: Read-only database connection.
+        duckdb.DuckDBPyConnection: Database connection.
     """
     global _conn  # noqa: PLW0603
     if _conn is None:
-        _conn = duckdb.connect(str(settings.duckdb_path), read_only=True)
+        # Get raw connection from SQLAlchemy engine
+        _conn = engine.raw_connection().driver_connection
     return _conn
 
 

@@ -1,4 +1,5 @@
-import { getTodaysGames, getTeams, Game, Team } from "@/lib/api";
+import { getTodaysGames, getTeams } from "@/lib/api";
+import { Game, Team } from "@/types";
 
 function formatTime(time: string | null) {
   if (!time) return "Scheduled";

@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { TodaysGames } from "@/(components)/stats/TodaysGames";
 import { LeagueLeaders } from "@/(components)/stats/LeagueLeaders";
 import { StandingsPreview } from "@/(components)/stats/StandingsPreview";
+import { QuickLink } from "@/(components)/ui/QuickLink";
 
 export default function HomePage() {
   return (
@@ -65,27 +65,5 @@ export default function HomePage() {
         <QuickLink href="/search" title="Search" description="Find anything" />
       </section>
     </div>
-  );
-}
-
-function QuickLink({
-  href,
-  title,
-  description,
-}: {
-  href: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group block rounded-2xl border border-gray-200 bg-white p-4 shadow transition-shadow hover:shadow-xl"
-    >
-      <h3 className="font-semibold text-gray-900 transition-colors group-hover:text-orange-600">
-        {title}
-      </h3>
-      <p className="text-sm text-gray-500">{description}</p>
-    </Link>
   );
 }

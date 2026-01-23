@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getSeasons, getStandings, StandingsTeam } from "@/lib/api";
+import { getSeasons, getStandings } from "@/lib/api";
+import { StandingsTeam } from "@/types";
 
 export async function StandingsPreview() {
   const seasons = await getSeasons();

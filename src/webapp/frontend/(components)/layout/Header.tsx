@@ -19,6 +19,8 @@ export function Header() {
               <NavLink href="/seasons">Seasons</NavLink>
               <NavLink href="/standings">Standings</NavLink>
               <NavLink href="/games">Games</NavLink>
+              <NavLink href="/draft">Draft</NavLink>
+              <NavLink href="/awards">Awards</NavLink>
             </nav>
           </div>
           <div className="w-64">

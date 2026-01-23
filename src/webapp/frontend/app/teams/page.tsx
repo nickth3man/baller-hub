@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { getTeams, Team } from "@/lib/api";
+import { getTeams } from "@/lib/api";
+import { Team } from "@/types";
 
 export const metadata: Metadata = {
   title: "Teams | Basketball Reference",

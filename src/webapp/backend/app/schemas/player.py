@@ -3,7 +3,7 @@
 from datetime import date
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class PlayerBase(BaseModel):
@@ -29,15 +29,13 @@ class PlayerBase(BaseModel):
 
 
 class PlayerSummary(PlayerBase):
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PlayerDetail(PlayerBase):
-    middle_name: str | None = None
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
+    middle_name: str | None = None
 
 
 class PlayerList(BaseModel):
@@ -49,6 +47,8 @@ class PlayerList(BaseModel):
 
 
 class PlayerBoxScoreResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     game_id: int
     game_date: date
     opponent_abbrev: str
@@ -68,9 +68,6 @@ class PlayerBoxScoreResponse(BaseModel):
     made_ft: int
     attempted_ft: int
     plus_minus: int | None = None
-
-    class Config:
-        from_attributes = True
 
 
 class PlayerBoxScoreList(BaseModel):
@@ -97,6 +94,8 @@ class PlayerCareerStats(BaseModel):
 
 
 class PlayerSeasonStats(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     season_id: int
     season_year: int
     season_type: str
@@ -118,6 +117,3 @@ class PlayerSeasonStats(BaseModel):
     fg3_attempted: int
     ft_made: int
     ft_attempted: int
-
-    class Config:
-        from_attributes = True
