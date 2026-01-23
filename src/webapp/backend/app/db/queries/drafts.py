@@ -1,7 +1,7 @@
 """Draft database queries."""
 
 LIST_DRAFTS = """
-    SELECT 
+    SELECT
         d.*,
         s.year as season_year
     FROM draft d
@@ -10,7 +10,7 @@ LIST_DRAFTS = """
 """
 
 GET_DRAFT_BY_YEAR = """
-    SELECT 
+    SELECT
         d.*,
         s.year as season_year
     FROM draft d
@@ -19,7 +19,7 @@ GET_DRAFT_BY_YEAR = """
 """
 
 GET_DRAFT_PICKS = """
-    SELECT 
+    SELECT
         dp.*,
         p.full_name as player_name,
         t.abbreviation as team_abbrev

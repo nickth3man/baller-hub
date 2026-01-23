@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
+from contextlib import suppress
 
 # check_same_thread=False is required for SQLite, but not supported/needed by DuckDB
 connect_args = {}
@@ -52,14 +53,10 @@ def init_db() -> None:
             "award",
             "award_recipient",
         ]:
-            try:
+            with suppress(Exception):
                 conn.execute(text(f"DROP VIEW IF EXISTS {obj};"))
-            except Exception:
-                pass
-            try:
+            with suppress(Exception):
                 conn.execute(text(f"DROP TABLE IF EXISTS {obj};"))
-            except Exception:
-                pass
 
         conn.execute(
             text("""

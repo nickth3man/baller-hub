@@ -9,7 +9,7 @@ GET_AWARD_BY_ID = """
 """
 
 GET_AWARD_RECIPIENTS = """
-    SELECT 
+    SELECT
         ar.*,
         p.full_name as player_name,
         t.abbreviation as team_abbrev,

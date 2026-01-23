@@ -8,12 +8,9 @@ from contextlib import contextmanager
 
 import duckdb
 
-from app.core.config import settings
+from app.db.session import engine
 
 _conn: duckdb.DuckDBPyConnection | None = None
-
-
-from app.db.session import engine
 
 
 def get_connection() -> duckdb.DuckDBPyConnection:
