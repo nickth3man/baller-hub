@@ -28,18 +28,18 @@ from src.scraper.scripts.scrape_fixtures.models.monitoring.health import HealthM
 from src.scraper.scripts.scrape_fixtures.scraper import AsyncComprehensiveScraper
 
 __all__ = [
-    "AsyncComprehensiveScraper",
-    "ChaosExperiment",
-    "CircuitBreaker",
     "DEFAULT_BASE_URL",
     "DEFAULT_CHECKPOINT",
     "DEFAULT_MANIFEST",
+    "IMPERSONATION_PROFILES",
+    "MIN_DISK_SPACE_GB",
+    "AsyncComprehensiveScraper",
+    "ChaosExperiment",
+    "CircuitBreaker",
     "FixtureDict",
     "FixtureManifest",
     "FixtureSpec",
     "HealthMetrics",
-    "IMPERSONATION_PROFILES",
-    "MIN_DISK_SPACE_GB",
     "ScraperCheckpoint",
     "scrape_batch",
 ]

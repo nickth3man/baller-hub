@@ -6,9 +6,8 @@ player statistics, and scheduling information.
 """
 
 import duckdb
-from sqlalchemy import func
+
 from app.db.queries import seasons as season_queries
-from app.schemas.enums import Position, SeasonType
 
 
 class SeasonService:
@@ -25,11 +24,11 @@ class SeasonService:
     def __init__(self, conn: duckdb.DuckDBPyConnection):
         self.conn = conn
 
-    def list_seasons(self, league: str = "NBA", limit: int = 20):
+    def list_seasons(self, _league: str = "NBA", limit: int = 20):
         query = season_queries.LIST_SEASONS + " LIMIT ?"
         result = self.conn.execute(query, [limit]).fetchall()
         columns = [desc[0] for desc in self.conn.description]
-        return [dict(zip(columns, row)) for row in result]
+        return [dict(zip(columns, row, strict=False)) for row in result]
 
     def get_current_season(self):
         max_year = self.conn.execute("SELECT MAX(year) FROM season").fetchone()[0]
@@ -46,7 +45,7 @@ class SeasonService:
             return None
 
         columns = [desc[0] for desc in self.conn.description]
-        return dict(zip(columns, result))
+        return dict(zip(columns, result, strict=False))
 
     def get_season_schedule(self, season_year: int, month: int | None = None):
         query = season_queries.GET_SEASON_SCHEDULE
@@ -58,7 +57,7 @@ class SeasonService:
 
         result = self.conn.execute(query, params).fetchall()
         columns = [desc[0] for desc in self.conn.description]
-        games = [dict(zip(columns, row)) for row in result]
+        games = [dict(zip(columns, row, strict=False)) for row in result]
 
         return {"season_year": season_year, "month": month, "games": games}
 
@@ -83,14 +82,12 @@ class SeasonService:
 
         result = self.conn.execute(query, params).fetchall()
         columns = [desc[0] for desc in self.conn.description]
-        rows = [dict(zip(columns, row)) for row in result]
+        rows = [dict(zip(columns, row, strict=False)) for row in result]
 
         players = {}
         for row in rows:
             pid = row["player_id"]
-            if pid not in players:
-                players[pid] = row
-            elif row["is_combined_totals"]:
+            if pid not in players or row["is_combined_totals"]:
                 players[pid] = row
 
         leaders = []
@@ -113,8 +110,8 @@ class SeasonService:
         leaders.sort(key=lambda x: x["value"], reverse=True)
         leaders = leaders[:limit]
 
-        for idx, l in enumerate(leaders):
-            l["rank"] = idx + 1
+        for idx, leader in enumerate(leaders):
+            leader["rank"] = idx + 1
 
         return {
             "season_year": season_year,
@@ -148,14 +145,12 @@ class SeasonService:
 
         result = self.conn.execute(query, params).fetchall()
         columns = [desc[0] for desc in self.conn.description]
-        items = [dict(zip(columns, row)) for row in result]
+        items = [dict(zip(columns, row, strict=False)) for row in result]
 
         unique_items = {}
         for item in items:
             pid = item["player_id"]
-            if pid not in unique_items:
-                unique_items[pid] = item
-            elif item.get("is_combined_totals"):
+            if pid not in unique_items or item.get("is_combined_totals"):
                 unique_items[pid] = item
 
         items = list(unique_items.values())

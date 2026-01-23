@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -58,7 +59,6 @@ class DraftPage:
             return None
         text = elements[0].text_content()
         # Extract year from text like "2024 NBA Draft"
-        import re
 
         match = re.search(r"\d{4}", text)
         return match.group() if match else None
@@ -136,7 +136,6 @@ class DraftRow:
             return None
         href = elements[0].get("href", "")
         # Extract ID from href like "/players/l/lillada01.html"
-        import re
 
         match = re.search(r"/players/\w/(\w+)\.html", href)
         return match.group(1) if match else None

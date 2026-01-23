@@ -9,7 +9,7 @@ class TestPlayerPage(TestCase):
         html = MagicMock()
         html.xpath = MagicMock(return_value=[])
 
-        self.assertIsNone(PlayerPage(html=html).name)
+        assert PlayerPage(html=html).name is None
         html.xpath.assert_called_once_with('.//h1[@itemprop="name"]')
 
     def test_name_is_first_name_header_content_when_name_headers(self):
@@ -22,17 +22,14 @@ class TestPlayerPage(TestCase):
         html = MagicMock()
         html.xpath = MagicMock(return_value=[first_name_header, second_name_header])
 
-        self.assertEqual(
-            PlayerPage(html=html).name,
-            "first name"
-        )
+        assert PlayerPage(html=html).name == "first name"
         html.xpath.assert_called_once_with('.//h1[@itemprop="name"]')
 
     def test_totals_table_is_none_when_no_totals_tables(self):
         html = MagicMock()
         html.xpath = MagicMock(return_value=[])
 
-        self.assertIsNone(PlayerPage(html=html).totals_table)
+        assert PlayerPage(html=html).totals_table is None
         html.xpath.assert_called_once_with('.//table[@id="per_game"]')
 
     def test_totals_table_is_first_table_when_totals_tables(self):
@@ -42,8 +39,5 @@ class TestPlayerPage(TestCase):
         html = MagicMock()
         html.xpath = MagicMock(return_value=[first_table, second_table])
 
-        self.assertEqual(
-            PlayerPage(html=html).totals_table,
-            PlayerPageTotalsTable(html=first_table),
-        )
+        assert PlayerPage(html=html).totals_table == PlayerPageTotalsTable(html=first_table)
         html.xpath.assert_called_once_with('.//table[@id="per_game"]')

@@ -4,8 +4,10 @@ This module provides functions for managing DuckDB database connections
 using a singleton pattern for read-only access.
 """
 
-import duckdb
 from contextlib import contextmanager
+
+import duckdb
+
 from app.core.config import settings
 
 _conn: duckdb.DuckDBPyConnection | None = None

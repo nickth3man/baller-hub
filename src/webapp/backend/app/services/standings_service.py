@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 from app.models.game import Game
 from app.models.season import Conference, Division, Season
 from app.models.team import Team, TeamSeason
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
 class StandingsService:

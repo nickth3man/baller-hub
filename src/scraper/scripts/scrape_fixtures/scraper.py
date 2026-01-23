@@ -4,13 +4,15 @@ import asyncio
 import logging
 import random
 import time
-
-from curl_cffi import requests
+from typing import TYPE_CHECKING
 
 from src.scraper.scripts.scrape_fixtures.circuit_breaker import CircuitBreaker
 from src.scraper.scripts.scrape_fixtures.constants import IMPERSONATION_PROFILES
 from src.scraper.scripts.scrape_fixtures.models.monitoring.chaos import ChaosExperiment
 from src.scraper.scripts.scrape_fixtures.models.monitoring.health import HealthMetrics
+
+if TYPE_CHECKING:
+    from curl_cffi import requests
 
 logger = logging.getLogger("scraper")
 
@@ -177,8 +179,9 @@ class AsyncComprehensiveScraper:
                         self.circuit_breaker.record_failure()
                         self.health_metrics.record_request(False, response_time)
                         self.health_metrics.network_errors += 1
+                        msg = f"Fetch failed after {attempt} retries: {e}"
                         raise RuntimeError(
-                            f"Fetch failed after {attempt} retries: {e}"
+                            msg
                         ) from e
                     try:
                         await asyncio.sleep(5 * (attempt + 1))

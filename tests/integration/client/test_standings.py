@@ -24,7 +24,7 @@ class StandingsMocker:
 
     def decorate_class(self, klass):
         for attr_name in dir(klass):
-            if not attr_name.startswith('test_'):
+            if not attr_name.startswith("test_"):
                 continue
 
             attr = getattr(klass, attr_name)
@@ -38,7 +38,9 @@ class StandingsMocker:
     def mock(self, callable):
         @functools.wraps(callable)
         def inner(*args, **kwargs):
-            html_files_directory = os.path.join(self._schedules_directory, str(self._season_end_year))
+            html_files_directory = os.path.join(
+                self._schedules_directory, str(self._season_end_year)
+            )
             standings_fixture_path = os.path.join(
                 os.path.dirname(__file__),
                 "../files/standings",
@@ -53,9 +55,7 @@ class StandingsMocker:
             ):
                 if os.path.exists(standings_fixture_path):
                     with open(standings_fixture_path, encoding="utf-8") as file_input:
-                        key = (
-                            f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
-                        )
+                        key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
                         m.get(key, text=file_input.read(), status_code=200)
                 for file in os.listdir(os.fsencode(html_files_directory)):
                     filename = os.fsdecode(file)
@@ -85,7 +85,8 @@ class StandingsMocker:
         if isinstance(obj, type):
             return self.decorate_class(obj)
 
-        raise ValueError("Should only be used as a class decorator")
+        msg = "Should only be used as a class decorator"
+        raise ValueError(msg)
 
 
 @StandingsMocker(
@@ -93,26 +94,26 @@ class StandingsMocker:
         os.path.dirname(__file__),
         "../files/schedule",
     ),
-    season_end_year=2000
+    season_end_year=2000,
 )
 class Test2000StandingsInMemory(TestCase):
     def test_2000_standings(self):
         result = standings(season_end_year=2000)
-        self.assertEqual(len(result), 29)
+        assert len(result) == 29
 
         miami_heat = result[0]
-        self.assertEqual(miami_heat["team"], Team.MIAMI_HEAT)
-        self.assertEqual(miami_heat["wins"], 52)
-        self.assertEqual(miami_heat["losses"], 30)
-        self.assertEqual(miami_heat["division"], Division.ATLANTIC)
-        self.assertEqual(miami_heat["conference"], Conference.EASTERN)
+        assert miami_heat["team"] == Team.MIAMI_HEAT
+        assert miami_heat["wins"] == 52
+        assert miami_heat["losses"] == 30
+        assert miami_heat["division"] == Division.ATLANTIC
+        assert miami_heat["conference"] == Conference.EASTERN
 
         los_angeles_clippers = result[28]
-        self.assertEqual(los_angeles_clippers["team"], Team.LOS_ANGELES_CLIPPERS)
-        self.assertEqual(los_angeles_clippers["wins"], 15)
-        self.assertEqual(los_angeles_clippers["losses"], 67)
-        self.assertEqual(los_angeles_clippers["division"], Division.PACIFIC)
-        self.assertEqual(los_angeles_clippers["conference"], Conference.WESTERN)
+        assert los_angeles_clippers["team"] == Team.LOS_ANGELES_CLIPPERS
+        assert los_angeles_clippers["wins"] == 15
+        assert los_angeles_clippers["losses"] == 67
+        assert los_angeles_clippers["division"] == Division.PACIFIC
+        assert los_angeles_clippers["conference"] == Conference.WESTERN
 
 
 @StandingsMocker(
@@ -120,27 +121,26 @@ class Test2000StandingsInMemory(TestCase):
         os.path.dirname(__file__),
         "../files/schedule",
     ),
-    season_end_year=2001
+    season_end_year=2001,
 )
 class Test2001StandingsInMemory(TestCase):
-
     def test_2001_standings(self):
         result = standings(season_end_year=2001)
-        self.assertEqual(len(result), 29)
+        assert len(result) == 29
 
         philadelphia_76ers = result[0]
-        self.assertEqual(philadelphia_76ers["team"], Team.PHILADELPHIA_76ERS)
-        self.assertEqual(philadelphia_76ers["wins"], 56)
-        self.assertEqual(philadelphia_76ers["losses"], 26)
-        self.assertEqual(philadelphia_76ers["division"], Division.ATLANTIC)
-        self.assertEqual(philadelphia_76ers["conference"], Conference.EASTERN)
+        assert philadelphia_76ers["team"] == Team.PHILADELPHIA_76ERS
+        assert philadelphia_76ers["wins"] == 56
+        assert philadelphia_76ers["losses"] == 26
+        assert philadelphia_76ers["division"] == Division.ATLANTIC
+        assert philadelphia_76ers["conference"] == Conference.EASTERN
 
         golden_state_warriors = result[28]
-        self.assertEqual(golden_state_warriors["team"], Team.GOLDEN_STATE_WARRIORS)
-        self.assertEqual(golden_state_warriors["wins"], 17)
-        self.assertEqual(golden_state_warriors["losses"], 65)
-        self.assertEqual(golden_state_warriors["division"], Division.PACIFIC)
-        self.assertEqual(golden_state_warriors["conference"], Conference.WESTERN)
+        assert golden_state_warriors["team"] == Team.GOLDEN_STATE_WARRIORS
+        assert golden_state_warriors["wins"] == 17
+        assert golden_state_warriors["losses"] == 65
+        assert golden_state_warriors["division"] == Division.PACIFIC
+        assert golden_state_warriors["conference"] == Conference.WESTERN
 
 
 @StandingsMocker(
@@ -148,26 +148,26 @@ class Test2001StandingsInMemory(TestCase):
         os.path.dirname(__file__),
         "../files/schedule",
     ),
-    season_end_year=2002
+    season_end_year=2002,
 )
 class Test2002StandingsInMemory(TestCase):
     def test_2002_standings(self):
         result = standings(season_end_year=2002)
-        self.assertEqual(len(result), 29)
+        assert len(result) == 29
 
         nets = result[0]
-        self.assertEqual(nets["team"], Team.NEW_JERSEY_NETS)
-        self.assertEqual(nets["wins"], 52)
-        self.assertEqual(nets["losses"], 30)
-        self.assertEqual(nets["division"], Division.ATLANTIC)
-        self.assertEqual(nets["conference"], Conference.EASTERN)
+        assert nets["team"] == Team.NEW_JERSEY_NETS
+        assert nets["wins"] == 52
+        assert nets["losses"] == 30
+        assert nets["division"] == Division.ATLANTIC
+        assert nets["conference"] == Conference.EASTERN
 
         golden_state_warriors = result[28]
-        self.assertEqual(golden_state_warriors["team"], Team.GOLDEN_STATE_WARRIORS)
-        self.assertEqual(golden_state_warriors["wins"], 21)
-        self.assertEqual(golden_state_warriors["losses"], 61)
-        self.assertEqual(golden_state_warriors["division"], Division.PACIFIC)
-        self.assertEqual(golden_state_warriors["conference"], Conference.WESTERN)
+        assert golden_state_warriors["team"] == Team.GOLDEN_STATE_WARRIORS
+        assert golden_state_warriors["wins"] == 21
+        assert golden_state_warriors["losses"] == 61
+        assert golden_state_warriors["division"] == Division.PACIFIC
+        assert golden_state_warriors["conference"] == Conference.WESTERN
 
 
 @StandingsMocker(
@@ -175,54 +175,54 @@ class Test2002StandingsInMemory(TestCase):
         os.path.dirname(__file__),
         "../files/schedule",
     ),
-    season_end_year=2005
+    season_end_year=2005,
 )
 class Test2005StandingsInMemory(TestCase):
     def test_2005_standings(self):
         result = standings(season_end_year=2005)
-        self.assertEqual(len(result), 30)
+        assert len(result) == 30
 
         phoenix_suns = result[0]
-        self.assertEqual(phoenix_suns["team"], Team.BOSTON_CELTICS)
-        self.assertEqual(phoenix_suns["wins"], 45)
-        self.assertEqual(phoenix_suns["losses"], 37)
-        self.assertEqual(phoenix_suns["division"], Division.ATLANTIC)
-        self.assertEqual(phoenix_suns["conference"], Conference.EASTERN)
+        assert phoenix_suns["team"] == Team.BOSTON_CELTICS
+        assert phoenix_suns["wins"] == 45
+        assert phoenix_suns["losses"] == 37
+        assert phoenix_suns["division"] == Division.ATLANTIC
+        assert phoenix_suns["conference"] == Conference.EASTERN
 
         detroit_pistons = result[5]
-        self.assertEqual(detroit_pistons["team"], Team.DETROIT_PISTONS)
-        self.assertEqual(detroit_pistons["wins"], 54)
-        self.assertEqual(detroit_pistons["losses"], 28)
-        self.assertEqual(detroit_pistons["division"], Division.CENTRAL)
-        self.assertEqual(detroit_pistons["conference"], Conference.EASTERN)
+        assert detroit_pistons["team"] == Team.DETROIT_PISTONS
+        assert detroit_pistons["wins"] == 54
+        assert detroit_pistons["losses"] == 28
+        assert detroit_pistons["division"] == Division.CENTRAL
+        assert detroit_pistons["conference"] == Conference.EASTERN
 
         miami_heat = result[10]
-        self.assertEqual(miami_heat["team"], Team.MIAMI_HEAT)
-        self.assertEqual(miami_heat["wins"], 59)
-        self.assertEqual(miami_heat["losses"], 23)
-        self.assertEqual(miami_heat["division"], Division.SOUTHEAST)
-        self.assertEqual(miami_heat["conference"], Conference.EASTERN)
+        assert miami_heat["team"] == Team.MIAMI_HEAT
+        assert miami_heat["wins"] == 59
+        assert miami_heat["losses"] == 23
+        assert miami_heat["division"] == Division.SOUTHEAST
+        assert miami_heat["conference"] == Conference.EASTERN
 
         seattle_supersonics = result[15]
-        self.assertEqual(seattle_supersonics["team"], Team.SEATTLE_SUPERSONICS)
-        self.assertEqual(seattle_supersonics["wins"], 52)
-        self.assertEqual(seattle_supersonics["losses"], 30)
-        self.assertEqual(seattle_supersonics["division"], Division.NORTHWEST)
-        self.assertEqual(seattle_supersonics["conference"], Conference.WESTERN)
+        assert seattle_supersonics["team"] == Team.SEATTLE_SUPERSONICS
+        assert seattle_supersonics["wins"] == 52
+        assert seattle_supersonics["losses"] == 30
+        assert seattle_supersonics["division"] == Division.NORTHWEST
+        assert seattle_supersonics["conference"] == Conference.WESTERN
 
         phoenix_suns = result[20]
-        self.assertEqual(phoenix_suns["team"], Team.PHOENIX_SUNS)
-        self.assertEqual(phoenix_suns["wins"], 62)
-        self.assertEqual(phoenix_suns["losses"], 20)
-        self.assertEqual(phoenix_suns["division"], Division.PACIFIC)
-        self.assertEqual(phoenix_suns["conference"], Conference.WESTERN)
+        assert phoenix_suns["team"] == Team.PHOENIX_SUNS
+        assert phoenix_suns["wins"] == 62
+        assert phoenix_suns["losses"] == 20
+        assert phoenix_suns["division"] == Division.PACIFIC
+        assert phoenix_suns["conference"] == Conference.WESTERN
 
         new_orleans_hornets = result[29]
-        self.assertEqual(new_orleans_hornets["team"], Team.NEW_ORLEANS_HORNETS)
-        self.assertEqual(new_orleans_hornets["wins"], 18)
-        self.assertEqual(new_orleans_hornets["losses"], 64)
-        self.assertEqual(new_orleans_hornets["division"], Division.SOUTHWEST)
-        self.assertEqual(new_orleans_hornets["conference"], Conference.WESTERN)
+        assert new_orleans_hornets["team"] == Team.NEW_ORLEANS_HORNETS
+        assert new_orleans_hornets["wins"] == 18
+        assert new_orleans_hornets["losses"] == 64
+        assert new_orleans_hornets["division"] == Division.SOUTHWEST
+        assert new_orleans_hornets["conference"] == Conference.WESTERN
 
 
 @StandingsMocker(
@@ -230,54 +230,54 @@ class Test2005StandingsInMemory(TestCase):
         os.path.dirname(__file__),
         "../files/schedule",
     ),
-    season_end_year=2020
+    season_end_year=2020,
 )
 class Test2020StandingsInMemory(TestCase):
     def test_2020_standings(self):
         result = standings(season_end_year=2020)
-        self.assertEqual(len(result), 30)
+        assert len(result) == 30
 
         toronto_raptors = result[0]
-        self.assertEqual(toronto_raptors["team"], Team.TORONTO_RAPTORS)
-        self.assertEqual(toronto_raptors["wins"], 53)
-        self.assertEqual(toronto_raptors["losses"], 19)
-        self.assertEqual(toronto_raptors["division"], Division.ATLANTIC)
-        self.assertEqual(toronto_raptors["conference"], Conference.EASTERN)
+        assert toronto_raptors["team"] == Team.TORONTO_RAPTORS
+        assert toronto_raptors["wins"] == 53
+        assert toronto_raptors["losses"] == 19
+        assert toronto_raptors["division"] == Division.ATLANTIC
+        assert toronto_raptors["conference"] == Conference.EASTERN
 
         milwaukee_bucks = result[5]
-        self.assertEqual(milwaukee_bucks["team"], Team.MILWAUKEE_BUCKS)
-        self.assertEqual(milwaukee_bucks["wins"], 56)
-        self.assertEqual(milwaukee_bucks["losses"], 17)
-        self.assertEqual(milwaukee_bucks["division"], Division.CENTRAL)
-        self.assertEqual(milwaukee_bucks["conference"], Conference.EASTERN)
+        assert milwaukee_bucks["team"] == Team.MILWAUKEE_BUCKS
+        assert milwaukee_bucks["wins"] == 56
+        assert milwaukee_bucks["losses"] == 17
+        assert milwaukee_bucks["division"] == Division.CENTRAL
+        assert milwaukee_bucks["conference"] == Conference.EASTERN
 
         orlando_magic = result[11]
-        self.assertEqual(orlando_magic["team"], Team.ORLANDO_MAGIC)
-        self.assertEqual(orlando_magic["wins"], 33)
-        self.assertEqual(orlando_magic["losses"], 40)
-        self.assertEqual(orlando_magic["division"], Division.SOUTHEAST)
-        self.assertEqual(orlando_magic["conference"], Conference.EASTERN)
+        assert orlando_magic["team"] == Team.ORLANDO_MAGIC
+        assert orlando_magic["wins"] == 33
+        assert orlando_magic["losses"] == 40
+        assert orlando_magic["division"] == Division.SOUTHEAST
+        assert orlando_magic["conference"] == Conference.EASTERN
 
         denver_nuggets = result[15]
-        self.assertEqual(denver_nuggets["team"], Team.DENVER_NUGGETS)
-        self.assertEqual(denver_nuggets["wins"], 46)
-        self.assertEqual(denver_nuggets["losses"], 27)
-        self.assertEqual(denver_nuggets["division"], Division.NORTHWEST)
-        self.assertEqual(denver_nuggets["conference"], Conference.WESTERN)
+        assert denver_nuggets["team"] == Team.DENVER_NUGGETS
+        assert denver_nuggets["wins"] == 46
+        assert denver_nuggets["losses"] == 27
+        assert denver_nuggets["division"] == Division.NORTHWEST
+        assert denver_nuggets["conference"] == Conference.WESTERN
 
         golden_state_warriors = result[24]
-        self.assertEqual(golden_state_warriors["team"], Team.GOLDEN_STATE_WARRIORS)
-        self.assertEqual(golden_state_warriors["wins"], 15)
-        self.assertEqual(golden_state_warriors["losses"], 50)
-        self.assertEqual(golden_state_warriors["division"], Division.PACIFIC)
-        self.assertEqual(golden_state_warriors["conference"], Conference.WESTERN)
+        assert golden_state_warriors["team"] == Team.GOLDEN_STATE_WARRIORS
+        assert golden_state_warriors["wins"] == 15
+        assert golden_state_warriors["losses"] == 50
+        assert golden_state_warriors["division"] == Division.PACIFIC
+        assert golden_state_warriors["conference"] == Conference.WESTERN
 
         dallas_mavericks = result[26]
-        self.assertEqual(dallas_mavericks["team"], Team.DALLAS_MAVERICKS)
-        self.assertEqual(dallas_mavericks["wins"], 43)
-        self.assertEqual(dallas_mavericks["losses"], 32)
-        self.assertEqual(dallas_mavericks["division"], Division.SOUTHWEST)
-        self.assertEqual(dallas_mavericks["conference"], Conference.WESTERN)
+        assert dallas_mavericks["team"] == Team.DALLAS_MAVERICKS
+        assert dallas_mavericks["wins"] == 43
+        assert dallas_mavericks["losses"] == 32
+        assert dallas_mavericks["division"] == Division.SOUTHWEST
+        assert dallas_mavericks["conference"] == Conference.WESTERN
 
 
 @StandingsMocker(
@@ -285,17 +285,15 @@ class Test2020StandingsInMemory(TestCase):
         os.path.dirname(__file__),
         "../files/schedule",
     ),
-    season_end_year=2001
+    season_end_year=2001,
 )
 class TestCSVStandingsFor2001(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/generated/standings/2001.csv"
+            os.path.dirname(__file__), "./output/generated/standings/2001.csv"
         )
         self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/expected/standings/2001.csv"
+            os.path.dirname(__file__), "./output/expected/standings/2001.csv"
         )
 
     def tearDown(self):
@@ -308,10 +306,7 @@ class TestCSVStandingsFor2001(TestCase):
             output_file_path=self.output_file_path,
             output_write_option=OutputWriteOption.WRITE,
         )
-        self.assertTrue(
-            filecmp.cmp(
-                self.output_file_path,
-                self.expected_output_file_path))
+        assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 @StandingsMocker(
@@ -319,17 +314,15 @@ class TestCSVStandingsFor2001(TestCase):
         os.path.dirname(__file__),
         "../files/schedule",
     ),
-    season_end_year=2001
+    season_end_year=2001,
 )
 class TestJSONPlayerBoxScores2001(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/generated/standings/2001.json"
+            os.path.dirname(__file__), "./output/generated/standings/2001.json"
         )
         self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/expected/standings/2001.json"
+            os.path.dirname(__file__), "./output/expected/standings/2001.json"
         )
 
     def tearDown(self):
@@ -343,10 +336,7 @@ class TestJSONPlayerBoxScores2001(TestCase):
             output_write_option=OutputWriteOption.WRITE,
         )
 
-        self.assertTrue(
-            filecmp.cmp(
-                self.output_file_path,
-                self.expected_output_file_path))
+        assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 @StandingsMocker(
@@ -354,13 +344,12 @@ class TestJSONPlayerBoxScores2001(TestCase):
         os.path.dirname(__file__),
         "../files/schedule",
     ),
-    season_end_year=2001
+    season_end_year=2001,
 )
 class TestInMemoryJSONStandings2001(TestCase):
     def setUp(self):
         self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/expected/standings/2001.json"
+            os.path.dirname(__file__), "./output/expected/standings/2001.json"
         )
 
     def test_2001_standings(self):
@@ -369,11 +358,10 @@ class TestInMemoryJSONStandings2001(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(self.expected_output_file_path, encoding="utf-8") as expected_output_file:
-            self.assertEqual(
-                json.loads(box_scores),
-                json.load(expected_output_file)
-            )
+        with open(
+            self.expected_output_file_path, encoding="utf-8"
+        ) as expected_output_file:
+            assert json.loads(box_scores) == json.load(expected_output_file)
 
 
 @StandingsMocker(
@@ -381,17 +369,15 @@ class TestInMemoryJSONStandings2001(TestCase):
         os.path.dirname(__file__),
         "../files/schedule",
     ),
-    season_end_year=2019
+    season_end_year=2019,
 )
 class TestCSVStandingsFor2019(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/generated/standings/2019.csv"
+            os.path.dirname(__file__), "./output/generated/standings/2019.csv"
         )
         self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/expected/standings/2019.csv"
+            os.path.dirname(__file__), "./output/expected/standings/2019.csv"
         )
 
     def tearDown(self):
@@ -404,10 +390,7 @@ class TestCSVStandingsFor2019(TestCase):
             output_file_path=self.output_file_path,
             output_write_option=OutputWriteOption.WRITE,
         )
-        self.assertTrue(
-            filecmp.cmp(
-                self.output_file_path,
-                self.expected_output_file_path))
+        assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 @StandingsMocker(
@@ -415,17 +398,15 @@ class TestCSVStandingsFor2019(TestCase):
         os.path.dirname(__file__),
         "../files/schedule",
     ),
-    season_end_year=2019
+    season_end_year=2019,
 )
 class TestJSONPlayerBoxScores2019(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/generated/standings/2019.json"
+            os.path.dirname(__file__), "./output/generated/standings/2019.json"
         )
         self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/expected/standings/2019.json"
+            os.path.dirname(__file__), "./output/expected/standings/2019.json"
         )
 
     def tearDown(self):
@@ -439,10 +420,7 @@ class TestJSONPlayerBoxScores2019(TestCase):
             output_write_option=OutputWriteOption.WRITE,
         )
 
-        self.assertTrue(
-            filecmp.cmp(
-                self.output_file_path,
-                self.expected_output_file_path))
+        assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 @StandingsMocker(
@@ -450,13 +428,12 @@ class TestJSONPlayerBoxScores2019(TestCase):
         os.path.dirname(__file__),
         "../files/schedule",
     ),
-    season_end_year=2019
+    season_end_year=2019,
 )
 class TestInMemoryJSONStandings2019(TestCase):
     def setUp(self):
         self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/expected/standings/2019.json"
+            os.path.dirname(__file__), "./output/expected/standings/2019.json"
         )
 
     def test_2019_standings(self):
@@ -465,8 +442,7 @@ class TestInMemoryJSONStandings2019(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(self.expected_output_file_path, encoding="utf-8") as expected_output_file:
-            self.assertEqual(
-                json.loads(box_scores),
-                json.load(expected_output_file)
-            )
+        with open(
+            self.expected_output_file_path, encoding="utf-8"
+        ) as expected_output_file:
+            assert json.loads(box_scores) == json.load(expected_output_file)

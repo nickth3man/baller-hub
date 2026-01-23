@@ -1,5 +1,5 @@
 LIST_TEAMS = """
-    SELECT 
+    SELECT
         team_id,
         abbreviation,
         name,
@@ -12,7 +12,7 @@ LIST_TEAMS = """
 """
 
 GET_TEAM_BY_ABBREVIATION = """
-    SELECT 
+    SELECT
         team_id,
         abbreviation,
         name,
@@ -29,7 +29,7 @@ GET_TEAM_ID = """
 """
 
 GET_TEAM_ROSTER = """
-    SELECT 
+    SELECT
         p.player_id,
         p.slug,
         (p.first_name || ' ' || p.last_name) as name,
@@ -45,31 +45,31 @@ GET_TEAM_ROSTER = """
 """
 
 GET_TEAM_SCHEDULE = """
-    SELECT 
+    SELECT
         g.game_id,
         g.date,
         CASE WHEN g.home_team_id = ? THEN g.home_score ELSE g.away_score END as team_score,
         CASE WHEN g.home_team_id = ? THEN g.away_score ELSE g.home_score END as opponent_score,
         CASE WHEN g.home_team_id = ? THEN 'HOME' ELSE 'AWAY' END as location,
         CASE WHEN (g.home_team_id = ? AND g.home_score > g.away_score) OR
-                  (g.away_team_id = ? AND g.away_score > g.home_score) 
+                  (g.away_team_id = ? AND g.away_score > g.home_score)
              THEN 'W' ELSE 'L' END as result,
         t_opp.abbreviation as opponent_abbrev
     FROM games g
     JOIN dim_teams t_opp ON (CASE WHEN g.home_team_id = ? THEN g.away_team_id ELSE g.home_team_id END) = t_opp.team_id
-    WHERE (g.home_team_id = ? OR g.away_team_id = ?) 
+    WHERE (g.home_team_id = ? OR g.away_team_id = ?)
       AND g.season_year = ?
     ORDER BY g.date
 """
 
 GET_TEAM_SEASON_STATS = """
-    SELECT * FROM team_season_stats 
-    WHERE team_id = ? AND season_id = ? 
+    SELECT * FROM team_season_stats
+    WHERE team_id = ? AND season_id = ?
     -- Note: This table might need adjustment based on schema
 """
 
 GET_TEAM_HISTORY = """
-    SELECT 
+    SELECT
         ts.season_id as year,
         ts.wins,
         ts.losses,

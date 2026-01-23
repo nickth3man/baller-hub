@@ -71,37 +71,37 @@ __all__ = [
     "PLAYER_SEASON_BOX_SCORES_GAME_DATE_FORMAT",
     "PLAYER_SEASON_BOX_SCORES_OUTCOME_REGEX",
     "SEARCH_RESULT_NAME_REGEX",
+    # Standings parsers
+    "ConferenceDivisionStandingsParser",
+    "DivisionNameParser",
     # Base parsers
     "LeagueAbbreviationParser",
     "LocationAbbreviationParser",
     "OutcomeAbbreviationParser",
-    "PositionAbbreviationParser",
-    "TeamAbbreviationParser",
-    # Box score parsers
-    "PlayerBoxScoreOutcomeParser",
-    "PlayerBoxScoresParser",
-    "PlayerSeasonBoxScoresParser",
     # Play-by-play parsers
     "PeriodDetailsParser",
     "PeriodTimestampParser",
     "PlayByPlaysParser",
-    "ScoresParser",
-    "SecondsPlayedParser",
     # Player parsers
     "PlayerAdvancedSeasonTotalsParser",
+    # Box score parsers
+    "PlayerBoxScoreOutcomeParser",
+    "PlayerBoxScoresParser",
+    # Search parsers
+    "PlayerDataParser",
+    "PlayerSeasonBoxScoresParser",
     "PlayerSeasonTotalsParser",
+    "PositionAbbreviationParser",
+    "ResourceLocationParser",
     # Schedule parsers
     "ScheduledGamesParser",
     "ScheduledStartTimeParser",
-    "TeamNameParser",
-    # Search parsers
-    "PlayerDataParser",
-    "ResourceLocationParser",
+    "ScoresParser",
     "SearchResultNameParser",
     "SearchResultsParser",
-    # Standings parsers
-    "ConferenceDivisionStandingsParser",
-    "DivisionNameParser",
+    "SecondsPlayedParser",
+    "TeamAbbreviationParser",
+    "TeamNameParser",
     "TeamStandingsParser",
     # Team parsers
     "TeamTotalsParser",

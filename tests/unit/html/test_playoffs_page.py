@@ -16,28 +16,28 @@ class TestPlayoffsPage(TestCase):
         from src.scraper.html.playoffs import PlayoffsPage
 
         page = PlayoffsPage(html=self.html)
-        self.assertIn("playoff", page.bracket_query.lower())
+        assert "playoff" in page.bracket_query.lower()
 
     def test_series_links_query(self):
         """Test xpath query for series links."""
         from src.scraper.html.playoffs import PlayoffsPage
 
         page = PlayoffsPage(html=self.html)
-        self.assertIsNotNone(page.series_links_query)
+        assert page.series_links_query is not None
 
     def test_champion_query(self):
         """Test xpath query for champion."""
         from src.scraper.html.playoffs import PlayoffsPage
 
         page = PlayoffsPage(html=self.html)
-        self.assertIsNotNone(page.champion_query)
+        assert page.champion_query is not None
 
     def test_finals_mvp_query(self):
         """Test xpath query for Finals MVP."""
         from src.scraper.html.playoffs import PlayoffsPage
 
         page = PlayoffsPage(html=self.html)
-        self.assertIsNotNone(page.finals_mvp_query)
+        assert page.finals_mvp_query is not None
 
 
 class TestPlayoffSeriesPage(TestCase):
@@ -52,28 +52,28 @@ class TestPlayoffSeriesPage(TestCase):
         from src.scraper.html.playoffs import PlayoffSeriesPage
 
         page = PlayoffSeriesPage(html=self.html)
-        self.assertIsNotNone(page.series_result_query)
+        assert page.series_result_query is not None
 
     def test_games_table_query(self):
         """Test xpath query for games table."""
         from src.scraper.html.playoffs import PlayoffSeriesPage
 
         page = PlayoffSeriesPage(html=self.html)
-        self.assertIn("table", page.games_table_query)
+        assert "table" in page.games_table_query
 
     def test_team1_stats_query(self):
         """Test xpath query for team 1 stats."""
         from src.scraper.html.playoffs import PlayoffSeriesPage
 
         page = PlayoffSeriesPage(html=self.html)
-        self.assertIn("stats_table", page.team1_stats_query)
+        assert "stats_table" in page.team1_stats_query
 
     def test_team2_stats_query(self):
         """Test xpath query for team 2 stats."""
         from src.scraper.html.playoffs import PlayoffSeriesPage
 
         page = PlayoffSeriesPage(html=self.html)
-        self.assertIn("stats_table", page.team2_stats_query)
+        assert "stats_table" in page.team2_stats_query
 
 
 class TestPlayoffGameRow(TestCase):
@@ -88,32 +88,32 @@ class TestPlayoffGameRow(TestCase):
         from src.scraper.html.playoffs import PlayoffGameRow
 
         row = PlayoffGameRow(html=self.html)
-        self.assertIsNotNone(row.game_number_query)
+        assert row.game_number_query is not None
 
     def test_date_query(self):
         """Test xpath query for game date."""
         from src.scraper.html.playoffs import PlayoffGameRow
 
         row = PlayoffGameRow(html=self.html)
-        self.assertIsNotNone(row.date_query)
+        assert row.date_query is not None
 
     def test_home_team_query(self):
         """Test xpath query for home team."""
         from src.scraper.html.playoffs import PlayoffGameRow
 
         row = PlayoffGameRow(html=self.html)
-        self.assertIsNotNone(row.home_team_query)
+        assert row.home_team_query is not None
 
     def test_away_team_query(self):
         """Test xpath query for away team."""
         from src.scraper.html.playoffs import PlayoffGameRow
 
         row = PlayoffGameRow(html=self.html)
-        self.assertIsNotNone(row.away_team_query)
+        assert row.away_team_query is not None
 
     def test_score_query(self):
         """Test xpath query for score."""
         from src.scraper.html.playoffs import PlayoffGameRow
 
         row = PlayoffGameRow(html=self.html)
-        self.assertIsNotNone(row.score_query)
+        assert row.score_query is not None

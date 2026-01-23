@@ -15,19 +15,13 @@ class TestDraftPage(TestCase):
         """Test xpath query for draft table."""
         from src.scraper.html.draft import DraftPage
 
-        self.assertEqual(
-            DraftPage(html=self.html).draft_table_query,
-            '//table[@id="stats"]',
-        )
+        assert DraftPage(html=self.html).draft_table_query == '//table[@id="stats"]'
 
     def test_rows_query(self):
         """Test xpath query for draft rows."""
         from src.scraper.html.draft import DraftPage
 
-        self.assertEqual(
-            DraftPage(html=self.html).rows_query,
-            '//table[@id="stats"]//tbody/tr[not(contains(@class, "thead"))]',
-        )
+        assert DraftPage(html=self.html).rows_query == '//table[@id="stats"]//tbody/tr[not(contains(@class, "thead"))]'
 
     @patch.object(MagicMock, "xpath", create=True)
     def test_rows_returns_draft_rows_when_found(self, _mock_xpath):
@@ -40,8 +34,8 @@ class TestDraftPage(TestCase):
         page = DraftPage(html=self.html)
 
         rows = page.rows
-        self.assertEqual(len(rows), 1)
-        self.assertIsInstance(rows[0], DraftRow)
+        assert len(rows) == 1
+        assert isinstance(rows[0], DraftRow)
 
 
 class TestDraftRow(TestCase):
@@ -56,39 +50,39 @@ class TestDraftRow(TestCase):
         from src.scraper.html.draft import DraftRow
 
         row = DraftRow(html=self.html)
-        self.assertEqual(row.pick_query, 'td[@data-stat="pick_overall"]')
+        assert row.pick_query == 'td[@data-stat="pick_overall"]'
 
     def test_round_query(self):
         """Test xpath query for round."""
         from src.scraper.html.draft import DraftRow
 
         row = DraftRow(html=self.html)
-        self.assertEqual(row.round_query, 'td[@data-stat="round_pick"]')
+        assert row.round_query == 'td[@data-stat="round_pick"]'
 
     def test_team_query(self):
         """Test xpath query for team."""
         from src.scraper.html.draft import DraftRow
 
         row = DraftRow(html=self.html)
-        self.assertEqual(row.team_query, 'td[@data-stat="team_id"]/a')
+        assert row.team_query == 'td[@data-stat="team_id"]/a'
 
     def test_player_query(self):
         """Test xpath query for player name."""
         from src.scraper.html.draft import DraftRow
 
         row = DraftRow(html=self.html)
-        self.assertEqual(row.player_query, 'td[@data-stat="player"]/a')
+        assert row.player_query == 'td[@data-stat="player"]/a'
 
     def test_college_query(self):
         """Test xpath query for college."""
         from src.scraper.html.draft import DraftRow
 
         row = DraftRow(html=self.html)
-        self.assertEqual(row.college_query, 'td[@data-stat="college_name"]/a')
+        assert row.college_query == 'td[@data-stat="college_name"]/a'
 
     def test_years_active_query(self):
         """Test xpath query for years active in NBA."""
         from src.scraper.html.draft import DraftRow
 
         row = DraftRow(html=self.html)
-        self.assertEqual(row.years_active_query, 'td[@data-stat="years_played"]')
+        assert row.years_active_query == 'td[@data-stat="years_played"]'

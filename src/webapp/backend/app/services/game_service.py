@@ -5,8 +5,10 @@ data access operations including listing games, retrieving box scores,
 play-by-play data, and weekly game summaries.
 """
 
+from datetime import UTC, date, datetime, timedelta
+
 import duckdb
-from datetime import date, timedelta
+
 from app.db.queries import games as game_queries
 
 
@@ -92,7 +94,7 @@ class GameService:
 
         result = self.conn.execute(query, params).fetchall()
         columns = [desc[0] for desc in self.conn.description]
-        items = [dict(zip(columns, row)) for row in result]
+        items = [dict(zip(columns, row, strict=False)) for row in result]
 
         return {
             "items": items,
@@ -112,12 +114,12 @@ class GameService:
             list[dict]: List of game records for the specified date.
         """
         if target_date is None:
-            target_date = date.today()
+            target_date = datetime.now(UTC).date()
 
         query = game_queries.LIST_GAMES + " AND g.date = ? ORDER BY g.date"
         result = self.conn.execute(query, [target_date]).fetchall()
         columns = [desc[0] for desc in self.conn.description]
-        return [dict(zip(columns, row)) for row in result]
+        return [dict(zip(columns, row, strict=False)) for row in result]
 
     def get_game_by_id(self, game_id: int) -> dict | None:
         """Retrieve a single game by its ID.
@@ -134,7 +136,7 @@ class GameService:
             return None
 
         columns = [desc[0] for desc in self.conn.description]
-        return dict(zip(columns, result))
+        return dict(zip(columns, result, strict=False))
 
     def get_box_score(self, game_id: int) -> dict | None:
         """Retrieve player box scores for a specific game.
@@ -158,7 +160,7 @@ class GameService:
         ).fetchall()
 
         cols = [desc[0] for desc in self.conn.description]
-        players = [dict(zip(cols, row)) for row in rows]
+        players = [dict(zip(cols, row, strict=False)) for row in rows]
 
         home_players = [p for p in players if p["team_id"] == game["home_team_id"]]
         away_players = [p for p in players if p["team_id"] == game["away_team_id"]]
@@ -206,7 +208,7 @@ class GameService:
             return None
 
         cols = [desc[0] for desc in self.conn.description]
-        plays = [dict(zip(cols, row)) for row in result]
+        plays = [dict(zip(cols, row, strict=False)) for row in result]
 
         return {"game_id": game_id, "plays": plays, "period_filter": period}
 
@@ -226,7 +228,7 @@ class GameService:
                 - games_by_date: Dictionary mapping dates to game lists.
         """
         if reference_date is None:
-            reference_date = date.today()
+            reference_date = datetime.now(UTC).date()
 
         start_date = reference_date - timedelta(days=3)
         end_date = reference_date + timedelta(days=3)

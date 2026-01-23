@@ -10,6 +10,6 @@ class TestPlayerData(TestCase):
             resource_location="some location",
             league_abbreviations=["NBA", "ABA", "NBA", "ABA"],
         )
-        self.assertEqual(data.name, "some name")
-        self.assertEqual(data.resource_location, "some location")
-        self.assertEqual(data.league_abbreviations, {"NBA", "ABA"})
+        assert data.name == "some name"
+        assert data.resource_location == "some location"
+        assert data.league_abbreviations == {"NBA", "ABA"}

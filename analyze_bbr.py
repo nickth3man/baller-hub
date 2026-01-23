@@ -7,7 +7,6 @@ tables with IDs, including those hidden in HTML comments.
 
 import logging
 
-
 from curl_cffi import requests
 from lxml import html
 

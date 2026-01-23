@@ -6,6 +6,7 @@ game logs, career statistics, and splits.
 """
 
 import duckdb
+
 from app.db.queries import players as player_queries
 
 
@@ -93,7 +94,7 @@ class PlayerService:
         result = self.conn.execute(query, params).fetchall()
 
         columns = [desc[0] for desc in self.conn.description]
-        items = [dict(zip(columns, row)) for row in result]
+        items = [dict(zip(columns, row, strict=False)) for row in result]
 
         return {
             "items": items,
@@ -118,7 +119,7 @@ class PlayerService:
             return None
 
         columns = [desc[0] for desc in self.conn.description]
-        return dict(zip(columns, result))
+        return dict(zip(columns, result, strict=False))
 
     def get_player_game_log(
         self,
@@ -143,12 +144,8 @@ class PlayerService:
                 - totals: Aggregated totals (games_played, points, rebounds, assists).
             None if player not found.
         """
-        self,
-        player_slug: str,
-        season_year: int,
-        season_type: str = "REGULAR",
-    ) -> dict | None:
         player = self.get_player_by_slug(player_slug)
+
         if not player:
             return None
 
@@ -157,7 +154,7 @@ class PlayerService:
         ).fetchall()
 
         columns = [desc[0] for desc in self.conn.description]
-        games = [dict(zip(columns, row)) for row in rows]
+        games = [dict(zip(columns, row, strict=False)) for row in rows]
 
         totals = {
             "games_played": len(games),
@@ -189,7 +186,7 @@ class PlayerService:
         ).fetchall()
 
         columns = [desc[0] for desc in self.conn.description]
-        return [dict(zip(columns, row)) for row in rows]
+        return [dict(zip(columns, row, strict=False)) for row in rows]
 
     def get_player_career(self, player_slug: str) -> dict | None:
         """Retrieve aggregated career totals for a player.
@@ -217,5 +214,5 @@ class PlayerService:
             "career_points": total_points,
         }
 
-    def get_player_splits(self, player_slug: str, season_year: int) -> dict:
+    def get_player_splits(self, _player_slug: str, _season_year: int) -> dict:
         return {}

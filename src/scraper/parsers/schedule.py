@@ -1,5 +1,7 @@
 """Parsers for schedule data."""
 
+from datetime import datetime
+
 import pytz
 
 from src.scraper.utils.casting import str_to_int
@@ -51,8 +53,7 @@ class ScheduledStartTimeParser:
         Returns:
             datetime: UTC start time.
         """
-        from datetime import datetime
-
+        est = pytz.timezone("US/Eastern")
         if formatted_time_of_day is not None and formatted_time_of_day not in ["", " "]:
             # Starting in 2018, the start times had a "p" or "a" appended to the end
             # Between 2001 and 2017, the start times had a "pm" or "am"
@@ -73,20 +74,19 @@ class ScheduledStartTimeParser:
                 )
 
             if is_prior_format:
-                start_time = datetime.strptime(
-                    combined_formatted_time, "%a, %b %d, %Y %I:%M %p"
+                start_time = est.localize(
+                    datetime.strptime(combined_formatted_time, "%a, %b %d, %Y %I:%M %p")  # noqa: DTZ007
                 )
             else:
-                start_time = datetime.strptime(
-                    combined_formatted_time, "%a, %b %d, %Y %I:%M%p"
+                start_time = est.localize(
+                    datetime.strptime(combined_formatted_time, "%a, %b %d, %Y %I:%M%p")  # noqa: DTZ007
                 )
         else:
-            start_time = datetime.strptime(formatted_date, "%a, %b %d, %Y")
+            start_time = est.localize(
+                datetime.strptime(formatted_date, "%a, %b %d, %Y")  # noqa: DTZ007
+            )
 
-        # All basketball reference times seem to be in Eastern
-        est = pytz.timezone("US/Eastern")
-        localized_start_time = est.localize(start_time)
-        return localized_start_time.astimezone(self.time_zone)
+        return start_time.astimezone(self.time_zone)
 
 
 class ScheduledGamesParser:

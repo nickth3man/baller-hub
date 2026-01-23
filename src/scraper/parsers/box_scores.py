@@ -1,7 +1,7 @@
 """Parsers for box score data."""
 
 import re
-from datetime import datetime
+from datetime import date
 
 from src.scraper.parsers.base import PLAYER_SEASON_BOX_SCORES_OUTCOME_REGEX
 from src.scraper.utils.casting import str_to_float, str_to_int
@@ -179,7 +179,7 @@ class PlayerSeasonBoxScoresParser:
 
         for box_score in box_scores:
             common = {
-                "date": datetime.strptime(str(box_score.date), "%Y-%m-%d").date(),
+                "date": date.fromisoformat(str(box_score.date)),
                 "team": self.team_abbreviation_parser.from_abbreviation(
                     box_score.team_abbreviation
                 ),

@@ -30,10 +30,10 @@ class TestAllStarParser(TestCase):
         parser = AllStarParser()
         result = parser.parse(mock_page)
 
-        self.assertEqual(result["mvp"], "Giannis Antetokounmpo")
-        self.assertEqual(len(result["east_roster"]), 1)
-        self.assertEqual(result["east_roster"][0]["player"], "Joel Embiid")
-        self.assertEqual(result["east_roster"][0]["points"], 30)
-        self.assertEqual(len(result["west_roster"]), 1)
-        self.assertEqual(result["west_roster"][0]["player"], "LeBron James")
-        self.assertEqual(result["west_roster"][0]["points"], 25)
+        assert result["mvp"] == "Giannis Antetokounmpo"
+        assert len(result["east_roster"]) == 1
+        assert result["east_roster"][0]["player"] == "Joel Embiid"
+        assert result["east_roster"][0]["points"] == 30
+        assert len(result["west_roster"]) == 1
+        assert result["west_roster"][0]["player"] == "LeBron James"
+        assert result["west_roster"][0]["points"] == 25

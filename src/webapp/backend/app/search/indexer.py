@@ -1,3 +1,5 @@
+from typing import Any
+
 import duckdb
 import structlog
 from meilisearch import Client
@@ -55,7 +57,7 @@ class SearchIndexer:
 
         result = conn.execute(search_queries.INDEX_ALL_PLAYERS).fetchall()
         columns = [desc[0] for desc in conn.description]
-        players = [dict(zip(columns, row)) for row in result]
+        players = [dict(zip(columns, row, strict=False)) for row in result]
 
         documents = [self._player_to_document(p) for p in players]
 
@@ -71,7 +73,7 @@ class SearchIndexer:
 
         result = conn.execute(search_queries.INDEX_ALL_TEAMS).fetchall()
         columns = [desc[0] for desc in conn.description]
-        teams = [dict(zip(columns, row)) for row in result]
+        teams = [dict(zip(columns, row, strict=False)) for row in result]
 
         documents = [self._team_to_document(t) for t in teams]
 
@@ -98,7 +100,7 @@ class SearchIndexer:
 
         result = conn.execute(query, params).fetchall()
         columns = [desc[0] for desc in conn.description]
-        games = [dict(zip(columns, row)) for row in result]
+        games = [dict(zip(columns, row, strict=False)) for row in result]
 
         documents = [self._game_to_document(g) for g in games]
 
@@ -183,33 +185,33 @@ class SearchIndexer:
 
         try:
             player_results = self.search_players(query, limit=limit // 2)
-            for hit in player_results.get("hits", []):
-                suggestions.append(
-                    {
-                        "type": "player",
-                        "id": hit.get("player_id"),
-                        "slug": hit.get("slug"),
-                        "text": hit.get("full_name"),
-                        "subtitle": hit.get("position", "").replace("_", " "),
-                        "url": f"/players/{hit.get('slug')}",
-                    }
-                )
+            suggestions.extend(
+                {
+                    "type": "player",
+                    "id": hit.get("player_id"),
+                    "slug": hit.get("slug"),
+                    "text": hit.get("full_name"),
+                    "subtitle": hit.get("position", "").replace("_", " "),
+                    "url": f"/players/{hit.get('slug')}",
+                }
+                for hit in player_results.get("hits", [])
+            )
         except Exception:
             pass
 
         try:
             team_results = self.search_teams(query, limit=limit // 2)
-            for hit in team_results.get("hits", []):
-                suggestions.append(
-                    {
-                        "type": "team",
-                        "id": hit.get("team_id"),
-                        "text": hit.get("full_name")
-                        or f"{hit.get('city')} {hit.get('name')}",
-                        "subtitle": hit.get("abbreviation"),
-                        "url": f"/teams/{hit.get('abbreviation')}",
-                    }
-                )
+            suggestions.extend(
+                {
+                    "type": "team",
+                    "id": hit.get("team_id"),
+                    "text": hit.get("full_name")
+                    or f"{hit.get('city')} {hit.get('name')}",
+                    "subtitle": hit.get("abbreviation"),
+                    "url": f"/teams/{hit.get('abbreviation')}",
+                }
+                for hit in team_results.get("hits", [])
+            )
         except Exception:
             pass
 

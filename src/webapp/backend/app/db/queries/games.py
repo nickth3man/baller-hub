@@ -1,5 +1,5 @@
 LIST_GAMES = """
-    SELECT 
+    SELECT
         g.game_id,
         g.date as game_date,
         g.home_team_id,
@@ -19,7 +19,7 @@ LIST_GAMES = """
 """
 
 GET_GAME_BY_ID = """
-    SELECT 
+    SELECT
         g.game_id,
         g.date as game_date,
         g.home_team_id,
@@ -40,7 +40,7 @@ GET_GAME_BY_ID = """
 """
 
 GET_PLAYER_BOX_SCORES = """
-    SELECT 
+    SELECT
         pg.*,
         p.slug,
         (p.first_name || ' ' || p.last_name) as full_name,

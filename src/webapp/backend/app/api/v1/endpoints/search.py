@@ -13,7 +13,7 @@ router = APIRouter()
 @router.get("/", response_model=SearchResponse)
 def search(
     q: str = Query(..., min_length=2, max_length=100),
-    type: str | None = Query(None, pattern="^(player|team|game)$"),
+    search_type: str | None = Query(None, pattern="^(player|team|game)$", alias="type"),
     limit: int = Query(20, ge=1, le=100),
     session: Session = Depends(get_session),
 ):
@@ -21,7 +21,7 @@ def search(
 
     Args:
         q: The search query string.
-        type: Optional filter by entity type (player, team, game).
+        search_type: Optional filter by entity type (player, team, game).
         limit: Maximum number of results to return.
         session: Database session.
 
@@ -29,7 +29,7 @@ def search(
         SearchResponse: The search results.
     """
     service = SearchService(session)
-    return service.search(query=q, entity_type=type, limit=limit)
+    return service.search(query=q, entity_type=search_type, limit=limit)
 
 
 @router.get("/autocomplete")

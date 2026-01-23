@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -109,7 +110,6 @@ class AwardRow:
         if not elements:
             return None
         href = elements[0].get("href", "")
-        import re
 
         match = re.search(r"/players/\w/(\w+)\.html", href)
         return match.group(1) if match else None

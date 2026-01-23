@@ -13,4 +13,4 @@ class TestPlayerBoxScoreOutcomeParser(TestCase):
         )
 
     def test_parse_win_abbreviation_for_single_digit_margin_of_victory(self):
-        self.assertEqual("W", self.parser.parse_outcome_abbreviation(formatted_outcome="W, (1, 0)"))
+        assert self.parser.parse_outcome_abbreviation(formatted_outcome="W, (1, 0)") == "W"

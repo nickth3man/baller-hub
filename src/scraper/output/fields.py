@@ -20,7 +20,7 @@ class FieldFormatter:
         Returns:
             bool: True if this formatter can handle the data.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __init__(self, data):
         """Initialize the formatter.

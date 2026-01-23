@@ -12,7 +12,9 @@ class TestCoachParser(TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.team_abbreviation_parser = MagicMock()
-        self.parser = CoachParser(team_abbreviation_parser=self.team_abbreviation_parser)
+        self.parser = CoachParser(
+            team_abbreviation_parser=self.team_abbreviation_parser
+        )
 
     def test_parse(self):
         """Test parsing coach page."""
@@ -32,10 +34,10 @@ class TestCoachParser(TestCase):
 
         result = self.parser.parse(mock_page)
 
-        self.assertEqual(result["name"], "Phil Jackson")
-        self.assertEqual(len(result["record"]), 1)
-        self.assertEqual(result["record"][0]["season"], "1995-96")
-        self.assertEqual(result["record"][0]["wins"], 72)
-        self.assertEqual(result["record"][0]["losses"], 10)
-        self.assertEqual(result["record"][0]["win_pct"], 0.878)
-        self.assertEqual(result["record"][0]["team"], "CHICAGO_BULLS")
+        assert result["name"] == "Phil Jackson"
+        assert len(result["record"]) == 1
+        assert result["record"][0]["season"] == "1995-96"
+        assert result["record"][0]["wins"] == 72
+        assert result["record"][0]["losses"] == 10
+        assert result["record"][0]["win_pct"] == 0.878
+        assert result["record"][0]["team"] == "CHICAGO_BULLS"

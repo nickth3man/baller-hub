@@ -12,7 +12,11 @@ Usage:
 
 import requests
 
-from src.scraper.common.errors import InvalidDate, InvalidPlayerAndSeason, InvalidSeason
+from src.scraper.common.errors import (
+    InvalidDateError,
+    InvalidPlayerAndSeasonError,
+    InvalidSeasonError,
+)
 from src.scraper.output.columns import (
     BOX_SCORE_COLUMN_NAMES,
     PLAY_BY_PLAY_COLUMN_NAMES,
@@ -65,7 +69,7 @@ def standings(
         dict: A dictionary containing standings data if no output_type is specified.
 
     Raises:
-        InvalidSeason: If the requested season is invalid or not found.
+        InvalidSeasonError: If the requested season is invalid or not found.
         requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
@@ -73,9 +77,9 @@ def standings(
         values = http_service.standings(season_end_year=season_end_year)
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidSeason(season_end_year=season_end_year) from None
-        else:
-            raise http_error
+            raise InvalidSeasonError(season_end_year=season_end_year) from None
+        raise
+
     options = OutputOptions.of(
         file_options=FileOptions.of(path=output_file_path, mode=output_write_option),
         output_type=output_type,
@@ -117,7 +121,7 @@ def player_box_scores(
         list[dict]: A list of box scores if output_type is None.
 
     Raises:
-        InvalidDate: If the date is invalid or no games were played.
+        InvalidDateError: If the date is invalid or no games were played.
         requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     # MENTAL MODEL: Execution Flow
@@ -132,9 +136,8 @@ def player_box_scores(
         values = http_service.player_box_scores(day=day, month=month, year=year)
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidDate(day=day, month=month, year=year) from None
-        else:
-            raise http_error
+            raise InvalidDateError(day=day, month=month, year=year) from None
+        raise
 
     options = OutputOptions.of(
         file_options=FileOptions.of(path=output_file_path, mode=output_write_option),
@@ -174,7 +177,7 @@ def regular_season_player_box_scores(
         list[dict]: List of game logs.
 
     Raises:
-        InvalidPlayerAndSeason: If the player or season is invalid.
+        InvalidPlayerAndSeasonError: If the player or season is invalid.
         requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
@@ -186,14 +189,13 @@ def regular_season_player_box_scores(
         )
     except requests.exceptions.HTTPError as http_error:
         if (
-            http_error.response.status_code == requests.codes.internal_server_error  # ty: ignore[unresolved-attribute]
-            or http_error.response.status_code == requests.codes.not_found  # ty: ignore[unresolved-attribute]
+            http_error.response.status_code in (requests.codes.internal_server_error, requests.codes.not_found)  # ty: ignore[unresolved-attribute]
         ):
-            raise InvalidPlayerAndSeason(
+            raise InvalidPlayerAndSeasonError(
                 player_identifier=player_identifier, season_end_year=season_end_year
             ) from None
-        else:
-            raise http_error
+        raise
+
     options = OutputOptions.of(
         file_options=FileOptions.of(path=output_file_path, mode=output_write_option),
         output_type=output_type,
@@ -230,7 +232,7 @@ def playoff_player_box_scores(
         list[dict]: List of playoff game logs.
 
     Raises:
-        InvalidPlayerAndSeason: If the player or season is invalid.
+        InvalidPlayerAndSeasonError: If the player or season is invalid.
         requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
@@ -242,14 +244,12 @@ def playoff_player_box_scores(
         )
     except requests.exceptions.HTTPError as http_error:
         if (
-            http_error.response.status_code == requests.codes.internal_server_error  # ty: ignore[unresolved-attribute]
-            or http_error.response.status_code == requests.codes.not_found  # ty: ignore[unresolved-attribute]
+            http_error.response.status_code in (requests.codes.internal_server_error, requests.codes.not_found)  # ty: ignore[unresolved-attribute]
         ):
-            raise InvalidPlayerAndSeason(
+            raise InvalidPlayerAndSeasonError(
                 player_identifier=player_identifier, season_end_year=season_end_year
             ) from None
-        else:
-            raise http_error
+        raise
 
     options = OutputOptions.of(
         file_options=FileOptions.of(path=output_file_path, mode=output_write_option),
@@ -284,7 +284,7 @@ def season_schedule(
         list[dict]: List of games containing date, home/away teams, and scores (if played).
 
     Raises:
-        InvalidSeason: If the requested season is invalid or not found.
+        InvalidSeasonError: If the requested season is invalid or not found.
         requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
@@ -293,9 +293,9 @@ def season_schedule(
     except requests.exceptions.HTTPError as http_error:
         # https://github.com/requests/requests/blob/master/requests/status_codes.py#L58
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidSeason(season_end_year=season_end_year) from None
-        else:
-            raise http_error
+            raise InvalidSeasonError(season_end_year=season_end_year) from None
+        raise
+
     options = OutputOptions.of(
         file_options=FileOptions.of(path=output_file_path, mode=output_write_option),
         output_type=output_type,
@@ -329,7 +329,7 @@ def players_season_totals(
         list[dict]: List of player totals (points, rebounds, assists, etc. per game).
 
     Raises:
-        InvalidSeason: If the requested season is invalid or not found.
+        InvalidSeasonError: If the requested season is invalid or not found.
         requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
@@ -337,9 +337,9 @@ def players_season_totals(
         values = http_service.players_season_totals(season_end_year=season_end_year)
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidSeason(season_end_year=season_end_year) from None
-        else:
-            raise http_error
+            raise InvalidSeasonError(season_end_year=season_end_year) from None
+        raise
+
     options = OutputOptions.of(
         file_options=FileOptions.of(path=output_file_path, mode=output_write_option),
         output_type=output_type,
@@ -375,7 +375,7 @@ def players_advanced_season_totals(
         list[dict]: List of advanced player stats.
 
     Raises:
-        InvalidSeason: If the requested season is invalid or not found.
+        InvalidSeasonError: If the requested season is invalid or not found.
         requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
@@ -385,9 +385,9 @@ def players_advanced_season_totals(
         )
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidSeason(season_end_year=season_end_year) from None
-        else:
-            raise http_error
+            raise InvalidSeasonError(season_end_year=season_end_year) from None
+        raise
+
     options = OutputOptions.of(
         file_options=FileOptions.of(path=output_file_path, mode=output_write_option),
         output_type=output_type,
@@ -424,7 +424,7 @@ def team_box_scores(
         list[dict]: List of team stats for that day's games.
 
     Raises:
-        InvalidDate: If the date is invalid or no games were played.
+        InvalidDateError: If the date is invalid or no games were played.
         requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
@@ -432,9 +432,9 @@ def team_box_scores(
         values = http_service.team_box_scores(day=day, month=month, year=year)
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidDate(day=day, month=month, year=year) from None
-        else:
-            raise http_error
+            raise InvalidDateError(day=day, month=month, year=year) from None
+        raise
+
     options = OutputOptions.of(
         file_options=FileOptions.of(path=output_file_path, mode=output_write_option),
         output_type=output_type,
@@ -474,7 +474,7 @@ def play_by_play(
         list[dict]: Chronological list of plays.
 
     Raises:
-        InvalidDate: If the date is invalid or no games were played.
+        InvalidDateError: If the date is invalid or no games were played.
         requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
@@ -484,9 +484,9 @@ def play_by_play(
         )
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == requests.codes.not_found:  # ty: ignore[unresolved-attribute]
-            raise InvalidDate(day=day, month=month, year=year) from None
-        else:
-            raise http_error
+            raise InvalidDateError(day=day, month=month, year=year) from None
+        raise
+
     options = OutputOptions.of(
         file_options=FileOptions.of(path=output_file_path, mode=output_write_option),
         output_type=output_type,

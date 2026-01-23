@@ -25,9 +25,9 @@ class TestLeadersParser(TestCase):
         parser = LeadersParser()
         result = parser.parse(mock_page)
 
-        self.assertEqual(result["stat"], "Points")
-        self.assertEqual(len(result["leaders"]), 1)
-        self.assertEqual(result["leaders"][0]["rank"], 1)
-        self.assertEqual(result["leaders"][0]["player"], "LeBron James")
-        self.assertEqual(result["leaders"][0]["value"], 40474.0)
-        self.assertEqual(result["leaders"][0]["player_id"], "jamesle01")
+        assert result["stat"] == "Points"
+        assert len(result["leaders"]) == 1
+        assert result["leaders"][0]["rank"] == 1
+        assert result["leaders"][0]["player"] == "LeBron James"
+        assert result["leaders"][0]["value"] == 40474.0
+        assert result["leaders"][0]["player_id"] == "jamesle01"

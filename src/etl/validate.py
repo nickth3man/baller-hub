@@ -56,10 +56,11 @@ def validate_etl(con):
 
     assert pss_count > 0, "player_season_stats is empty!"
 
+    retention_threshold = 0.9
     if staging_count > 0:
         ratio = pss_count / staging_count
         logger.info("Retention rate: %.2f%%", ratio * 100)
-        if ratio < 0.9:
+        if ratio < retention_threshold:
             logger.warning("WARNING: Low retention rate in player_season_stats (< 90%)")
 
     # 5. Check Games

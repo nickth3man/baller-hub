@@ -3,7 +3,7 @@
 import contextlib
 import hashlib
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 
@@ -69,7 +69,7 @@ class FileCache:
             cached_at = datetime.fromisoformat(meta["cached_at"])
             ttl = timedelta(seconds=meta.get("ttl", self._default_ttl.total_seconds()))
 
-            if datetime.now() - cached_at > ttl:
+            if datetime.now(UTC) - cached_at > ttl:
                 return None
 
             return path.read_bytes()
@@ -103,7 +103,7 @@ class FileCache:
 
             meta = {
                 "url": url,
-                "cached_at": datetime.now().isoformat(),
+                "cached_at": datetime.now(UTC).isoformat(),
                 "ttl": (ttl or self._default_ttl).total_seconds(),
             }
             meta_path.write_text(json.dumps(meta))

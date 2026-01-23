@@ -19,17 +19,16 @@ class TestCoachPage(TestCase):
         """Test xpath query for coaching record table."""
         from src.scraper.html.coach import CoachPage
 
-        self.assertEqual(
-            CoachPage(html=self.html).coaching_record_table_query,
-            '//table[contains(@id, "coach")]',
-        )
+        assert CoachPage(html=self.html).coaching_record_table_query == '//table[contains(@id, "coach")]'
 
     def test_name_query(self):
         """Test xpath query for coach name."""
         from src.scraper.html.coach import CoachPage
 
-        expected = '//div[@id="meta"]//h1/span | //h1[@itemprop="name"]/span | //h1/span'
-        self.assertEqual(CoachPage(html=self.html).name_query, expected)
+        expected = (
+            '//div[@id="meta"]//h1/span | //h1[@itemprop="name"]/span | //h1/span'
+        )
+        assert CoachPage(html=self.html).name_query == expected
 
     @patch.object(MagicMock, "xpath", create=True)
     def test_coaching_record_table_returns_table_when_found(self, _mock_xpath):
@@ -41,7 +40,7 @@ class TestCoachPage(TestCase):
         page = CoachPage(html=self.html)
 
         result = page.coaching_record_table
-        self.assertIsNotNone(result)
+        assert result is not None
 
     @patch.object(MagicMock, "xpath", create=True)
     def test_coaching_record_table_returns_none_when_not_found(self, _mock_xpath):
@@ -52,14 +51,14 @@ class TestCoachPage(TestCase):
         page = CoachPage(html=self.html)
 
         result = page.coaching_record_table
-        self.assertIsNone(result)
+        assert result is None
 
     def test_biography_section_query(self):
         """Test xpath query for biography section."""
         from src.scraper.html.coach import CoachPage
 
         expected = '//div[@id="meta"]'
-        self.assertEqual(CoachPage(html=self.html).biography_section_query, expected)
+        assert CoachPage(html=self.html).biography_section_query == expected
 
 
 class TestCoachingRecordRow(TestCase):
@@ -74,32 +73,32 @@ class TestCoachingRecordRow(TestCase):
         from src.scraper.html.coach import CoachingRecordRow
 
         row = CoachingRecordRow(html=self.html)
-        self.assertEqual(row.season_query, 'th[@data-stat="season"]/a | th[@data-stat="season"]')
+        assert row.season_query == 'th[@data-stat="season"]/a | th[@data-stat="season"]'
 
     def test_team_query(self):
         """Test xpath query for team."""
         from src.scraper.html.coach import CoachingRecordRow
 
         row = CoachingRecordRow(html=self.html)
-        self.assertEqual(row.team_query, 'td[@data-stat="team_id"]/a')
+        assert row.team_query == 'td[@data-stat="team_id"]/a'
 
     def test_wins_query(self):
         """Test xpath query for wins."""
         from src.scraper.html.coach import CoachingRecordRow
 
         row = CoachingRecordRow(html=self.html)
-        self.assertEqual(row.wins_query, 'td[@data-stat="wins"]')
+        assert row.wins_query == 'td[@data-stat="wins"]'
 
     def test_losses_query(self):
         """Test xpath query for losses."""
         from src.scraper.html.coach import CoachingRecordRow
 
         row = CoachingRecordRow(html=self.html)
-        self.assertEqual(row.losses_query, 'td[@data-stat="losses"]')
+        assert row.losses_query == 'td[@data-stat="losses"]'
 
     def test_win_pct_query(self):
         """Test xpath query for win percentage."""
         from src.scraper.html.coach import CoachingRecordRow
 
         row = CoachingRecordRow(html=self.html)
-        self.assertEqual(row.win_pct_query, 'td[@data-stat="win_loss_pct"]')
+        assert row.win_pct_query == 'td[@data-stat="win_loss_pct"]'

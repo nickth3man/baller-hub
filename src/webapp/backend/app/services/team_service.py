@@ -6,6 +6,7 @@ roster information, schedules, and season statistics.
 """
 
 import duckdb
+
 from app.db.queries import teams as team_queries
 
 
@@ -34,7 +35,7 @@ class TeamService:
 
         result = self.conn.execute(query, params).fetchall()
         columns = [desc[0] for desc in self.conn.description]
-        return [dict(zip(columns, row)) for row in result]
+        return [dict(zip(columns, row, strict=False)) for row in result]
 
     def get_team_by_abbreviation(self, abbreviation: str) -> dict | None:
         result = self.conn.execute(
@@ -45,7 +46,7 @@ class TeamService:
             return None
 
         columns = [desc[0] for desc in self.conn.description]
-        return dict(zip(columns, result))
+        return dict(zip(columns, result, strict=False))
 
     def get_team_roster(self, abbreviation: str, season_year: int) -> list[dict]:
         team = self.get_team_by_abbreviation(abbreviation)
@@ -58,7 +59,7 @@ class TeamService:
         ).fetchall()
 
         columns = [desc[0] for desc in self.conn.description]
-        return [dict(zip(columns, row)) for row in result]
+        return [dict(zip(columns, row, strict=False)) for row in result]
 
     def get_team_schedule(self, abbreviation: str, season_year: int) -> list[dict]:
         team = self.get_team_by_abbreviation(abbreviation)
@@ -71,7 +72,7 @@ class TeamService:
         result = self.conn.execute(team_queries.GET_TEAM_SCHEDULE, params).fetchall()
 
         columns = [desc[0] for desc in self.conn.description]
-        return [dict(zip(columns, row)) for row in result]
+        return [dict(zip(columns, row, strict=False)) for row in result]
 
     def get_team_season_stats(self, abbreviation: str, season_year: int) -> dict | None:
         team = self.get_team_by_abbreviation(abbreviation)
@@ -90,7 +91,7 @@ class TeamService:
             return None
 
         columns = [desc[0] for desc in self.conn.description]
-        return dict(zip(columns, result))
+        return dict(zip(columns, result, strict=False))
 
     def get_team_history(self, abbreviation: str) -> list[dict]:
         try:
@@ -101,7 +102,7 @@ class TeamService:
             return []
 
         columns = [desc[0] for desc in self.conn.description]
-        return [dict(zip(columns, row)) for row in result]
+        return [dict(zip(columns, row, strict=False)) for row in result]
 
     def get_franchise_history(self, abbreviation: str) -> dict | None:
         try:
@@ -115,6 +116,5 @@ class TeamService:
             return None
 
         columns = [desc[0] for desc in self.conn.description]
-        franchise = dict(zip(columns, result))
+        return dict(zip(columns, result, strict=False))
 
-        return franchise

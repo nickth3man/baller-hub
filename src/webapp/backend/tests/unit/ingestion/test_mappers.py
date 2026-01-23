@@ -11,14 +11,10 @@ def test_seconds_from_minutes_str():
 
 
 def test_classify_play_type():
-    assert (
-        mappers._classify_play_type("Start of 1st quarter")
-        == PlayType.PERIOD_START
-    )
+    assert mappers._classify_play_type("Start of 1st quarter") == PlayType.PERIOD_START
     assert mappers._classify_play_type("Timeout: Official") == PlayType.TIMEOUT
     assert (
-        mappers._classify_play_type("makes 3-pt jump shot")
-        == PlayType.FIELD_GOAL_MADE
+        mappers._classify_play_type("makes 3-pt jump shot") == PlayType.FIELD_GOAL_MADE
     )
 
 

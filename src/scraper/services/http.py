@@ -9,7 +9,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from src.core.domain import PlayerData, TeamTotal
-from src.scraper.common.errors import InvalidDate, InvalidPlayerAndSeason
+from src.scraper.common.errors import InvalidDateError, InvalidPlayerAndSeasonError
 from src.scraper.html import (
     BoxScoresPage,
     DailyBoxScoresPage,
@@ -184,13 +184,15 @@ class HTTPService:
         division_standings = page.division_standings
 
         if division_standings is None:
-            raise ValueError("Parsing error: Unable to locate division standings")
+            msg = "Parsing error: Unable to locate division standings"
+            raise ValueError(msg)
 
         eastern_conference_table = division_standings.eastern_conference_table
         western_conference_table = division_standings.western_conference_table
 
         if eastern_conference_table is None or western_conference_table is None:
-            raise ValueError("Parsing error: Unable to locate conference tables")
+            msg = "Parsing error: Unable to locate conference tables"
+            raise ValueError(msg)
 
         return self.parser.parse_division_standings(
             standings=eastern_conference_table.rows
@@ -217,11 +219,11 @@ class HTTPService:
 
         response = self._fetch(url=url, allow_redirects=False)
 
-        if response.status_code == requests.codes.ok:  # ty: ignore[unresolved-attribute]
+        if response.status_code == 200:
             page = DailyLeadersPage(html=html.fromstring(response.content))
             return self.parser.parse_player_box_scores(box_scores=page.daily_leaders)
 
-        raise InvalidDate(day=day, month=month, year=year)
+        raise InvalidDateError(day=day, month=month, year=year)
 
     def regular_season_player_box_scores(
         self, player_identifier, season_end_year, include_inactive_games=False
@@ -248,7 +250,7 @@ class HTTPService:
 
         page = PlayerSeasonBoxScoresPage(html=html.fromstring(response.content))
         if page.regular_season_box_scores_table is None:
-            raise InvalidPlayerAndSeason(
+            raise InvalidPlayerAndSeasonError(
                 player_identifier=player_identifier, season_end_year=season_end_year
             )
 
@@ -271,7 +273,7 @@ class HTTPService:
 
         page = PlayerSeasonBoxScoresPage(html=html.fromstring(response.content))
         if page.playoff_box_scores_table is None:
-            raise InvalidPlayerAndSeason(
+            raise InvalidPlayerAndSeasonError(
                 player_identifier=player_identifier, season_end_year=season_end_year
             )
 
@@ -423,10 +425,12 @@ class HTTPService:
             totals_table = page.totals_table
 
             if name is None:
-                raise ValueError("Parsing error: Unable to locate player name")
+                msg = "Parsing error: Unable to locate player name"
+                raise ValueError(msg)
 
             if totals_table is None:
-                raise ValueError("Parsing error: Unable to locate totals table")
+                msg = "Parsing error: Unable to locate totals table"
+                raise ValueError(msg)
 
             data = PlayerData(
                 name=name,

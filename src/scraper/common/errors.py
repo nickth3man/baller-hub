@@ -11,9 +11,10 @@ a generic HTTPError.
 """
 
 
-class InvalidDate(Exception):
+class InvalidDateError(Exception):
     """
     Raised when a requested date (day, month, year) is invalid or has no data.
+
 
     This typically happens when:
     1. The date does not exist (e.g., February 30th).
@@ -31,9 +32,10 @@ class InvalidDate(Exception):
         super().__init__(message)
 
 
-class InvalidSeason(Exception):
+class InvalidSeasonError(Exception):
     """
     Raised when a requested season year is invalid.
+
 
     Basketball Reference URLs often use the year the season ENDS.
     For example, the 2023-24 season is accessed via '2024'.
@@ -51,9 +53,10 @@ class InvalidSeason(Exception):
         super().__init__(message)
 
 
-class InvalidPlayerAndSeason(Exception):
+class InvalidPlayerAndSeasonError(Exception):
     """
     Raised when a specific player cannot be found in a specific season.
+
 
     This is thrown when querying player logs (regular season or playoffs)
     if the player did not play in that season or if the player ID is incorrect.

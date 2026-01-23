@@ -108,7 +108,8 @@ class OutputOptions:
                 file_options=None, formatting_options={}, output_type=None
             )
         else:
-            raise ValueError(f"Unknown output type: {output_type}")
+            message = f"Unknown output type: {output_type}"
+            raise ValueError(message)
 
         return OutputOptions(
             file_options=file_options,
@@ -168,7 +169,7 @@ class Writer:
             data (list | dict): The data to serialize.
             options (OutputOptions): Configuration for writing.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class JSONWriter(Writer):
@@ -188,8 +189,7 @@ class JSONWriter(Writer):
 
         if options.file_options.should_write_to_file:
             _ensure_parent_dir(options.file_options.path)
-            with open(
-                options.file_options.path,
+            with Path(options.file_options.path).open(
                 options.file_options.mode.value,
                 newline="",
                 encoding="utf8",
@@ -238,8 +238,7 @@ class CSVWriter(Writer):
             options (OutputOptions): Must contain valid file path and column_names.
         """
         _ensure_parent_dir(options.file_options.path)
-        with open(
-            options.file_options.path,
+        with Path(options.file_options.path).open(
             options.file_options.mode.value,
             newline="",
             encoding="utf8",

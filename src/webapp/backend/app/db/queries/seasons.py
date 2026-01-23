@@ -1,5 +1,5 @@
 LIST_SEASONS = """
-    SELECT 
+    SELECT
         season_id,
         year,
         (year - 1) || '-' || substr(CAST(year AS VARCHAR), 3, 2) as season_name,
@@ -13,7 +13,7 @@ LIST_SEASONS = """
 """
 
 GET_SEASON_BY_YEAR = """
-    SELECT 
+    SELECT
         season_id,
         year,
         (year - 1) || '-' || substr(CAST(year AS VARCHAR), 3, 2) as season_name,
@@ -29,7 +29,7 @@ GET_SEASON_BY_YEAR = """
 """
 
 GET_SEASON_SCHEDULE = """
-    SELECT 
+    SELECT
         g.game_id,
         g.date,
         g.time,
@@ -46,7 +46,7 @@ GET_SEASON_SCHEDULE = """
 """
 
 GET_SEASON_PLAYER_STATS = """
-    SELECT 
+    SELECT
         ps.*,
         p.slug as player_slug,
         (p.first_name || ' ' || p.last_name) as player_name,
@@ -55,13 +55,13 @@ GET_SEASON_PLAYER_STATS = """
     FROM player_season ps
     JOIN dim_players p ON ps.player_id = p.player_id
     LEFT JOIN dim_teams t ON ps.team_id = t.team_id
-    WHERE ps.season_id = ? 
+    WHERE ps.season_id = ?
       AND ps.season_type = 'REGULAR'
       AND ps.games_played >= ?
 """
 
 GET_SEASON_ADVANCED_STATS = """
-    SELECT 
+    SELECT
         ps.*,
         p.slug as player_slug,
         (p.first_name || ' ' || p.last_name) as player_name,

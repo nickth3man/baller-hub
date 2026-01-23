@@ -19,8 +19,9 @@ import json
 import sys
 import warnings
 from collections import defaultdict
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import ClassVar
 
 import numpy as np
 import pandas as pd
@@ -42,7 +43,7 @@ class CSVRelationshipAnalyzer:
     """
 
     # Known ID column patterns for relationship detection
-    ID_PATTERNS = [
+    ID_PATTERNS: ClassVar[list[str]] = [
         "id",
         "_id",
         "Id",
@@ -64,7 +65,7 @@ class CSVRelationshipAnalyzer:
     ]
 
     # Known relationship columns (same concept, different names)
-    COLUMN_ALIASES = {
+    COLUMN_ALIASES: ClassVar[dict[str, list[str]]] = {
         "player_id": ["personId", "person_id", "player_id", "playerId", "id"],
         "team_id": [
             "teamId",
@@ -149,10 +150,9 @@ class CSVRelationshipAnalyzer:
 
         for encoding in encodings:
             try:
-                df = pd.read_csv(
+                return pd.read_csv(
                     filepath, encoding=encoding, low_memory=False, on_bad_lines="skip"
                 )
-                return df
             except Exception:
                 continue
 
@@ -178,7 +178,7 @@ class CSVRelationshipAnalyzer:
         # Get unique values (sample if too large)
         try:
             unique_count = series.nunique(dropna=True)
-        except:
+        except Exception:
             unique_count = -1
 
         # Determine data type
@@ -189,12 +189,12 @@ class CSVRelationshipAnalyzer:
             try:
                 pd.to_numeric(sample)
                 inferred_type = "numeric_string"
-            except:
+            except Exception:
                 # Check if datetime
                 try:
                     pd.to_datetime(sample)
                     inferred_type = "datetime_string"
-                except:
+                except Exception:
                     inferred_type = "string"
 
         # Check if potential ID column
@@ -480,10 +480,11 @@ class CSVRelationshipAnalyzer:
                                         "description": f"{id_col} uniquely determines {other_col}",
                                     }
                                 )
-                except:
+                except Exception:
                     pass
 
             # Find temporal relationships
+
             date_cols = [
                 c
                 for c in df.columns
@@ -523,7 +524,7 @@ class CSVRelationshipAnalyzer:
             "other": [],
         }
 
-        for filename in self.file_schemas.keys():
+        for filename in self.file_schemas:
             name_lower = filename.lower()
 
             if "schedule" in name_lower:
@@ -622,9 +623,9 @@ class CSVRelationshipAnalyzer:
 
         er_summary = self.generate_entity_relationship_summary()
 
-        report = {
+        return {
             "metadata": {
-                "generated_at": datetime.now().isoformat(),
+                "generated_at": datetime.now(tz=UTC).isoformat(),
                 "csv_directory": str(self.csv_dir),
                 "total_files_analyzed": len(self.file_schemas),
                 "sample_size_used": self.sample_size,
@@ -635,8 +636,6 @@ class CSVRelationshipAnalyzer:
             "intra_file_relationships": self.intra_relationships,
             "entity_relationship_summary": er_summary,
         }
-
-        return report
 
     def print_summary(self, report: dict):
         """
@@ -829,7 +828,7 @@ def main():
 
     # Save JSON report
     output_file = output_dir / args.output_json
-    with open(output_file, "w", encoding="utf-8") as f:
+    with output_file.open("w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, default=json_serializer)
 
     print(f"\n{'=' * 60}")

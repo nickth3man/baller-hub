@@ -1,6 +1,6 @@
 """Games API endpoints."""
 
-from datetime import date
+from datetime import UTC, date, datetime
 
 import duckdb
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -70,7 +70,7 @@ def get_todays_games(conn: duckdb.DuckDBPyConnection = Depends(get_connection)):
         list[Game]: List of games for the current date.
     """
     service = GameService(conn)
-    return service.get_todays_games(date.today())
+    return service.get_todays_games(datetime.now(UTC).date())
 
 
 @router.get("/by-date/{game_date}", response_model=list[Game])
@@ -167,17 +167,17 @@ def get_game_play_by_play(
 
 @router.get("/{game_id}/shot-chart")
 def get_game_shot_chart(
-    game_id: int,
-    team_abbrev: str | None = None,
-    player_slug: str | None = None,
-    conn: duckdb.DuckDBPyConnection = Depends(get_connection),
+    _game_id: int,
+    _team_abbrev: str | None = None,
+    _player_slug: str | None = None,
+    _conn: duckdb.DuckDBPyConnection = Depends(get_connection),
 ):
     """Get shot chart data for a game.
 
     Args:
-        game_id: The unique identifier of the game.
-        team_abbrev: Optional filter by team.
-        player_slug: Optional filter by player.
+        _game_id: The unique identifier of the game.
+        _team_abbrev: Optional filter by team.
+        _player_slug: Optional filter by player.
         conn: Database connection.
 
     Returns:

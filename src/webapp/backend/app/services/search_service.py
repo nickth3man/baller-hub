@@ -7,6 +7,7 @@ and DuckDB fallback.
 
 import duckdb
 import structlog
+
 from app.db.queries import search as search_queries
 from app.search.indexer import SearchIndexer
 
@@ -32,11 +33,6 @@ class SearchService:
             conn: DuckDB database connection for fallback queries.
             use_meilisearch: Whether to use Meilisearch when available.
         """
-        self.conn = conn
-        self.use_meilisearch = use_meilisearch
-        self._indexer: SearchIndexer | None = None
-
-    def __init__(self, conn: duckdb.DuckDBPyConnection, use_meilisearch: bool = True):
         self.conn = conn
         self.use_meilisearch = use_meilisearch
         self._indexer: SearchIndexer | None = None
@@ -91,11 +87,12 @@ class SearchService:
                     + len(results["teams"])
                     + len(results["games"])
                 )
-                return results
             except Exception as e:
                 logger.warning(
                     "Meilisearch search failed, falling back to DB", error=str(e)
                 )
+            else:
+                return results
 
         if entity_type is None or entity_type == "player":
             players = self._db_search_players(query, limit)
@@ -116,9 +113,10 @@ class SearchService:
         if self.use_meilisearch:
             try:
                 suggestions = self.indexer.get_autocomplete_suggestions(query, limit)
-                return {"query": query, "suggestions": suggestions}
             except Exception as e:
                 logger.warning("Meilisearch autocomplete failed", error=str(e))
+            else:
+                return {"query": query, "suggestions": suggestions}
 
         suggestions = []
 
@@ -128,7 +126,7 @@ class SearchService:
         cols = [desc[0] for desc in self.conn.description]
 
         for row in player_result:
-            p = dict(zip(cols, row))
+            p = dict(zip(cols, row, strict=False))
             suggestions.append(
                 {
                     "type": "player",
@@ -149,7 +147,7 @@ class SearchService:
         cols = [desc[0] for desc in self.conn.description]
 
         for row in team_result:
-            t = dict(zip(cols, row))
+            t = dict(zip(cols, row, strict=False))
             suggestions.append(
                 {
                     "type": "team",
@@ -166,29 +164,29 @@ class SearchService:
         self,
         query: str,
         limit: int,
-        position: str | None = None,
-        active_only: bool = False,
-        team_abbrev: str | None = None,
+        _position: str | None = None,
+        _active_only: bool = False,
+        _team_abbrev: str | None = None,
     ) -> list[dict]:
         sql = search_queries.SEARCH_PLAYERS_DB
         params = [f"%{query}%", f"%{query}%", limit]
 
         result = self.conn.execute(sql, params).fetchall()
         cols = [desc[0] for desc in self.conn.description]
-        return [dict(zip(cols, row)) for row in result]
+        return [dict(zip(cols, row, strict=False)) for row in result]
 
     def _db_search_teams(
         self,
         query: str,
         limit: int,
-        active_only: bool = True,
+        _active_only: bool = True,
     ) -> list[dict]:
         sql = search_queries.SEARCH_TEAMS_DB
         params = [f"%{query}%", f"%{query}%", f"%{query}%", limit]
 
         result = self.conn.execute(sql, params).fetchall()
         cols = [desc[0] for desc in self.conn.description]
-        return [dict(zip(cols, row)) for row in result]
+        return [dict(zip(cols, row, strict=False)) for row in result]
 
     def _format_years_active(
         self, debut_year: int | None, final_year: int | None, is_active: bool

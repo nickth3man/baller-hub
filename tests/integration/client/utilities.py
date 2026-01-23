@@ -6,11 +6,13 @@ import requests_mock
 
 class ResponseMocker:
     def __init__(self, basketball_reference_paths_by_filename: dict[str, str]):
-        self._basketball_reference_paths_by_filename = basketball_reference_paths_by_filename
+        self._basketball_reference_paths_by_filename = (
+            basketball_reference_paths_by_filename
+        )
 
     def decorate_class(self, klass):
         for attr_name in dir(klass):
-            if not attr_name.startswith('test_'):
+            if not attr_name.startswith("test_"):
                 continue
 
             attr = getattr(klass, attr_name)
@@ -25,15 +27,22 @@ class ResponseMocker:
         @functools.wraps(callable)
         def inner(*args, **kwargs):
             with requests_mock.Mocker() as m:
-                for filename, basketball_reference_path in self._basketball_reference_paths_by_filename.items():
+                for (
+                    filename,
+                    basketball_reference_path,
+                ) in self._basketball_reference_paths_by_filename.items():
                     if not filename.endswith(".html"):
+                        msg = f"Unexpected prefix for {filename}. Expected all files in to end with .html."
                         raise ValueError(
-                            f"Unexpected prefix for {filename}. Expected all files in to end with .html.")
+                            msg
+                        )
 
                     with open(filename, encoding="utf-8") as file_input:
-                        m.get(f"https://www.basketball-reference.com/{basketball_reference_path}",
-                              text=file_input.read(),
-                              status_code=200)
+                        m.get(
+                            f"https://www.basketball-reference.com/{basketball_reference_path}",
+                            text=file_input.read(),
+                            status_code=200,
+                        )
                 return callable(*args, **kwargs)
 
         return inner
@@ -42,7 +51,8 @@ class ResponseMocker:
         if isinstance(obj, type):
             return self.decorate_class(obj)
 
-        raise ValueError("Should only be used as a class decorator")
+        msg = "Should only be used as a class decorator"
+        raise ValueError(msg)
 
 
 class SeasonScheduleMocker(ResponseMocker):
@@ -57,6 +67,10 @@ class SeasonScheduleMocker(ResponseMocker):
                 key = f"leagues/NBA_{season_end_year}_games.html"
             else:
                 key = f"leagues/NBA_{season_end_year}_games-{filename}"
-            basketball_reference_paths_by_filename[os.path.join(html_files_directory, filename)] = key
+            basketball_reference_paths_by_filename[
+                os.path.join(html_files_directory, filename)
+            ] = key
 
-        super().__init__(basketball_reference_paths_by_filename=basketball_reference_paths_by_filename)
+        super().__init__(
+            basketball_reference_paths_by_filename=basketball_reference_paths_by_filename
+        )

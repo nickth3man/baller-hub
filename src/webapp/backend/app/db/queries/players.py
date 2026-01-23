@@ -1,5 +1,5 @@
 LIST_PLAYERS = """
-    SELECT 
+    SELECT
         p.*,
         (p.first_name || ' ' || p.last_name) as full_name,
         ps.team_id,
@@ -16,7 +16,7 @@ LIST_PLAYERS = """
 """
 
 GET_PLAYER_BY_SLUG = """
-    SELECT 
+    SELECT
         p.*,
         (p.first_name || ' ' || p.last_name) as full_name
     FROM dim_players p
@@ -24,13 +24,13 @@ GET_PLAYER_BY_SLUG = """
 """
 
 GET_PLAYER_GAME_LOG = """
-    SELECT 
+    SELECT
         pg.*,
         g.date as game_date,
         t.abbreviation as opponent_abbrev,
         CASE WHEN g.home_team_id = pg.team_id THEN 'HOME' ELSE 'AWAY' END as location,
         CASE WHEN (g.home_team_id = pg.team_id AND g.home_score > g.away_score) OR
-                  (g.away_team_id = pg.team_id AND g.away_score > g.home_score) 
+                  (g.away_team_id = pg.team_id AND g.away_score > g.home_score)
              THEN 'WIN' ELSE 'LOSS' END as outcome
     FROM fact_player_gamelogs pg
     JOIN dim_games g ON pg.game_id = g.game_id
@@ -41,7 +41,7 @@ GET_PLAYER_GAME_LOG = """
 """
 
 GET_PLAYER_CAREER_STATS = """
-    SELECT 
+    SELECT
         ps.season_year,
         ps.season_type,
         ps.team_id,

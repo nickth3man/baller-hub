@@ -76,8 +76,8 @@ def load_staging(con: duckdb.DuckDBPyConnection, root: Path) -> None:
                 (FORMAT CSV, HEADER, DELIMITER ',', QUOTE '"', ESCAPE '"', AUTO_DETECT TRUE, NULL_PADDING TRUE, IGNORE_ERRORS TRUE)
                 """
             )
-        except Exception as e:
-            logger.error("Failed to load %s: %s", table_name, e)
+        except Exception:
+            logger.exception("Failed to load %s", table_name)
 
 
 def transform_dims(con: duckdb.DuckDBPyConnection) -> None:
@@ -178,10 +178,10 @@ def transform_v2_schema(con: duckdb.DuckDBPyConnection) -> None:
     con.execute("""
         INSERT INTO franchises (franchise_id, full_name, city, year_founded, is_active)
         SELECT
-            abbreviation, 
-            MAX(city || ' ' || nickname), 
-            MAX(city), 
-            MAX(TRY_CAST(yearfounded AS INTEGER)), 
+            abbreviation,
+            MAX(city || ' ' || nickname),
+            MAX(city),
+            MAX(TRY_CAST(yearfounded AS INTEGER)),
             TRUE
         FROM staging_team_details
         WHERE abbreviation IS NOT NULL
@@ -192,11 +192,11 @@ def transform_v2_schema(con: duckdb.DuckDBPyConnection) -> None:
     con.execute("""
         INSERT INTO team_seasons (season_id, franchise_id, team_name, abbreviation, arena, arena_capacity)
         SELECT
-            CAST(season AS VARCHAR), 
-            abbreviation, 
-            MAX(team), 
-            abbreviation, 
-            MAX(arena), 
+            CAST(season AS VARCHAR),
+            abbreviation,
+            MAX(team),
+            abbreviation,
+            MAX(arena),
             MAX(TRY_CAST(attend AS INTEGER))
         FROM staging_team_summaries
         WHERE abbreviation IS NOT NULL
@@ -400,7 +400,7 @@ def transform_v2_schema(con: duckdb.DuckDBPyConnection) -> None:
         INSERT OR IGNORE INTO games (game_id, season_id, game_date, home_franchise_id, away_franchise_id, home_score, away_score, attendance, arena_id)
         SELECT DISTINCT
             sg.game_id,
-            CASE 
+            CASE
                 WHEN month(TRY_CAST(sg.game_date_time_est AS DATE)) >= 10 THEN CAST(year(TRY_CAST(sg.game_date_time_est AS DATE)) AS VARCHAR) || '-' || CAST(year(TRY_CAST(sg.game_date_time_est AS DATE)) + 1 AS VARCHAR)
                 ELSE CAST(year(TRY_CAST(sg.game_date_time_est AS DATE)) - 1 AS VARCHAR) || '-' || CAST(year(TRY_CAST(sg.game_date_time_est AS DATE)) AS VARCHAR)
             END,

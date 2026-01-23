@@ -17,22 +17,22 @@ class TestAwardsPage(TestCase):
 
         page = AwardsPage(html=self.html)
         # Awards tables have IDs like mvp_NBA, dpoy_NBA, etc.
-        self.assertIn("stats_table", page.awards_table_query)
+        assert "stats_table" in page.awards_table_query
 
     def test_rows_query(self):
         """Test xpath query for award rows."""
         from src.scraper.html.awards import AwardsPage
 
         page = AwardsPage(html=self.html)
-        self.assertIn("tbody/tr", page.rows_query)
+        assert "tbody/tr" in page.rows_query
 
     def test_header_query(self):
         """Test xpath query for page header."""
         from src.scraper.html.awards import AwardsPage
 
         page = AwardsPage(html=self.html)
-        expected = '//h1'
-        self.assertEqual(page.header_query, expected)
+        expected = "//h1"
+        assert page.header_query == expected
 
 
 class TestAwardRow(TestCase):
@@ -47,35 +47,35 @@ class TestAwardRow(TestCase):
         from src.scraper.html.awards import AwardRow
 
         row = AwardRow(html=self.html)
-        self.assertEqual(row.season_query, 'th[@data-stat="season"]/a')
+        assert row.season_query == 'th[@data-stat="season"]/a'
 
     def test_player_query(self):
         """Test xpath query for player name."""
         from src.scraper.html.awards import AwardRow
 
         row = AwardRow(html=self.html)
-        self.assertEqual(row.player_query, 'td[@data-stat="player"]/a')
+        assert row.player_query == 'td[@data-stat="player"]/a'
 
     def test_team_query(self):
         """Test xpath query for team."""
         from src.scraper.html.awards import AwardRow
 
         row = AwardRow(html=self.html)
-        self.assertEqual(row.team_query, 'td[@data-stat="team_id"]/a')
+        assert row.team_query == 'td[@data-stat="team_id"]/a'
 
     def test_age_query(self):
         """Test xpath query for age."""
         from src.scraper.html.awards import AwardRow
 
         row = AwardRow(html=self.html)
-        self.assertEqual(row.age_query, 'td[@data-stat="age"]')
+        assert row.age_query == 'td[@data-stat="age"]'
 
     def test_voting_share_query(self):
         """Test xpath query for voting share."""
         from src.scraper.html.awards import AwardRow
 
         row = AwardRow(html=self.html)
-        self.assertEqual(row.voting_share_query, 'td[@data-stat="award_share"]')
+        assert row.voting_share_query == 'td[@data-stat="award_share"]'
 
 
 class TestHallOfFamePage(TestCase):
@@ -90,14 +90,14 @@ class TestHallOfFamePage(TestCase):
         from src.scraper.html.awards import HallOfFamePage
 
         page = HallOfFamePage(html=self.html)
-        self.assertIn("stats_table", page.inductees_table_query)
+        assert "stats_table" in page.inductees_table_query
 
     def test_inductee_rows_query(self):
         """Test xpath query for inductee rows."""
         from src.scraper.html.awards import HallOfFamePage
 
         page = HallOfFamePage(html=self.html)
-        self.assertIn("tbody/tr", page.rows_query)
+        assert "tbody/tr" in page.rows_query
 
 
 class TestAllNBATeamPage(TestCase):
@@ -112,11 +112,11 @@ class TestAllNBATeamPage(TestCase):
         from src.scraper.html.awards import AllNBATeamPage
 
         page = AllNBATeamPage(html=self.html)
-        self.assertIn("stats_table", page.team_tables_query)
+        assert "stats_table" in page.team_tables_query
 
     def test_first_team_query(self):
         """Test xpath query for first team selections."""
         from src.scraper.html.awards import AllNBATeamPage
 
         page = AllNBATeamPage(html=self.html)
-        self.assertIsNotNone(page.first_team_query)
+        assert page.first_team_query is not None
