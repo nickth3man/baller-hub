@@ -1,29 +1,30 @@
-# src/scraper AGENTS.md
+# PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-01-22
-**Context:** Data extraction engine (Python).
+**Context**: Python Extraction Engine
+**Focus**: Orchestration, Services, Output
 
 ## OVERVIEW
-The core scraping library for Baller Hub, responsible for extracting data from basketball-reference.com. It uses XPath for parsing and Pydantic for data validation.
+The `src/scraper` directory contains the core Python extraction engine for Baller Hub. It orchestrates the fetching, parsing, and structured output of basketball data. It relies on a service-oriented architecture to manage HTTP requests, rate limiting, and parsing logic.
 
 ## FOLDER STRUCTURE
-- `api/`: Public facade (`client.py`) for consuming applications.
-- `html/`: Wrapper classes around raw HTML strings to facilitate XPath queries.
-- `parsers/`: Pure functions transforming `html` wrappers into Pydantic models.
-- `services/`: Orchestration logic (HTTP client, Rate Limiter, Caching).
-- `output/`: Utilities for writing data to CSV/JSON.
+- `api/`: External API clients (e.g., for fetching raw pages).
+- `html/`: HTML DOM wrappers using `lxml`. **See `src/scraper/html/AGENTS.md`**.
+- `parsers/`: Pure data transformers. **See `src/scraper/parsers/AGENTS.md`**.
+- `services/`: Core infrastructure (HTTP, Caching, Rate Limiting, ParsingService).
+- `output/`: Data serialization and writing services (CSV, JSON, DB).
+- `common/`: Shared utilities and error definitions.
 
 ## CORE BEHAVIORS & PATTERNS
-- **Pure Parsers**: Parsing logic is strictly separated from network logic.
-- **Fixture-First**: All parsers are developed and tested against frozen HTML fixtures.
-- **Data Validation**: Pydantic models ensure type safety for all extracted data.
+- **Orchestration**: The `ParsingService` (`services/parsing.py`) coordinates the flow between `html` wrappers and `parsers`.
+- **Service Layer**: Infrastructure concerns (HTTP, Caching) are isolated in `services/` to keep core logic pure.
+- **Output Independence**: Parsers return raw Python objects (dicts/lists); the `output/` package handles formatting.
 
 ## CONVENTIONS
-- **Naming**: Snake_case for Python modules and variables.
-- **Type Safety**: strict `beartype` usage on public methods.
-- **Imports**: Relative imports within the package are allowed, but absolute imports are preferred for clarity.
+- **Language**: Python 3.12+ managed by `uv`.
+- **Typing**: Strict type hints required. Use `mypy` or `ty` to verify.
+- **Error Handling**: Custom exceptions in `common/errors.py`.
+- **Imports**: Absolute imports from `src.scraper`.
 
 ## WORKING AGREEMENTS
-- **No Network in Parsers**: Parsers must never make HTTP requests.
-- **Fixture Integrity**: Validate fixtures immediately after scraping (`uv run python src/scraper/scripts/validate_fixtures.py`).
-- **Data Enum**: Use enums from `common/data.py` for standardizing strings (e.g., Team names).
+- **Sub-Agent Delegation**: Refer to sub-directories `html/` and `parsers/` for specific implementation details in those domains.
+- **Infrastructure Changes**: Modify `services/` only when changing *how* we fetch or process, not *what* we extract.

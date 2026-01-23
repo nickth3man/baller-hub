@@ -12,14 +12,30 @@ class FieldFormatter:
 
     @staticmethod
     def can_format(data):
-        """Check if this formatter can handle the data type."""
-        raise NotImplementedError()
+        """Check if this formatter can handle the data type.
+
+        Args:
+            data: The data to check.
+
+        Returns:
+            bool: True if this formatter can handle the data.
+        """
+        raise NotImplementedError
 
     def __init__(self, data):
+        """Initialize the formatter.
+
+        Args:
+            data: The data to be formatted.
+        """
         self.data = data
 
     def format(self):
-        """Format the data into a string."""
+        """Format the data into a string.
+
+        Returns:
+            str: The formatted data.
+        """
         raise NotImplementedError
 
 
@@ -30,11 +46,22 @@ class EnumFormatter(FieldFormatter):
 
     @staticmethod
     def can_format(data):
-        """Check if data is an Enum."""
+        """Check if data is an Enum.
+
+        Args:
+            data: The data to check.
+
+        Returns:
+            bool: True if data is an Enum.
+        """
         return isinstance(data, Enum)
 
     def format(self):
-        """Return the enum value."""
+        """Return the enum value.
+
+        Returns:
+            Any: The value of the enum.
+        """
         return self.data.value
 
 
@@ -45,11 +72,22 @@ class ListFormatter(FieldFormatter):
 
     @staticmethod
     def can_format(data):
-        """Check if data is a list."""
+        """Check if data is a list.
+
+        Args:
+            data: The data to check.
+
+        Returns:
+            bool: True if data is a list.
+        """
         return isinstance(data, list)
 
     def format(self):
-        """Join list elements with dashes."""
+        """Join list elements with dashes.
+
+        Returns:
+            str: The joined string.
+        """
         return "-".join(format_value(value=value) for value in self.data)
 
 
@@ -60,11 +98,22 @@ class SetFormatter(FieldFormatter):
 
     @staticmethod
     def can_format(data):
-        """Check if data is a set."""
+        """Check if data is a set.
+
+        Args:
+            data: The data to check.
+
+        Returns:
+            bool: True if data is a set.
+        """
         return isinstance(data, set)
 
     def format(self):
-        """Convert set to list and format."""
+        """Convert set to list and format.
+
+        Returns:
+            str: The formatted set as a joined string.
+        """
         return ListFormatter(data=list(self.data)).format()
 
 
@@ -80,6 +129,12 @@ def format_value(value):
     Format a value using the appropriate strategy.
 
     Delegates to the first matching formatter in FORMATTER_CLASSES.
+
+    Args:
+        value: The value to format.
+
+    Returns:
+        Any: The formatted value, or the original value if no formatter matches.
     """
     formatter_class = next(
         (
@@ -102,6 +157,14 @@ class BasketballReferenceJSONEncoder(JSONEncoder):
     """
 
     def default(self, o):
+        """Encode project-specific types.
+
+        Args:
+            o: The object to encode.
+
+        Returns:
+            Any: The encoded object.
+        """
         if isinstance(o, (datetime, date)):
             return o.isoformat()
 

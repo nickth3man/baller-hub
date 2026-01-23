@@ -3,7 +3,7 @@
 import contextlib
 import hashlib
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 
@@ -33,7 +33,15 @@ class FileCache:
                 self._cache_dir.mkdir(parents=True, exist_ok=True)
 
     def _key(self, url):
-        """Generate a stable key for a URL."""
+        """
+        Generate a stable key for a URL.
+
+        Args:
+            url (str): The URL to generate a key for.
+
+        Returns:
+            str: A SHA256 hash of the URL.
+        """
         return hashlib.sha256(url.encode()).hexdigest()
 
     def get(self, url):
@@ -61,7 +69,11 @@ class FileCache:
             cached_at = datetime.fromisoformat(meta["cached_at"])
             ttl = timedelta(seconds=meta.get("ttl", self._default_ttl.total_seconds()))
 
-            if datetime.now() - cached_at > ttl:
+            # Ensure cached_at is timezone-aware (UTC)
+            if cached_at.tzinfo is None:
+                cached_at = cached_at.replace(tzinfo=UTC)
+
+            if datetime.now(UTC) - cached_at > ttl:
                 return None
 
             return path.read_bytes()
@@ -76,6 +88,9 @@ class FileCache:
             url (str): The URL.
             content (bytes): The content to cache.
             ttl (timedelta, optional): Custom TTL for this item.
+
+        Returns:
+            None
         """
         if not self._cache_dir.exists():
             try:
@@ -92,7 +107,7 @@ class FileCache:
 
             meta = {
                 "url": url,
-                "cached_at": datetime.now().isoformat(),
+                "cached_at": datetime.now(UTC).isoformat(),
                 "ttl": (ttl or self._default_ttl).total_seconds(),
             }
             meta_path.write_text(json.dumps(meta))

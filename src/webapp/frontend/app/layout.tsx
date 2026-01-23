@@ -1,8 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Bebas_Neue, Space_Grotesk } from "next/font/google";
-import { Header } from "@/(components)/layout/Header";
-import { Footer } from "@/(components)/layout/Footer";
+import { PageLayout } from "@/(components)/layout/PageLayout";
 import { Providers } from "./providers";
 
 const displayFont = Bebas_Neue({
@@ -32,13 +31,7 @@ export default function RootLayout({
         className={`${displayFont.variable} ${bodyFont.variable} font-sans`}
       >
         <Providers>
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="container mx-auto flex-1 px-4 py-6">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          <PageLayout>{children}</PageLayout>
         </Providers>
       </body>
     </html>

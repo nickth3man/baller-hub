@@ -17,20 +17,25 @@ from .base_rows import BasicBoxScoreRow
 
 
 class BoxScoresPage:
-    """
-    Wraps the full HTML page of a game box score.
+    """Wraps the full HTML page of a game box score.
 
     Identifies and provides access to all statistical tables on the page.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the page.
     """
 
     def __init__(self, html):
+        """Initialize the page wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the page.
+        """
         self.html = html
 
     @property
     def statistics_tables(self):
-        """
-        list[StatisticsTable]: All stat tables found on the page (Basic and Advanced).
-        """
+        """list[StatisticsTable]: All stat tables found on the page (Basic and Advanced)."""
         return [
             StatisticsTable(table_html)
             for table_html in self.html.xpath(
@@ -40,9 +45,7 @@ class BoxScoresPage:
 
     @property
     def basic_statistics_tables(self):
-        """
-        list[StatisticsTable]: Filter for only the 'Basic' stats tables (ignoring Advanced).
-        """
+        """list[StatisticsTable]: Filter for only the 'Basic' stats tables (ignoring Advanced)."""
         return [
             table
             for table in self.statistics_tables
@@ -51,11 +54,18 @@ class BoxScoresPage:
 
 
 class StatisticsTable:
-    """
-    Wraps a single statistical table (e.g., 'Boston Celtics Basic Stats').
+    """Wraps a single statistical table (e.g., 'Boston Celtics Basic Stats').
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the table.
     """
 
     def __init__(self, html):
+        """Initialize the table wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the table.
+        """
         self.html = html
 
     @property
@@ -65,10 +75,9 @@ class StatisticsTable:
 
     @property
     def team_abbreviation(self):
-        """
-        str: The 3-letter abbreviation of the team (e.g., 'BOS').
+        """str: The 3-letter abbreviation of the team (e.g., 'BOS').
 
-        extracted from the table ID (e.g., 'box-BOS-game-basic').
+        Extracted from the table ID (e.g., 'box-BOS-game-basic').
         """
         # Example id value is box-BOS-game-basic or box-BOS-game-advanced
         match = re.match("^box-(.+)-game", self.html.attrib["id"])
@@ -78,9 +87,7 @@ class StatisticsTable:
 
     @property
     def team_totals(self):
-        """
-        BasicBoxScoreRow | None: The footer row containing team aggregate totals.
-        """
+        """BasicBoxScoreRow | None: The footer row containing team aggregate totals."""
         # Team totals are stored as table footers
         footers = self.html.xpath("tfoot/tr")
         if len(footers) > 0:

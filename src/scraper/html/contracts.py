@@ -2,13 +2,20 @@
 
 
 class PlayerContractsRow:
-    """
-    Wrapper for a single row in the player contracts table.
+    """Wrapper for a single row in the player contracts table.
 
     Represents a player's contract details including salary projections.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the row.
     """
 
     def __init__(self, html):
+        """Initialize the row wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the row.
+        """
         self.html = html
 
     @property
@@ -93,8 +100,7 @@ class PlayerContractsRow:
         return None
 
     def calculate_contract_year_data(self, contract_year_data_stat_attribute_value):
-        """
-        Extracts salary and style info for a specific contract year column.
+        """Extracts salary and style info for a specific contract year column.
 
         Args:
             contract_year_data_stat_attribute_value (str): The data-stat value (e.g. "y1").

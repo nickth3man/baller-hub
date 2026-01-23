@@ -18,10 +18,10 @@ class AllStarParser:
         Extract All-Star game results and rosters.
 
         Args:
-            page: The AllStarPage wrapper.
+            page (AllStarPage): The AllStarPage wrapper.
 
         Returns:
-            dict: Structured All-Star data.
+            dict: Structured All-Star data containing 'mvp', 'east_roster', and 'west_roster'.
         """
         return {
             "mvp": page.mvp,
@@ -34,7 +34,7 @@ class AllStarParser:
         Parse All-Star roster rows.
 
         Args:
-            rows: List of AllStarPlayerRow objects.
+            rows (list): List of AllStarPlayerRow objects.
 
         Returns:
             list[dict]: Cleaned roster data.

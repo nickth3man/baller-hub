@@ -2,18 +2,17 @@
 
 from datetime import date
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class Season(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     season_id: int
     year: int
     season_name: str | None = None
     is_active: bool
     champion: str | None = None
-
-    class Config:
-        from_attributes = True
 
 
 class SeasonDetail(Season):

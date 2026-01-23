@@ -2,15 +2,18 @@
 
 
 class StandingsPage:
-    """
-    DOM wrapper for the Season Standings page.
+    """DOM wrapper for the Season Standings page.
 
     Parses the full standings page (e.g. /leagues/NBA_2024.html) to extract
     division tables.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the page.
     """
 
     def __init__(self, html):
-        """
+        """Initialize the page wrapper.
+
         Args:
             html (lxml.html.HtmlElement): The root HTML element of the page.
         """
@@ -18,9 +21,7 @@ class StandingsPage:
 
     @property
     def division_standings(self):
-        """
-        DivisionStandings: The container for both conference tables.
-        """
+        """DivisionStandings: The container for both conference tables."""
         division_standings = self.html.xpath('.//div[@id="all_standings"]')
 
         if len(division_standings) == 1:
@@ -30,18 +31,23 @@ class StandingsPage:
 
 
 class DivisionStandings:
-    """
-    Wrapper for the division standings section containing East/West tables.
+    """Wrapper for the division standings section containing East/West tables.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the section.
     """
 
     def __init__(self, html):
+        """Initialize the section wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the section.
+        """
         self.html = html
 
     @property
     def eastern_conference_table(self):
-        """
-        ConferenceDivisionStandingsTable: The Eastern Conference standings table.
-        """
+        """ConferenceDivisionStandingsTable: The Eastern Conference standings table."""
         tables = self.html.xpath('.//table[@id="divs_standings_E"]')
 
         if len(tables) == 1:
@@ -51,9 +57,7 @@ class DivisionStandings:
 
     @property
     def western_conference_table(self):
-        """
-        ConferenceDivisionStandingsTable: The Western Conference standings table.
-        """
+        """ConferenceDivisionStandingsTable: The Western Conference standings table."""
         tables = self.html.xpath('.//table[@id="divs_standings_W"]')
 
         if len(tables) == 1:
@@ -63,18 +67,23 @@ class DivisionStandings:
 
 
 class ConferenceDivisionStandingsTable:
-    """
-    Table containing standings for all divisions in a conference.
+    """Table containing standings for all divisions in a conference.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the table.
     """
 
     def __init__(self, html):
+        """Initialize the table wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the table.
+        """
         self.html = html
 
     @property
     def rows(self):
-        """
-        list[ConferenceDivisionStandingsRow]: List of all rows in the table.
-        """
+        """list[ConferenceDivisionStandingsRow]: List of all rows in the table."""
         return [
             ConferenceDivisionStandingsRow(html=row_html)
             for row_html in self.html.xpath(".//tbody/tr")
@@ -82,14 +91,21 @@ class ConferenceDivisionStandingsTable:
 
 
 class ConferenceDivisionStandingsRow:
-    """
-    Single row in a division standings table.
+    """Single row in a division standings table.
 
     Can represent either a Division header (e.g. "Atlantic Division")
     or a Team row (e.g. "Boston Celtics").
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the row.
     """
 
     def __init__(self, html):
+        """Initialize the row wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the row.
+        """
         self.html = html
 
     @property

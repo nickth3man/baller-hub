@@ -18,7 +18,7 @@ class HealthMetrics:
     network_errors: int = 0
     validation_errors: int = 0
     last_health_check: float = field(default_factory=time.monotonic)
-    failure_rate_window: list[bool] = field(default_factory=lambda: [])
+    failure_rate_window: list[bool] = field(default_factory=list)
 
     def record_request(self, success: bool, response_time: float = 0.0) -> None:
         """Record a request result and update metrics.

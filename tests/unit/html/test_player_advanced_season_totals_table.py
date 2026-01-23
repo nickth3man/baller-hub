@@ -12,7 +12,7 @@ class TestPlayerAdvancedSeasonTotalsTable(TestCase):
         self.html = MagicMock()
 
     def test_rows_query_after_stripping_whitespace(self):
-        self.assertEqual(
+        assert (
             """
             //table[@id="advanced"]
             /tbody
@@ -22,24 +22,34 @@ class TestPlayerAdvancedSeasonTotalsTable(TestCase):
                     not(contains(@class, 'norank'))
                 )
             ]
-            """.strip(),
-            PlayerAdvancedSeasonTotalsTable(html=self.html).rows_query.strip(),
+        """.strip()
+            == PlayerAdvancedSeasonTotalsTable(html=self.html).rows_query.strip()
         )
 
-    @patch.object(PlayerAdvancedSeasonTotalsRow, 'is_combined_totals', new_callable=PropertyMock, return_value=False)
-    def test_returns_all_rows_when_rows_are_not_combined_totals_rows(self, _):
+    @patch.object(
+        PlayerAdvancedSeasonTotalsRow,
+        "is_combined_totals",
+        new_callable=PropertyMock,
+        return_value=False,
+    )
+    def test_returns_all_rows_when_rows_are_not_combined_totals_rows(self, _):  # noqa: PT019
         first_html_row = MagicMock()
         html_rows = [first_html_row]
         self.html.xpath = MagicMock(return_value=html_rows)
 
         rows = PlayerAdvancedSeasonTotalsTable(self.html).get_rows()
-        self.assertTrue(len(html_rows) == len(rows))
+        assert len(html_rows) == len(rows)
 
-    @patch.object(PlayerAdvancedSeasonTotalsRow, 'is_combined_totals', new_callable=PropertyMock, return_value=True)
-    def test_returns_no_rows_when_all_rows_are_combined_totals_rows(self, _):
+    @patch.object(
+        PlayerAdvancedSeasonTotalsRow,
+        "is_combined_totals",
+        new_callable=PropertyMock,
+        return_value=True,
+    )
+    def test_returns_no_rows_when_all_rows_are_combined_totals_rows(self, _):  # noqa: PT019
         first_html_row = MagicMock()
         html_rows = [first_html_row]
         self.html.xpath = MagicMock(return_value=html_rows)
 
         rows = PlayerAdvancedSeasonTotalsTable(self.html).get_rows()
-        self.assertTrue(len(rows) == 0)
+        assert len(rows) == 0

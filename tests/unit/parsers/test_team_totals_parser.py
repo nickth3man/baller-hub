@@ -15,7 +15,12 @@ class TestTeamTotalsParser(TestCase):
 
     def test_parse_none_outcome_when_points_are_same(self):
         team_totals = TeamTotal(team_abbreviation="BOS", totals=MagicMock(points="100"))
-        opposing_team_totals = TeamTotal(team_abbreviation="GSW", totals=MagicMock(points="100"))
-        self.assertIsNone(
-            self.parser.parse_totals(team_totals=team_totals, opposing_team_totals=opposing_team_totals)["outcome"]
+        opposing_team_totals = TeamTotal(
+            team_abbreviation="GSW", totals=MagicMock(points="100")
+        )
+        assert (
+            self.parser.parse_totals(
+                team_totals=team_totals, opposing_team_totals=opposing_team_totals
+            )["outcome"]
+            is None
         )

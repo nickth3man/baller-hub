@@ -21,7 +21,7 @@ class DraftParser:
         Extract draft results.
 
         Args:
-            page: The DraftPage wrapper.
+            page (DraftPage): The DraftPage wrapper.
 
         Returns:
             dict: Structured draft data.
@@ -36,7 +36,7 @@ class DraftParser:
         Parse draft pick rows.
 
         Args:
-            rows: List of DraftRow objects.
+            rows (list): List of DraftRow objects.
 
         Returns:
             list[dict]: Cleaned draft picks.

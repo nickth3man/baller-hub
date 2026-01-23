@@ -30,9 +30,8 @@ class SearchResultNameParser:
         """
         match = re.search(self.search_result_name_regex, search_result_name)
         if match is None:
-            raise ValueError(
-                f"Could not parse search result name: {search_result_name}"
-            )
+            message = f"Could not parse search result name: {search_result_name}"
+            raise ValueError(message)
         return match.group(self.result_name_regex_group_name).strip()
 
 

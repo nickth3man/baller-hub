@@ -1,9 +1,11 @@
 """Team Pydantic schemas."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class Team(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     team_id: int
     name: str
     abbreviation: str
@@ -13,9 +15,6 @@ class Team(BaseModel):
     arena: str | None = None
     arena_capacity: int | None = None
     franchise: dict | None = None
-
-    class Config:
-        from_attributes = True
 
 
 class RosterPlayer(BaseModel):

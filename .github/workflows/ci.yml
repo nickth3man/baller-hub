@@ -31,8 +31,11 @@ jobs:
       - name: Type Check (Ty)
         run: uv run ty check .
 
-      - name: Pytest
-        run: uv run pytest
+      - name: Pytest (Scraper)
+        run: uv run pytest tests
+
+      - name: Pytest (Backend)
+        run: uv run pytest src/webapp/backend/tests
 
   frontend-check:
     name: Frontend (Node.js)
@@ -56,6 +59,9 @@ jobs:
 
       - name: ESLint (Strict)
         run: npm run lint
+
+      - name: Vitest (Unit Tests)
+        run: npm test
 
       - name: Build (Typecheck + Build)
         run: npm run build

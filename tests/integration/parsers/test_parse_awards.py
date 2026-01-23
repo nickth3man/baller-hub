@@ -17,9 +17,7 @@ class TestAwardsIntegration(TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up test fixtures."""
-        cls.fixture_dir = os.path.join(
-            os.path.dirname(__file__), "../files/awards"
-        )
+        cls.fixture_dir = os.path.join(os.path.dirname(__file__), "../files/awards")  # noqa: PTH118, PTH120
         cls.team_abbreviation_parser = TeamAbbreviationParser(
             abbreviations_to_teams=TEAM_ABBREVIATIONS_TO_TEAM
         )
@@ -27,10 +25,10 @@ class TestAwardsIntegration(TestCase):
 
     def _get_page(self, filename: str) -> AwardsPage:
         """Helper to load a fixture and return AwardsPage."""
-        path = os.path.join(self.fixture_dir, filename)
-        if not os.path.exists(path):
+        path = os.path.join(self.fixture_dir, filename)  # noqa: PTH118
+        if not os.path.exists(path):  # noqa: PTH110
             self.skipTest(f"Fixture {filename} not found")
-        with open(path, encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:  # noqa: PTH123
             return AwardsPage(html=html.fromstring(f.read()))
 
     def test_mvp_awards(self):
@@ -38,8 +36,8 @@ class TestAwardsIntegration(TestCase):
         page = self._get_page("mvp.html")
         result = self.parser.parse(page)
 
-        self.assertIn("Most Valuable Player", result["award"])
+        assert "Most Valuable Player" in result["award"]
         # Find 2023-24 Jokic
         jokic = next(w for w in result["winners"] if w["season"] == "2023-24")
-        self.assertEqual(jokic["player"], "Nikola Jokić")
-        self.assertEqual(jokic["team"], Team.DENVER_NUGGETS)
+        assert jokic["player"] == "Nikola Jokić"
+        assert jokic["team"] == Team.DENVER_NUGGETS

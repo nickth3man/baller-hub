@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getSeasonLeaders, getSeasons, SeasonLeaders } from "@/lib/api";
+import { getSeasonLeaders, getSeasons } from "@/lib/api";
+import { SeasonLeaders } from "@/types";
 
 const CATEGORIES = [
   { key: "points", label: "Points", unit: "PPG" },

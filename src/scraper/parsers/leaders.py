@@ -18,7 +18,7 @@ class LeadersParser:
         Extract leaders list.
 
         Args:
-            page: The LeadersPage wrapper.
+            page (LeadersPage): The LeadersPage wrapper.
 
         Returns:
             dict: Structured leaders data.
@@ -33,7 +33,7 @@ class LeadersParser:
         Parse leader rows.
 
         Args:
-            rows: List of LeaderRow objects.
+            rows (list): List of LeaderRow objects.
 
         Returns:
             list[dict]: Cleaned leader data.

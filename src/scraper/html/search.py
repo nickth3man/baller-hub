@@ -2,11 +2,18 @@
 
 
 class SearchPage:
-    """
-    Wraps the Search Results page (e.g., /search/search.fcgi?search=LeBron).
+    """Wraps the Search Results page (e.g., /search/search.fcgi?search=LeBron).
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the page.
     """
 
     def __init__(self, html):
+        """Initialize the page wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the page.
+        """
         self.html = html
 
     @property
@@ -49,9 +56,7 @@ class SearchPage:
 
     @property
     def nba_aba_baa_players(self):
-        """
-        list[PlayerSearchResult]: List of player results found.
-        """
+        """list[PlayerSearchResult]: List of player results found."""
         return [
             PlayerSearchResult(html=result_html)
             for result_html in self.html.xpath(
@@ -61,11 +66,18 @@ class SearchPage:
 
 
 class SearchResult:
-    """
-    Base class for a single item in search results.
+    """Base class for a single item in search results.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the result item.
     """
 
     def __init__(self, html):
+        """Initialize the result item wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the result item.
+        """
         self.html = html
 
     @property
@@ -104,14 +116,26 @@ class SearchResult:
         return link.text_content()
 
     def __eq__(self, other):
+        """Check if two results represent the same HTML element.
+
+        Args:
+            other (object): The other object to compare.
+
+        Returns:
+            bool: True if the results wrap the same HTML element, False otherwise.
+        """
         if isinstance(other, SearchResult):
             return self.html == other.html
         return False
 
+    __hash__ = None
+
 
 class PlayerSearchResult(SearchResult):
-    """
-    Wraps a search result specifically for a player.
+    """Wraps a search result specifically for a player.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the result item.
     """
 
     @property

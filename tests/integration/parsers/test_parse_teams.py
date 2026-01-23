@@ -11,14 +11,21 @@ from src.scraper.parsers import TeamAbbreviationParser, TeamTotalsParser
 class TestParseTeams(TestCase):
     @classmethod
     def setUpClass(cls):
-        with open(os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 "../files/boxscores/2017/1/201701010ATL.html",
-        ), encoding="utf-8") as file_input:
+            ),
+            encoding="utf-8",
+        ) as file_input:
             _html = file_input.read()
         first_team_totals, second_team_totals = [
-            TeamTotal(team_abbreviation=table.team_abbreviation, totals=table.team_totals)
-            for table in BoxScoresPage(html.fromstring(html=_html)).basic_statistics_tables
+            TeamTotal(
+                team_abbreviation=table.team_abbreviation, totals=table.team_totals
+            )
+            for table in BoxScoresPage(
+                html.fromstring(html=_html)
+            ).basic_statistics_tables
         ]
         cls._parsed_results = TeamTotalsParser(
             team_abbreviation_parser=TeamAbbreviationParser(
@@ -30,44 +37,44 @@ class TestParseTeams(TestCase):
         )
 
     def test_length(self):
-        self.assertEqual(len(self._parsed_results), 2)
+        assert len(self._parsed_results) == 2  # noqa: PLR2004
 
     def test_parse_san_antonio_team_totals(self):
         sas_team_totals = self._parsed_results[0]
-        self.assertEqual(sas_team_totals["team"], Team.SAN_ANTONIO_SPURS)
-        self.assertEqual(sas_team_totals["outcome"], Outcome.LOSS)
-        self.assertEqual(sas_team_totals["minutes_played"], 265)
-        self.assertEqual(sas_team_totals["made_field_goals"], 42)
-        self.assertEqual(sas_team_totals["attempted_field_goals"], 90)
-        self.assertEqual(sas_team_totals["made_three_point_field_goals"], 9)
-        self.assertEqual(sas_team_totals["attempted_three_point_field_goals"], 27)
-        self.assertEqual(sas_team_totals["made_free_throws"], 19)
-        self.assertEqual(sas_team_totals["attempted_free_throws"], 22)
-        self.assertEqual(sas_team_totals["offensive_rebounds"], 9)
-        self.assertEqual(sas_team_totals["defensive_rebounds"], 38)
-        self.assertEqual(sas_team_totals["assists"], 27)
-        self.assertEqual(sas_team_totals["steals"], 5)
-        self.assertEqual(sas_team_totals["blocks"], 6)
-        self.assertEqual(sas_team_totals["turnovers"], 12)
-        self.assertEqual(sas_team_totals["personal_fouls"], 21)
-        self.assertEqual(sas_team_totals["points"], 112)
+        assert sas_team_totals["team"] == Team.SAN_ANTONIO_SPURS
+        assert sas_team_totals["outcome"] == Outcome.LOSS
+        assert sas_team_totals["minutes_played"] == 265  # noqa: PLR2004
+        assert sas_team_totals["made_field_goals"] == 42  # noqa: PLR2004
+        assert sas_team_totals["attempted_field_goals"] == 90  # noqa: PLR2004
+        assert sas_team_totals["made_three_point_field_goals"] == 9  # noqa: PLR2004
+        assert sas_team_totals["attempted_three_point_field_goals"] == 27  # noqa: PLR2004
+        assert sas_team_totals["made_free_throws"] == 19  # noqa: PLR2004
+        assert sas_team_totals["attempted_free_throws"] == 22  # noqa: PLR2004
+        assert sas_team_totals["offensive_rebounds"] == 9  # noqa: PLR2004
+        assert sas_team_totals["defensive_rebounds"] == 38  # noqa: PLR2004
+        assert sas_team_totals["assists"] == 27  # noqa: PLR2004
+        assert sas_team_totals["steals"] == 5  # noqa: PLR2004
+        assert sas_team_totals["blocks"] == 6  # noqa: PLR2004
+        assert sas_team_totals["turnovers"] == 12  # noqa: PLR2004
+        assert sas_team_totals["personal_fouls"] == 21  # noqa: PLR2004
+        assert sas_team_totals["points"] == 112  # noqa: PLR2004
 
     def test_parse_atlanta_team_totals(self):
         atl_team_totals = self._parsed_results[1]
-        self.assertEqual(atl_team_totals["team"], Team.ATLANTA_HAWKS)
-        self.assertEqual(atl_team_totals["outcome"], Outcome.WIN)
-        self.assertEqual(atl_team_totals["minutes_played"], 265)
-        self.assertEqual(atl_team_totals["made_field_goals"], 42)
-        self.assertEqual(atl_team_totals["attempted_field_goals"], 92)
-        self.assertEqual(atl_team_totals["made_three_point_field_goals"], 14)
-        self.assertEqual(atl_team_totals["attempted_three_point_field_goals"], 28)
-        self.assertEqual(atl_team_totals["made_free_throws"], 16)
-        self.assertEqual(atl_team_totals["attempted_free_throws"], 27)
-        self.assertEqual(atl_team_totals["offensive_rebounds"], 11)
-        self.assertEqual(atl_team_totals["defensive_rebounds"], 35)
-        self.assertEqual(atl_team_totals["assists"], 25)
-        self.assertEqual(atl_team_totals["steals"], 6)
-        self.assertEqual(atl_team_totals["blocks"], 6)
-        self.assertEqual(atl_team_totals["turnovers"], 11)
-        self.assertEqual(atl_team_totals["personal_fouls"], 21)
-        self.assertEqual(atl_team_totals["points"], 114)
+        assert atl_team_totals["team"] == Team.ATLANTA_HAWKS
+        assert atl_team_totals["outcome"] == Outcome.WIN
+        assert atl_team_totals["minutes_played"] == 265  # noqa: PLR2004
+        assert atl_team_totals["made_field_goals"] == 42  # noqa: PLR2004
+        assert atl_team_totals["attempted_field_goals"] == 92  # noqa: PLR2004
+        assert atl_team_totals["made_three_point_field_goals"] == 14  # noqa: PLR2004
+        assert atl_team_totals["attempted_three_point_field_goals"] == 28  # noqa: PLR2004
+        assert atl_team_totals["made_free_throws"] == 16  # noqa: PLR2004
+        assert atl_team_totals["attempted_free_throws"] == 27  # noqa: PLR2004
+        assert atl_team_totals["offensive_rebounds"] == 11  # noqa: PLR2004
+        assert atl_team_totals["defensive_rebounds"] == 35  # noqa: PLR2004
+        assert atl_team_totals["assists"] == 25  # noqa: PLR2004
+        assert atl_team_totals["steals"] == 6  # noqa: PLR2004
+        assert atl_team_totals["blocks"] == 6  # noqa: PLR2004
+        assert atl_team_totals["turnovers"] == 11  # noqa: PLR2004
+        assert atl_team_totals["personal_fouls"] == 21  # noqa: PLR2004
+        assert atl_team_totals["points"] == 114  # noqa: PLR2004

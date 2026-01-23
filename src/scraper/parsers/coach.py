@@ -21,7 +21,7 @@ class CoachParser:
         Extract coach info and coaching record.
 
         Args:
-            page: The CoachPage wrapper.
+            page (CoachPage): The CoachPage wrapper.
 
         Returns:
             dict: Structured coach data.
@@ -36,7 +36,7 @@ class CoachParser:
         Parse coaching record rows.
 
         Args:
-            rows: List of CoachingRecordRow objects.
+            rows (list): List of CoachingRecordRow objects.
 
         Returns:
             list[dict]: Cleaned coaching record.
@@ -44,7 +44,9 @@ class CoachParser:
         return [
             {
                 "season": row.season,
-                "team": self.team_abbreviation_parser.from_abbreviation(row.team) if row.team else None,
+                "team": self.team_abbreviation_parser.from_abbreviation(row.team)
+                if row.team
+                else None,
                 "wins": str_to_int(row.wins),
                 "losses": str_to_int(row.losses),
                 "win_pct": str_to_float(row.win_pct),

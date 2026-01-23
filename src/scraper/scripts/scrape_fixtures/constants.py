@@ -1,3 +1,5 @@
+"""Constants for the fixture scraper."""
+
 from __future__ import annotations
 
 from pathlib import Path

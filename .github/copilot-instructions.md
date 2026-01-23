@@ -69,19 +69,8 @@ npm run build
 npm run lint
 ```
 
-### Full Stack (Docker)
-
-```bash
-cd src/webapp
-
-# Start all services (PostgreSQL, Redis, FastAPI, Next.js)
-docker compose up -d
-
-# Stop all services
-docker compose down
-```
-
 ## Critical Build Requirements
+
 
 ### Python Dependencies
 

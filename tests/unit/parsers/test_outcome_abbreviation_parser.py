@@ -6,13 +6,15 @@ from src.scraper.parsers import OutcomeAbbreviationParser
 
 class TestOutcomeAbbreviationParser(TestCase):
     def setUp(self):
-        self.parser = OutcomeAbbreviationParser(abbreviations_to_outcomes=OUTCOME_ABBREVIATIONS_TO_OUTCOME)
+        self.parser = OutcomeAbbreviationParser(
+            abbreviations_to_outcomes=OUTCOME_ABBREVIATIONS_TO_OUTCOME
+        )
 
     def test_parse_unknown_outcome_symbol(self):
-        self.assertRaises(ValueError, self.parser.from_abbreviation, "jaebaebae")
+        self.assertRaises(ValueError, self.parser.from_abbreviation, "jaebaebae")  # noqa: PT027
 
     def test_parse_win(self):
-        self.assertEqual(Outcome.WIN, self.parser.from_abbreviation("W"))
+        assert self.parser.from_abbreviation("W") == Outcome.WIN
 
     def test_parse_loss(self):
-        self.assertEqual(Outcome.LOSS, self.parser.from_abbreviation("L"))
+        assert self.parser.from_abbreviation("L") == Outcome.LOSS

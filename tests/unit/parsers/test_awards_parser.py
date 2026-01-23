@@ -12,7 +12,9 @@ class TestAwardsParser(TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.team_abbreviation_parser = MagicMock()
-        self.parser = AwardsParser(team_abbreviation_parser=self.team_abbreviation_parser)
+        self.parser = AwardsParser(
+            team_abbreviation_parser=self.team_abbreviation_parser
+        )
 
     def test_parse(self):
         """Test parsing awards page."""
@@ -33,8 +35,8 @@ class TestAwardsParser(TestCase):
 
         result = self.parser.parse(mock_page)
 
-        self.assertEqual(result["award"], "Most Valuable Player")
-        self.assertEqual(len(result["winners"]), 1)
-        self.assertEqual(result["winners"][0]["player"], "Nikola Jokić")
-        self.assertEqual(result["winners"][0]["age"], 28)
-        self.assertEqual(result["winners"][0]["voting_share"], 0.926)
+        assert result["award"] == "Most Valuable Player"
+        assert len(result["winners"]) == 1
+        assert result["winners"][0]["player"] == "Nikola Jokić"
+        assert result["winners"][0]["age"] == 28  # noqa: PLR2004
+        assert result["winners"][0]["voting_share"] == 0.926  # noqa: PLR2004

@@ -15,28 +15,34 @@ class BaseCSVOutputTest(TestCase):
         raise NotImplementedError
 
     def setUp(self):
-        with open(os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 f"../files/players_season_totals/{self.year}.html",
-        ), encoding="utf-8") as file_input:
+            ),
+            encoding="utf-8",
+        ) as file_input:
             self._html = file_input.read()
 
-        self.output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             f"./output/generated/players_season_totals/{self.year}.csv",
         )
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             f"./output/expected/players_season_totals/{self.year}.csv",
         )
 
     def tearDown(self):
-        os.remove(self.output_file_path)
+        os.remove(self.output_file_path)  # noqa: PTH107
 
     @requests_mock.Mocker()
     def assert_csv(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
 
         client.players_season_totals(
             season_end_year=self.year,
@@ -44,10 +50,7 @@ class BaseCSVOutputTest(TestCase):
             output_file_path=self.output_file_path,
         )
 
-        self.assertTrue(
-            filecmp.cmp(
-                self.output_file_path,
-                self.expected_output_file_path))
+        assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 class BaseJSONOutputTest(TestCase):
@@ -56,28 +59,34 @@ class BaseJSONOutputTest(TestCase):
         raise NotImplementedError
 
     def setUp(self):
-        with open(os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 f"../files/players_season_totals/{self.year}.html",
-        ), encoding="utf-8") as file_input:
+            ),
+            encoding="utf-8",
+        ) as file_input:
             self._html = file_input.read()
 
-        self.output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             f"./output/generated/players_season_totals/{self.year}.json",
         )
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             f"./output/expected/players_season_totals/{self.year}.json",
         )
 
     def tearDown(self):
-        os.remove(self.output_file_path)
+        os.remove(self.output_file_path)  # noqa: PTH107
 
     @requests_mock.Mocker()
     def assert_json(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
 
         client.players_season_totals(
             season_end_year=self.year,
@@ -85,10 +94,7 @@ class BaseJSONOutputTest(TestCase):
             output_file_path=self.output_file_path,
         )
 
-        self.assertTrue(
-            filecmp.cmp(
-                self.output_file_path,
-                self.expected_output_file_path))
+        assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 class BaseInMemoryJSONOutputTest(TestCase):
@@ -97,32 +103,37 @@ class BaseInMemoryJSONOutputTest(TestCase):
         raise NotImplementedError
 
     def setUp(self):
-        with open(os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 f"../files/players_season_totals/{self.year}.html",
-        ), encoding="utf-8") as file_input:
+            ),
+            encoding="utf-8",
+        ) as file_input:
             self._html = file_input.read()
 
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             f"./output/expected/players_season_totals/{self.year}.json",
         )
 
     @requests_mock.Mocker()
     def assert_json(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
 
         results = client.players_season_totals(
             season_end_year=self.year,
             output_type=OutputType.JSON,
         )
 
-        with open(self.expected_output_file_path, encoding="utf-8") as expected_output_file:
-            self.assertEqual(
-                json.loads(results),
-                json.load(expected_output_file),
-            )
+        with open(  # noqa: PTH123
+            self.expected_output_file_path, encoding="utf-8"
+        ) as expected_output_file:
+            assert json.loads(results) == json.load(expected_output_file)
 
 
 class Test2001PlayerSeasonCSVTotals(BaseCSVOutputTest):
@@ -614,344 +625,396 @@ class Test2018PlayerSeasonInMemoryJSONTotals(BaseInMemoryJSONOutputTest):
 class BaseInMemoryTest(TestCase):
     @property
     def year(self):
-        raise NotImplementedError("Implement year to fetch players season totals for")
+        msg = "Implement year to fetch players season totals for"
+        raise NotImplementedError(msg)
 
     def setUp(self):
-        with open(os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 f"../files/players_season_totals/{self.year}.html",
-        ), encoding="utf-8") as file_input:
+            ),
+            encoding="utf-8",
+        ) as file_input:
             self._html = file_input.read()
 
 
 @requests_mock.Mocker()
 class Test2001InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2001
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 490)
+        assert len(players_season_totals) == 490  # noqa: PLR2004
 
     def test_first_record(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
-        players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(
-            next(filter(lambda totals: totals["slug"] == "abdulma02", players_season_totals)),
-            {
-                "slug": "abdulma02",
-                "name": "Mahmoud Abdul-Rauf",
-                "positions": [Position.POINT_GUARD],
-                "age": 31,
-                "team": Team.VANCOUVER_GRIZZLIES,
-                "games_played": 41,
-                "games_started": 0,
-                "minutes_played": 486,
-                "made_field_goals": 120,
-                "attempted_field_goals": 246,
-                "made_three_point_field_goals": 4,
-                "attempted_three_point_field_goals": 14,
-                "made_free_throws": 22,
-                "attempted_free_throws": 29,
-                "offensive_rebounds": 5,
-                "defensive_rebounds": 20,
-                "assists": 76,
-                "steals": 9,
-                "blocks": 1,
-                "turnovers": 26,
-                "personal_fouls": 50,
-                "points": 266,
-            }
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
         )
+        players_season_totals = client.players_season_totals(season_end_year=self.year)
+        assert next(
+            filter(lambda totals: totals["slug"] == "abdulma02", players_season_totals)
+        ) == {
+            "slug": "abdulma02",
+            "name": "Mahmoud Abdul-Rauf",
+            "positions": [Position.POINT_GUARD],
+            "age": 31,
+            "team": Team.VANCOUVER_GRIZZLIES,
+            "games_played": 41,
+            "games_started": 0,
+            "minutes_played": 486,
+            "made_field_goals": 120,
+            "attempted_field_goals": 246,
+            "made_three_point_field_goals": 4,
+            "attempted_three_point_field_goals": 14,
+            "made_free_throws": 22,
+            "attempted_free_throws": 29,
+            "offensive_rebounds": 5,
+            "defensive_rebounds": 20,
+            "assists": 76,
+            "steals": 9,
+            "blocks": 1,
+            "turnovers": 26,
+            "personal_fouls": 50,
+            "points": 266,
+        }
 
 
 @requests_mock.Mocker()
 class Test2002InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2002
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 470)
+        assert len(players_season_totals) == 470  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2003InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2003
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 456)
+        assert len(players_season_totals) == 456  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2004InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2004
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 517)
+        assert len(players_season_totals) == 517  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2005InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2005
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 526)
+        assert len(players_season_totals) == 526  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2006InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2006
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 512)
+        assert len(players_season_totals) == 512  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2007InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2007
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 487)
+        assert len(players_season_totals) == 487  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2008InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2008
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 527)
+        assert len(players_season_totals) == 527  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2009InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2009
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 515)
+        assert len(players_season_totals) == 515  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2010InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2010
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 512)
+        assert len(players_season_totals) == 512  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2011InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2011
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 542)
+        assert len(players_season_totals) == 542  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2012InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2012
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 515)
+        assert len(players_season_totals) == 515  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2013InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2013
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 523)
+        assert len(players_season_totals) == 523  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2014InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2014
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 548)
+        assert len(players_season_totals) == 548  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2015InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2015
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 575)
+        assert len(players_season_totals) == 575  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2016InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2016
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 528)
+        assert len(players_season_totals) == 528  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2017InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2017
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 542)
+        assert len(players_season_totals) == 542  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2018InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2018
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 605)
+        assert len(players_season_totals) == 605  # noqa: PLR2004
 
 
 @requests_mock.Mocker()
 class Test2019InMemoryTotals(BaseInMemoryTest):
-
     @property
     def year(self):
         return 2019
 
     def test_length(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertEqual(len(players_season_totals), 622)
+        assert len(players_season_totals) == 622  # noqa: PLR2004
 
     def test_last_is_not_league_average_row(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
-        self.assertIsNot(players_season_totals[-1]["name"], "League Average")
+        assert players_season_totals[-1]["name"] != "League Average"
 
     def test_avery_bradley(self, m):
-        m.get(f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html", text=self._html,
-              status_code=200)
+        m.get(
+            f"https://www.basketball-reference.com/leagues/NBA_{self.year}_totals.html",
+            text=self._html,
+            status_code=200,
+        )
         players_season_totals = client.players_season_totals(season_end_year=self.year)
         clippers_avery_bradley = players_season_totals[198]
 
-        self.assertEqual('bradlav01', clippers_avery_bradley["slug"])
-        self.assertEqual("Avery Bradley", clippers_avery_bradley["name"])
-        self.assertListEqual([Position.SHOOTING_GUARD], clippers_avery_bradley["positions"])
-        self.assertEqual(28, clippers_avery_bradley["age"])
-        self.assertEqual(Team.LOS_ANGELES_CLIPPERS, clippers_avery_bradley["team"])
-        self.assertEqual(49, clippers_avery_bradley["games_played"])
-        self.assertEqual(49, clippers_avery_bradley["games_started"])
-        self.assertEqual(1463, clippers_avery_bradley["minutes_played"])
-        self.assertEqual(161, clippers_avery_bradley["made_field_goals"])
-        self.assertEqual(420, clippers_avery_bradley["attempted_field_goals"])
-        self.assertEqual(58, clippers_avery_bradley["made_three_point_field_goals"])
-        self.assertEqual(172, clippers_avery_bradley["attempted_three_point_field_goals"])
-        self.assertEqual(20, clippers_avery_bradley["made_free_throws"])
-        self.assertEqual(25, clippers_avery_bradley["attempted_free_throws"])
-        self.assertEqual(35, clippers_avery_bradley["offensive_rebounds"])
-        self.assertEqual(96, clippers_avery_bradley["defensive_rebounds"])
-        self.assertEqual(96, clippers_avery_bradley["assists"])
-        self.assertEqual(27, clippers_avery_bradley["steals"])
-        self.assertEqual(16, clippers_avery_bradley["blocks"])
-        self.assertEqual(61, clippers_avery_bradley["turnovers"])
-        self.assertEqual(133, clippers_avery_bradley["personal_fouls"])
-        self.assertEqual(400, clippers_avery_bradley["points"])
+        assert clippers_avery_bradley["slug"] == "bradlav01"
+        assert clippers_avery_bradley["name"] == "Avery Bradley"
+        self.assertListEqual(  # noqa: PT009
+            [Position.SHOOTING_GUARD], clippers_avery_bradley["positions"]
+        )
+        assert clippers_avery_bradley["age"] == 28  # noqa: PLR2004
+        assert clippers_avery_bradley["team"] == Team.LOS_ANGELES_CLIPPERS
+        assert clippers_avery_bradley["games_played"] == 49  # noqa: PLR2004
+        assert clippers_avery_bradley["games_started"] == 49  # noqa: PLR2004
+        assert clippers_avery_bradley["minutes_played"] == 1463  # noqa: PLR2004
+        assert clippers_avery_bradley["made_field_goals"] == 161  # noqa: PLR2004
+        assert clippers_avery_bradley["attempted_field_goals"] == 420  # noqa: PLR2004
+        assert clippers_avery_bradley["made_three_point_field_goals"] == 58  # noqa: PLR2004
+        assert clippers_avery_bradley["attempted_three_point_field_goals"] == 172  # noqa: PLR2004
+        assert clippers_avery_bradley["made_free_throws"] == 20  # noqa: PLR2004
+        assert clippers_avery_bradley["attempted_free_throws"] == 25  # noqa: PLR2004
+        assert clippers_avery_bradley["offensive_rebounds"] == 35  # noqa: PLR2004
+        assert clippers_avery_bradley["defensive_rebounds"] == 96  # noqa: PLR2004
+        assert clippers_avery_bradley["assists"] == 96  # noqa: PLR2004
+        assert clippers_avery_bradley["steals"] == 27  # noqa: PLR2004
+        assert clippers_avery_bradley["blocks"] == 16  # noqa: PLR2004
+        assert clippers_avery_bradley["turnovers"] == 61  # noqa: PLR2004
+        assert clippers_avery_bradley["personal_fouls"] == 133  # noqa: PLR2004
+        assert clippers_avery_bradley["points"] == 400  # noqa: PLR2004

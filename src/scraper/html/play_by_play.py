@@ -2,11 +2,18 @@
 
 
 class PlayByPlayPage:
-    """
-    Wraps the Play-by-Play page content.
+    """Wraps the Play-by-Play page content.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the page.
     """
 
     def __init__(self, html):
+        """Initialize the page wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the page.
+        """
         self.html = html
 
     @property
@@ -21,16 +28,12 @@ class PlayByPlayPage:
 
     @property
     def play_by_play_table(self):
-        """
-        PlayByPlayTable: The main play-by-play table object.
-        """
+        """PlayByPlayTable: The main play-by-play table object."""
         return PlayByPlayTable(html=self.html.xpath(self.table_query)[0])
 
     @property
     def team_names(self):
-        """
-        list[str]: Names of the teams playing (e.g. ['Boston Celtics', 'Los Angeles Lakers']).
-        """
+        """list[str]: Names of the teams playing (e.g. ['Boston Celtics', 'Los Angeles Lakers'])."""
         names = self.html.xpath(self.team_names_query)
 
         return [name.text_content() for name in names]
@@ -42,23 +45,28 @@ class PlayByPlayPage:
 
     @property
     def home_team_name(self):
-        """Name of the home team."""
+        """str: Name of the home team."""
         return self.team_names[1]
 
 
 class PlayByPlayTable:
-    """
-    Wraps the main table containing all play events.
+    """Wraps the main table containing all play events.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the table.
     """
 
     def __init__(self, html):
+        """Initialize the table wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the table.
+        """
         self.html = html
 
     @property
     def rows(self):
-        """
-        list[PlayByPlayRow]: Chronological list of play events.
-        """
+        """list[PlayByPlayRow]: Chronological list of play events."""
         return [
             PlayByPlayRow(html=row_html)
             # Ignore first row in table
@@ -67,11 +75,24 @@ class PlayByPlayTable:
 
 
 class PlayByPlayRow:
-    """
-    Wraps a single row (event) in the play-by-play table.
+    """Wraps a single row (event) in the play-by-play table.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the row.
     """
 
+    FULL_PLAY_ROW_CELL_COUNT = 6
+    MIN_ROW_CELL_COUNT = 2
+    AWAY_PLAY_INDEX = 1
+    SCORE_INDEX = 3
+    HOME_PLAY_INDEX = 5
+
     def __init__(self, html):
+        """Initialize the row wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the row.
+        """
         self.html = html
 
     @property
@@ -87,16 +108,16 @@ class PlayByPlayRow:
     @property
     def away_team_play_description(self):
         """str: Description of the away team's action (if any)."""
-        if len(self.html) == 6:
-            return self.html[1].text_content().strip()
+        if len(self.html) == self.FULL_PLAY_ROW_CELL_COUNT:
+            return self.html[self.AWAY_PLAY_INDEX].text_content().strip()
 
         return ""
 
     @property
     def home_team_play_description(self):
         """str: Description of the home team's action (if any)."""
-        if len(self.html) == 6:
-            return self.html[5].text_content().strip()
+        if len(self.html) == self.FULL_PLAY_ROW_CELL_COUNT:
+            return self.html[self.HOME_PLAY_INDEX].text_content().strip()
 
         return ""
 
@@ -113,8 +134,8 @@ class PlayByPlayRow:
     @property
     def formatted_scores(self):
         """str: Current score (e.g., '10-8')."""
-        if len(self.html) == 6:
-            return self.html[3].text_content().strip()
+        if len(self.html) == self.FULL_PLAY_ROW_CELL_COUNT:
+            return self.html[self.SCORE_INDEX].text_content().strip()
         return ""
 
     @property
@@ -124,20 +145,21 @@ class PlayByPlayRow:
 
     @property
     def has_play_by_play_data(self):
-        """
-        bool: True if this row contains valid game event data.
+        """bool: True if this row contains valid game event data.
 
         Filters out period headers, spacers, and invalid rows.
         """
-        # TODO: @nickth3man refactor this to be slightly clearer
-        # Need to avoid rows that indicate start of period
-        # Or denote tipoff / end of period (colspan = 5)
-        # Or are one of the table headers for each period group (aria-label = Time)
-        # There are certain cases, like at 10 minute mark in https://www.basketball-reference.com/boxscores/pbp/199911160ATL.html
-        # where there are no event details. Probably a visual bug on Basketball Reference's side of things.
-        return (
-            not self.is_start_of_period
-            and len(self.html) >= 2
-            and self.html[1].get("colspan") != "5"
-            and self.timestamp_cell.get("aria-label") != "Time"
-        )
+        if self.is_start_of_period:
+            return False
+
+        if len(self.html) < self.MIN_ROW_CELL_COUNT:
+            return False
+
+        # Rows with colspan="5" are usually "End of 1st Quarter" or similar spacers
+        is_period_spacer = self.html[1].get("colspan") == "5"
+        if is_period_spacer:
+            return False
+
+        # Header rows for each period have aria-label="Time" on the first cell
+        is_header_row = self.timestamp_cell.get("aria-label") == "Time"
+        return not is_header_row

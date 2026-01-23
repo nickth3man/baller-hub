@@ -1,3 +1,11 @@
+"""
+Fixture scraping module.
+
+This module contains the logic for scraping HTML fixtures from basketball-reference.com
+for use in integration testing. It includes resilience features like circuit breaking,
+rate limiting, and adaptive concurrency.
+"""
+
 from __future__ import annotations
 
 from src.scraper.scripts.scrape_fixtures.circuit_breaker import CircuitBreaker
@@ -20,18 +28,18 @@ from src.scraper.scripts.scrape_fixtures.models.monitoring.health import HealthM
 from src.scraper.scripts.scrape_fixtures.scraper import AsyncComprehensiveScraper
 
 __all__ = [
-    "AsyncComprehensiveScraper",
-    "ChaosExperiment",
-    "CircuitBreaker",
     "DEFAULT_BASE_URL",
     "DEFAULT_CHECKPOINT",
     "DEFAULT_MANIFEST",
+    "IMPERSONATION_PROFILES",
+    "MIN_DISK_SPACE_GB",
+    "AsyncComprehensiveScraper",
+    "ChaosExperiment",
+    "CircuitBreaker",
     "FixtureDict",
     "FixtureManifest",
     "FixtureSpec",
     "HealthMetrics",
-    "IMPERSONATION_PROFILES",
-    "MIN_DISK_SPACE_GB",
     "ScraperCheckpoint",
     "scrape_batch",
 ]

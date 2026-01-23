@@ -4,8 +4,9 @@ This module provides comprehensive validation for Baller Hub database
 including referential integrity, data consistency, business logic, and data quality.
 """
 
+import json
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -36,7 +37,7 @@ class DatabaseValidator:
         Returns:
             ValidationResult with all findings.
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
         self.results.clear()
 
         logger.info("Starting comprehensive database validation")
@@ -57,15 +58,15 @@ class DatabaseValidator:
             await self._check_team_abbreviation_unique()
 
         except Exception as e:
-            logger.error("Validation run failed", error=str(e))
+            logger.exception("Validation run failed", error=str(e))
             raise
 
-        duration = (datetime.utcnow() - start_time).total_seconds()
+        duration = (datetime.now(UTC) - start_time).total_seconds()
 
         summary = self._build_summary()
         return ValidationResult(
             run_id=str(uuid.uuid4()),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             target_tables=[
                 "game",
                 "player",
@@ -84,8 +85,8 @@ class DatabaseValidator:
     def _build_summary(self) -> ValidationSummary:
         """Build summary from collected results."""
         total_rules = 12
-        rules_passed = total_rules - len(set(r.rule_id for r in self.results))
-        rules_failed = len(set(r.rule_id for r in self.results))
+        rules_passed = total_rules - len({r.rule_id for r in self.results})
+        rules_failed = len({r.rule_id for r in self.results})
 
         critical_issues = len(
             [r for r in self.results if r.severity == Severity.CRITICAL]
@@ -111,7 +112,7 @@ class DatabaseValidator:
             duration_seconds=0.0,
         )
 
-    async def _add_issue(
+    async def _add_issue(  # noqa: PLR0913
         self,
         rule_id: str,
         rule_name: str,
@@ -145,7 +146,7 @@ class DatabaseValidator:
         logger.info("Checking foreign key violations")
 
         query = text("""
-            SELECT 
+            SELECT
                 'game' AS table_name,
                 game_id::text AS record_id,
                 home_team_id,
@@ -181,7 +182,7 @@ class DatabaseValidator:
         logger.info("Checking game teams are different")
 
         query = text("""
-            SELECT 
+            SELECT
                 game_id::text AS record_id,
                 home_team_id,
                 away_team_id,
@@ -214,7 +215,7 @@ class DatabaseValidator:
         logger.info("Checking game scores match box scores")
 
         query = text("""
-            SELECT 
+            SELECT
                 'game_box_score' AS table_name,
                 g.game_id::text AS record_id,
                 g.game_date,
@@ -226,13 +227,13 @@ class DatabaseValidator:
                 g.away_score - bs_away.points_scored AS away_diff,
                 'Game score does not match box score' AS violation_type
             FROM game g
-            JOIN box_score bs_home ON g.game_id = bs_home.game_id 
-                AND g.home_team_id = bs_home.team_id 
+            JOIN box_score bs_home ON g.game_id = bs_home.game_id
+                AND g.home_team_id = bs_home.team_id
                 AND bs_home.location = 'HOME'
-            JOIN box_score bs_away ON g.game_id = bs_away.game_id 
-                AND g.away_team_id = bs_away.team_id 
+            JOIN box_score bs_away ON g.game_id = bs_away.game_id
+                AND g.away_team_id = bs_away.team_id
                 AND bs_away.location = 'AWAY'
-            WHERE (g.home_score != bs_home.points_scored 
+            WHERE (g.home_score != bs_home.points_scored
                OR g.away_score != bs_away.points_scored)
             LIMIT 50
         """)
@@ -259,7 +260,7 @@ class DatabaseValidator:
         logger.info("Checking season date validity")
 
         query = text("""
-            SELECT 
+            SELECT
                 season_id::text AS record_id,
                 year,
                 season_name,
@@ -292,7 +293,7 @@ class DatabaseValidator:
         logger.info("Checking for negative statistics")
 
         query = text("""
-            SELECT 
+            SELECT
                 'player_box_score' AS table_name,
                 player_id::text || '_' || game_id::text AS record_id,
                 'points_scored' AS stat_column,
@@ -301,7 +302,7 @@ class DatabaseValidator:
             FROM player_box_score
             WHERE points_scored < 0
             UNION ALL
-            SELECT 
+            SELECT
                 'player_box_score' AS table_name,
                 player_id::text || '_' || game_id::text AS record_id,
                 'made_fg' AS stat_column,
@@ -310,7 +311,7 @@ class DatabaseValidator:
             FROM player_box_score
             WHERE made_fg < 0
             UNION ALL
-            SELECT 
+            SELECT
                 'player_box_score' AS table_name,
                 player_id::text || '_' || game_id::text AS record_id,
                 'attempted_fg' AS stat_column,
@@ -343,7 +344,7 @@ class DatabaseValidator:
         logger.info("Checking for orphaned players")
 
         query = text("""
-            SELECT 
+            SELECT
                 p.player_id::text AS record_id,
                 p.first_name,
                 p.last_name,
@@ -379,7 +380,7 @@ class DatabaseValidator:
         logger.info("Checking for orphaned games")
 
         query = text("""
-            SELECT 
+            SELECT
                 g.game_id::text AS record_id,
                 g.game_date,
                 g.home_team_id,
@@ -415,7 +416,7 @@ class DatabaseValidator:
         logger.info("Checking box score totals match player totals")
 
         query = text("""
-            SELECT 
+            SELECT
                 'box_score' AS table_name,
                 bs.box_id::text AS record_id,
                 bs.game_id,
@@ -430,7 +431,7 @@ class DatabaseValidator:
                 'Box score totals do not match player totals' AS violation_type
             FROM box_score bs
             LEFT JOIN (
-                SELECT 
+                SELECT
                     box_id,
                     SUM(points_scored) AS sum_player_points,
                     SUM(assists) AS sum_player_assists,
@@ -476,7 +477,7 @@ class DatabaseValidator:
         ]
 
         query = text(f"""
-            SELECT 
+            SELECT
                 'player' AS table_name,
                 player_id::text AS record_id,
                 first_name,
@@ -514,7 +515,7 @@ class DatabaseValidator:
         valid_season_types = ["REGULAR", "PLAYOFF", "ALL_STAR", "PRESEASON"]
 
         query = text(f"""
-            SELECT 
+            SELECT
                 'game' AS table_name,
                 game_id::text AS record_id,
                 game_date,
@@ -548,7 +549,7 @@ class DatabaseValidator:
         logger.info("Checking height and weight ranges")
 
         query = text("""
-            SELECT 
+            SELECT
                 'player' AS table_name,
                 player_id::text AS record_id,
                 first_name,
@@ -559,7 +560,7 @@ class DatabaseValidator:
             WHERE height_inches IS NOT NULL
               AND (height_inches < 66 OR height_inches > 90)
             UNION ALL
-            SELECT 
+            SELECT
                 'player' AS table_name,
                 player_id::text AS record_id,
                 first_name,
@@ -594,7 +595,7 @@ class DatabaseValidator:
         logger.info("Checking player age ranges")
 
         query = text("""
-            SELECT 
+            SELECT
                 'player' AS table_name,
                 player_id::text AS record_id,
                 first_name,
@@ -631,7 +632,7 @@ class DatabaseValidator:
         logger.info("Checking team abbreviation uniqueness")
 
         query = text("""
-            SELECT 
+            SELECT
                 'team' AS table_name,
                 abbreviation AS record_id,
                 name,
@@ -701,7 +702,7 @@ class ValidationReporter:
                 )
                 if issue.row_identifier:
                     lines.append(f"    ID: {issue.row_identifier}")
-            if result.summary.critical_issues > 10:
+            if result.summary.critical_issues > 10:  # noqa: PLR2004
                 lines.append(
                     f"  ... and {result.summary.critical_issues - 10} more critical issues"
                 )
@@ -710,11 +711,11 @@ class ValidationReporter:
         if result.summary.major_issues > 0:
             lines.append("MAJOR ISSUES:")
             major = [i for i in result.issues if i.severity == Severity.MAJOR][:10]
-            for issue in major:
-                lines.append(
-                    f"  [{issue.rule_id}] {issue.table_name}: {issue.error_message}"
-                )
-            if result.summary.major_issues > 10:
+            lines.extend(
+                f"  [{issue.rule_id}] {issue.table_name}: {issue.error_message}"
+                for issue in major
+            )
+            if result.summary.major_issues > 10:  # noqa: PLR2004
                 lines.append(
                     f"  ... and {result.summary.major_issues - 10} more major issues"
                 )
@@ -723,11 +724,11 @@ class ValidationReporter:
         if result.summary.minor_issues > 0:
             lines.append("MINOR ISSUES:")
             minor = [i for i in result.issues if i.severity == Severity.MINOR][:10]
-            for issue in minor:
-                lines.append(
-                    f"  [{issue.rule_id}] {issue.table_name}: {issue.error_message}"
-                )
-            if result.summary.minor_issues > 10:
+            lines.extend(
+                f"  [{issue.rule_id}] {issue.table_name}: {issue.error_message}"
+                for issue in minor
+            )
+            if result.summary.minor_issues > 10:  # noqa: PLR2004
                 lines.append(
                     f"  ... and {result.summary.minor_issues - 10} more minor issues"
                 )
@@ -739,6 +740,4 @@ class ValidationReporter:
     @staticmethod
     def generate_json_report(result: ValidationResult) -> str:
         """Generate a JSON report."""
-        import json
-
         return json.dumps(result.model_dump(mode="json"), indent=2, default=str)

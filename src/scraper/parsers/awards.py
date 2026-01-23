@@ -21,7 +21,7 @@ class AwardsParser:
         Extract award winners.
 
         Args:
-            page: The AwardsPage wrapper.
+            page (AwardsPage): The AwardsPage wrapper.
 
         Returns:
             dict: Structured awards data.
@@ -36,7 +36,7 @@ class AwardsParser:
         Parse award winner rows.
 
         Args:
-            rows: List of AwardRow objects.
+            rows (list): List of AwardRow objects.
 
         Returns:
             list[dict]: Cleaned award winners.
@@ -46,7 +46,9 @@ class AwardsParser:
                 "season": row.season,
                 "player": row.player,
                 "player_id": row.player_id,
-                "team": self.team_abbreviation_parser.from_abbreviation(row.team) if row.team else None,
+                "team": self.team_abbreviation_parser.from_abbreviation(row.team)
+                if row.team
+                else None,
                 "age": str_to_int(row.age),
                 "voting_share": str_to_float(row.voting_share),
             }

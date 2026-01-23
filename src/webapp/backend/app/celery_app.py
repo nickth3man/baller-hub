@@ -8,7 +8,7 @@ celery_app = Celery(
     "basketball_reference_api",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["app.ingestion.tasks", "app.search.tasks"],
+    include=["app.search.tasks"],
 )
 
 # Celery configuration
@@ -35,28 +35,6 @@ celery_app.conf.update(
 
 # Beat schedule for periodic tasks
 celery_app.conf.beat_schedule = {
-    # Ingest daily box scores every night at 3am ET
-    "ingest-daily-box-scores": {
-        "task": "app.ingestion.tasks.ingest_daily_box_scores",
-        "schedule": {
-            "minute": 0,
-            "hour": 3,
-        },
-    },
-    # Update standings every 6 hours during season
-    "update-standings": {
-        "task": "app.ingestion.tasks.update_standings",
-        "schedule": 21600.0,  # 6 hours in seconds
-    },
-    # Full season sync weekly on Sundays at 4am
-    "weekly-season-sync": {
-        "task": "app.ingestion.tasks.sync_season_data",
-        "schedule": {
-            "minute": 0,
-            "hour": 4,
-            "day_of_week": 0,  # Sunday
-        },
-    },
     # Reindex search after weekly sync at 5am Sundays
     "weekly-search-reindex": {
         "task": "app.search.tasks.reindex_all",

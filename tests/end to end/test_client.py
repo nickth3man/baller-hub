@@ -1,7 +1,7 @@
 import datetime
 import filecmp
-import os
 import time
+from pathlib import Path
 from unittest import TestCase
 
 import pytest
@@ -41,10 +41,10 @@ class TestPlayerBoxScores(BaseEndToEndTest):
         self.box_scores = player_box_scores(day=11, month=3, year=2024)
 
     def test_first_entry(self):
-        self.assertIsNotNone(self.box_scores)
-        self.assertNotEqual(0, len(self.box_scores))
-        self.assertEqual(124, len(self.box_scores))
-        self.assertDictEqual(
+        assert self.box_scores is not None
+        assert len(self.box_scores) != 0
+        assert len(self.box_scores) == 124  # noqa: PLR2004
+        self.assertDictEqual(  # noqa: PT009
             {
                 "name": "Nikola Jokić",
                 "slug": "jokicni01",
@@ -75,87 +75,74 @@ class TestPlayerBoxScores(BaseEndToEndTest):
 
 class TestCsvPlayerBoxScores(BaseEndToEndTest):
     def test_csv_output(self):
-        output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/generated/playerboxscores/2024/03/11.csv",
+        output_file_path = (
+            Path(__file__).parent / "output/generated/playerboxscores/2024/03/11.csv"
         )
         player_box_scores(
             day=11,
             month=3,
             year=2024,
             output_type=OutputType.CSV,
-            output_file_path=output_file_path,
+            output_file_path=str(output_file_path),
             output_write_option=OutputWriteOption.WRITE,
         )
 
-        self.assertTrue(
-            filecmp.cmp(
-                output_file_path,
-                os.path.join(
-                    os.path.dirname(__file__),
-                    "./output/expected/playerboxscores/2024/03/11.csv",
-                ),
-            )
+        assert filecmp.cmp(
+            output_file_path,
+            Path(__file__).parent / "output/expected/playerboxscores/2024/03/11.csv",
         )
 
 
 class TestJsonPlayerBoxScores(BaseEndToEndTest):
     def test_json_output(self):
-        output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/generated/playerboxscores/2024/03/11.json",
+        output_file_path = (
+            Path(__file__).parent / "output/generated/playerboxscores/2024/03/11.json"
         )
         player_box_scores(
             day=11,
             month=3,
             year=2024,
             output_type=OutputType.JSON,
-            output_file_path=output_file_path,
+            output_file_path=str(output_file_path),
             output_write_option=OutputWriteOption.WRITE,
         )
 
-        self.assertTrue(
-            filecmp.cmp(
-                output_file_path,
-                os.path.join(
-                    os.path.dirname(__file__),
-                    "./output/expected/playerboxscores/2024/03/11.json",
-                ),
-            )
+        assert filecmp.cmp(
+            output_file_path,
+            Path(__file__).parent / "output/expected/playerboxscores/2024/03/11.json",
         )
 
 
 class TestSeasonSchedule(BaseEndToEndTest):
     def test_2001_season_schedule(self):
         schedule = season_schedule(season_end_year=2001)
-        self.assertIsNotNone(schedule)
+        assert schedule is not None
 
     def test_current_year_season_schedule(self):
-        schedule = season_schedule(season_end_year=datetime.datetime.now().year)
-        self.assertIsNotNone(schedule)
+        schedule = season_schedule(season_end_year=datetime.datetime.now().year)  # noqa: DTZ005
+        assert schedule is not None
 
 
 class TestPlayerAdvancedSeasonTotals(BaseEndToEndTest):
     def test_totals(self):
         player_season_totals = players_advanced_season_totals(season_end_year=2019)
-        self.assertIsNotNone(player_season_totals)
-        self.assertTrue(len(player_season_totals) > 0)
+        assert player_season_totals is not None
+        assert len(player_season_totals) > 0
 
 
 class TestPlayByPlay(BaseEndToEndTest):
-    def test_BOS_2018_10_16_play_by_play(self):
+    def test_BOS_2018_10_16_play_by_play(self):  # noqa: N802
         plays = play_by_play(
             home_team=Team.BOSTON_CELTICS,
             day=16,
             month=10,
             year=2018,
         )
-        self.assertIsNotNone(plays)
+        assert plays is not None
 
-    def test_BOS_2018_10_16_play_by_play_csv_to_file(self):
-        output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/generated/2018_10_16_BOS_pbp.csv",
+    def test_BOS_2018_10_16_play_by_play_csv_to_file(self):  # noqa: N802
+        output_file_path = (
+            Path(__file__).parent / "output/generated/2018_10_16_BOS_pbp.csv"
         )
         play_by_play(
             home_team=Team.BOSTON_CELTICS,
@@ -163,18 +150,13 @@ class TestPlayByPlay(BaseEndToEndTest):
             month=10,
             year=2018,
             output_type=OutputType.CSV,
-            output_file_path=output_file_path,
+            output_file_path=str(output_file_path),
             output_write_option=OutputWriteOption.WRITE,
         )
 
-        self.assertTrue(
-            filecmp.cmp(
-                output_file_path,
-                os.path.join(
-                    os.path.dirname(__file__),
-                    "./output/expected/2018_10_16_BOS_pbp.csv",
-                ),
-            )
+        assert filecmp.cmp(
+            output_file_path,
+            Path(__file__).parent / "output/expected/2018_10_16_BOS_pbp.csv",
         )
 
     def test_overtime_play_by_play(self):
@@ -185,14 +167,13 @@ class TestPlayByPlay(BaseEndToEndTest):
             year=2018,
         )
         last_play = plays[-1]
-        self.assertIsNotNone(last_play)
-        self.assertEqual(1, last_play["period"])
-        self.assertEqual(PeriodType.OVERTIME, last_play["period_type"])
+        assert last_play is not None
+        assert last_play["period"] == 1
+        assert last_play["period_type"] == PeriodType.OVERTIME
 
     def test_overtime_play_by_play_to_json_file(self):
-        output_file_path = os.path.join(
-            os.path.dirname(__file__),
-            "./output/generated/2018_10_22_POR_pbp.json",
+        output_file_path = (
+            Path(__file__).parent / "output/generated/2018_10_22_POR_pbp.json"
         )
         play_by_play(
             home_team=Team.PORTLAND_TRAIL_BLAZERS,
@@ -200,18 +181,13 @@ class TestPlayByPlay(BaseEndToEndTest):
             month=10,
             year=2018,
             output_type=OutputType.JSON,
-            output_file_path=output_file_path,
+            output_file_path=str(output_file_path),
             output_write_option=OutputWriteOption.WRITE,
         )
 
-        self.assertTrue(
-            filecmp.cmp(
-                output_file_path,
-                os.path.join(
-                    os.path.dirname(__file__),
-                    "./output/expected/2018_10_22_POR_pbp.json",
-                ),
-            )
+        assert filecmp.cmp(
+            output_file_path,
+            Path(__file__).parent / "output/expected/2018_10_22_POR_pbp.json",
         )
 
 
@@ -221,33 +197,29 @@ class TestPlayersSeasonTotals(BaseEndToEndTest):
 
         for total in totals:
             # TODO: @nickth3man turn this into a dataclass with validation
-            self.assertIsNot("", total["name"])
-            self.assertIsNot("League Average", total["name"])
-            self.assertTrue(total["slug"])
-            self.assertTrue(total["name"])
-            self.assertTrue(total["positions"])
-            self.assertGreater(total["age"], 0)
-            self.assertGreaterEqual(total["games_played"], 0)
-            self.assertGreaterEqual(total["games_started"], 0)
-            self.assertGreaterEqual(total["minutes_played"], 0)
-            self.assertGreaterEqual(total["made_field_goals"], 0)
-            self.assertGreaterEqual(
-                total["attempted_field_goals"], total["made_field_goals"]
+            assert total["name"] != ""
+            assert total["name"] != "League Average"
+            assert total["slug"]
+            assert total["name"]
+            assert total["positions"]
+            assert total["age"] > 0
+            assert total["games_played"] >= 0
+            assert total["games_started"] >= 0
+            assert total["minutes_played"] >= 0
+            assert total["made_field_goals"] >= 0
+            assert total["attempted_field_goals"] >= total["made_field_goals"]
+            assert total["made_three_point_field_goals"] >= 0
+            assert (
+                total["attempted_three_point_field_goals"]
+                >= total["made_three_point_field_goals"]
             )
-            self.assertGreaterEqual(total["made_three_point_field_goals"], 0)
-            self.assertGreaterEqual(
-                total["attempted_three_point_field_goals"],
-                total["made_three_point_field_goals"],
-            )
-            self.assertGreaterEqual(total["made_free_throws"], 0)
-            self.assertGreaterEqual(
-                total["attempted_free_throws"], total["made_free_throws"]
-            )
-            self.assertGreaterEqual(total["offensive_rebounds"], 0)
-            self.assertGreaterEqual(total["defensive_rebounds"], 0)
-            self.assertGreaterEqual(total["assists"], 0)
-            self.assertGreaterEqual(total["steals"], 0)
-            self.assertGreaterEqual(total["blocks"], 0)
-            self.assertGreaterEqual(total["turnovers"], 0)
-            self.assertGreaterEqual(total["personal_fouls"], 0)
-            self.assertGreaterEqual(total["points"], 0)
+            assert total["made_free_throws"] >= 0
+            assert total["attempted_free_throws"] >= total["made_free_throws"]
+            assert total["offensive_rebounds"] >= 0
+            assert total["defensive_rebounds"] >= 0
+            assert total["assists"] >= 0
+            assert total["steals"] >= 0
+            assert total["blocks"] >= 0
+            assert total["turnovers"] >= 0
+            assert total["personal_fouls"] >= 0
+            assert total["points"] >= 0

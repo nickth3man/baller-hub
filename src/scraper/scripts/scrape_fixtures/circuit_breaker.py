@@ -30,6 +30,13 @@ class CircuitBreaker:
         reset_timeout_seconds: float = 300.0,
         health_metrics: HealthMetrics | None = None,
     ) -> None:
+        """Initialize the circuit breaker.
+
+        Args:
+            failure_threshold: Number of failures before opening the circuit.
+            reset_timeout_seconds: Seconds to wait before attempting to close circuit.
+            health_metrics: Optional health metrics tracker.
+        """
         self.failure_threshold = failure_threshold
         self.reset_timeout = reset_timeout_seconds
         self.failure_count = 0
