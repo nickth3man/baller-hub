@@ -318,6 +318,13 @@ class TeamTotal:
     """
 
     def __init__(self, team_abbreviation, totals):
+        """
+        Initialize the TeamTotal.
+
+        Args:
+            team_abbreviation (str): The standard team abbreviation (e.g. "LAL").
+            totals (object): The raw totals object containing stat attributes.
+        """
         self.team_abbreviation = team_abbreviation
         self.totals = totals
 
@@ -408,6 +415,14 @@ class PlayerData:
     """
 
     def __init__(self, name, resource_location, league_abbreviations):
+        """
+        Initialize the PlayerData DTO.
+
+        Args:
+            name (str): The full name of the player.
+            resource_location (str): The URL path to the player's profile.
+            league_abbreviations (iterable): Collection of league abbreviations the player has played in.
+        """
         self.name = name
         self.resource_location = resource_location
         self.league_abbreviations = set(league_abbreviations)

@@ -29,7 +29,17 @@ warnings.filterwarnings("ignore")
 
 
 class CSVRelationshipAnalyzer:
-    """Analyzes relationships between and within CSV files."""
+    """
+    Analyzes relationships between and within CSV files.
+
+    Attributes:
+        csv_dir (Path): Path to directory containing CSV files.
+        sample_size (int): Number of rows to sample for large files.
+        file_schemas (dict): Dictionary mapping filenames to their analyzed schemas.
+        dataframes (dict): Dictionary mapping filenames to sampled pandas DataFrames.
+        relationships (list): List of discovered inter-file relationships.
+        intra_relationships (dict): Dictionary mapping filenames to intra-file relationships.
+    """
 
     # Known ID column patterns for relationship detection
     ID_PATTERNS = [
@@ -117,11 +127,24 @@ class CSVRelationshipAnalyzer:
         self.intra_relationships: dict[str, list[dict]] = {}
 
     def discover_files(self) -> list[Path]:
-        """Find all CSV files in the directory."""
+        """
+        Find all CSV files in the directory.
+
+        Returns:
+            list[Path]: List of Paths to discovered CSV files.
+        """
         return sorted(self.csv_dir.glob("*.csv"))
 
     def load_csv(self, filepath: Path) -> pd.DataFrame | None:
-        """Load a CSV file with appropriate encoding handling."""
+        """
+        Load a CSV file with appropriate encoding handling.
+
+        Args:
+            filepath (Path): Path to the CSV file to load.
+
+        Returns:
+            pd.DataFrame | None: The loaded DataFrame, or None if loading failed.
+        """
         encodings = ["utf-8-sig", "utf-8", "latin-1", "cp1252"]
 
         for encoding in encodings:
@@ -137,8 +160,18 @@ class CSVRelationshipAnalyzer:
         return None
 
     def analyze_column(self, series: pd.Series, col_name: str) -> dict:
-        """Analyze a single column for its characteristics."""
+        """
+        Analyze a single column for its characteristics.
+
+        Args:
+            series (pd.Series): The column data to analyze.
+            col_name (str): The name of the column.
+
+        Returns:
+            dict: Analysis results including type, null count, and uniqueness.
+        """
         total = len(series)
+
         non_null = series.notna().sum()
         null_count = total - non_null
 
@@ -188,7 +221,15 @@ class CSVRelationshipAnalyzer:
         }
 
     def analyze_file_schema(self, filepath: Path) -> dict | None:
-        """Analyze the schema and characteristics of a single CSV file."""
+        """
+        Analyze the schema and characteristics of a single CSV file.
+
+        Args:
+            filepath (Path): Path to the CSV file to analyze.
+
+        Returns:
+            dict | None: The analyzed schema, or None if the file could not be loaded.
+        """
         print(f"  Analyzing: {filepath.name}")
 
         df = self.load_csv(filepath)
@@ -234,8 +275,17 @@ class CSVRelationshipAnalyzer:
         return schema
 
     def find_column_alias_group(self, col_name: str) -> str | None:
-        """Find which alias group a column belongs to."""
+        """
+        Find which alias group a column belongs to.
+
+        Args:
+            col_name (str): The name of the column.
+
+        Returns:
+            str | None: The alias group name, or None if no match found.
+        """
         col_lower = col_name.lower()
+
         for group, aliases in self.COLUMN_ALIASES.items():
             if any(
                 alias.lower() == col_lower or alias.lower() in col_lower
@@ -245,8 +295,18 @@ class CSVRelationshipAnalyzer:
         return None
 
     def calculate_value_overlap(self, series1: pd.Series, series2: pd.Series) -> dict:
-        """Calculate the overlap between two series' values."""
+        """
+        Calculate the overlap between two series' values.
+
+        Args:
+            series1 (pd.Series): The first column data.
+            series2 (pd.Series): The second column data.
+
+        Returns:
+            dict: Overlap metrics including counts and percentages.
+        """
         set1 = set(series1.dropna().astype(str).unique())
+
         set2 = set(series2.dropna().astype(str).unique())
 
         if not set1 or not set2:
@@ -263,8 +323,14 @@ class CSVRelationshipAnalyzer:
         }
 
     def find_inter_file_relationships(self) -> list[dict]:
-        """Find relationships between different files."""
+        """
+        Find relationships between different files.
+
+        Returns:
+            list[dict]: List of discovered inter-file relationships.
+        """
         print("\n" + "=" * 60)
+
         print("ANALYZING INTER-FILE RELATIONSHIPS")
         print("=" * 60)
 
@@ -345,8 +411,14 @@ class CSVRelationshipAnalyzer:
         return relationships
 
     def find_intra_file_relationships(self) -> dict[str, list[dict]]:
-        """Find relationships within each file (column correlations, dependencies)."""
+        """
+        Find relationships within each file (column correlations, dependencies).
+
+        Returns:
+            dict[str, list[dict]]: Mapping of filenames to their intra-file relationships.
+        """
         print("\n" + "=" * 60)
+
         print("ANALYZING INTRA-FILE RELATIONSHIPS")
         print("=" * 60)
 
@@ -433,7 +505,12 @@ class CSVRelationshipAnalyzer:
         return intra_rels
 
     def categorize_files(self) -> dict[str, list[str]]:
-        """Categorize files by their apparent entity type."""
+        """
+        Categorize files by their apparent entity type.
+
+        Returns:
+            dict[str, list[str]]: Mapping of categories to lists of filenames.
+        """
         categories = {
             "player_data": [],
             "team_data": [],
@@ -489,9 +566,15 @@ class CSVRelationshipAnalyzer:
         return categories
 
     def generate_entity_relationship_summary(self) -> dict:
-        """Generate a summary of entity relationships."""
+        """
+        Generate a summary of entity relationships.
+
+        Returns:
+            dict: Summary of central entities and relationship graph.
+        """
 
         # Build relationship graph
+
         graph = defaultdict(lambda: defaultdict(list))
 
         for rel in self.relationships:
@@ -529,8 +612,14 @@ class CSVRelationshipAnalyzer:
         }
 
     def generate_report(self) -> dict:
-        """Generate a comprehensive analysis report."""
+        """
+        Generate a comprehensive analysis report.
+
+        Returns:
+            dict: The complete analysis report.
+        """
         categories = self.categorize_files()
+
         er_summary = self.generate_entity_relationship_summary()
 
         report = {
@@ -550,8 +639,14 @@ class CSVRelationshipAnalyzer:
         return report
 
     def print_summary(self, report: dict):
-        """Print a human-readable summary of the analysis."""
+        """
+        Print a human-readable summary of the analysis.
+
+        Args:
+            report (dict): The analysis report to summarize.
+        """
         print("\n" + "=" * 80)
+
         print("CSV RELATIONSHIP ANALYSIS SUMMARY")
         print("=" * 80)
 
@@ -634,8 +729,14 @@ class CSVRelationshipAnalyzer:
                 print(f"  {filename}: {', '.join(pks)}")
 
     def run(self) -> dict:
-        """Run the complete analysis pipeline."""
+        """
+        Run the complete analysis pipeline.
+
+        Returns:
+            dict: The generated report.
+        """
         print("=" * 60)
+
         print("CSV RELATIONSHIP ANALYZER")
         print("=" * 60)
         print(f"Directory: {self.csv_dir}")

@@ -1,4 +1,7 @@
-"""API v1 router - aggregates all endpoint routers."""
+"""API v1 router configuration.
+
+Aggregates all endpoint routers for version 1 of the API.
+"""
 
 from fastapi import APIRouter
 

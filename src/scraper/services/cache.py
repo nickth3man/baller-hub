@@ -33,7 +33,15 @@ class FileCache:
                 self._cache_dir.mkdir(parents=True, exist_ok=True)
 
     def _key(self, url):
-        """Generate a stable key for a URL."""
+        """
+        Generate a stable key for a URL.
+
+        Args:
+            url (str): The URL to generate a key for.
+
+        Returns:
+            str: A SHA256 hash of the URL.
+        """
         return hashlib.sha256(url.encode()).hexdigest()
 
     def get(self, url):
@@ -76,6 +84,9 @@ class FileCache:
             url (str): The URL.
             content (bytes): The content to cache.
             ttl (timedelta, optional): Custom TTL for this item.
+
+        Returns:
+            None
         """
         if not self._cache_dir.exists():
             try:

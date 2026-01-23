@@ -1,3 +1,10 @@
+"""
+Script to verify database connection and basic query execution.
+
+Connects to the database and runs a few sample queries to ensure
+integrity and connectivity.
+"""
+
 import logging
 import sys
 from pathlib import Path
@@ -17,6 +24,11 @@ logger = logging.getLogger(__name__)
 
 
 def verify():
+    """
+    Execute connection tests and sample queries.
+
+    Verifies that the database is reachable and that views return data.
+    """
     logger.info("Initializing DB (creating views)...")
     init_db()
 

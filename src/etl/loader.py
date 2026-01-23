@@ -1,4 +1,20 @@
+"""
+Loading logic for the ETL pipeline.
+
+Populates dimensional and fact tables from staging data or intermediate tables.
+"""
+
+
 def load_dims(con):
+    """
+    Populate dimensional tables (dim_players, dim_teams) from the identity bridge and CSVs.
+
+    Ensures that every entity referenced in the facts has a corresponding entry
+    in the dimensions.
+
+    Args:
+        con (duckdb.DuckDBPyConnection): The DuckDB connection.
+    """
     con.execute("""
         INSERT INTO dim_players (bref_id, nba_id, name, birth_date)
         SELECT DISTINCT bref_id, nba_id, name, birth_date
@@ -16,6 +32,15 @@ def load_dims(con):
 
 
 def load_facts(con):
+    """
+    Populate the central fact table 'fact_player_gamelogs' by joining play-by-play data with player totals.
+
+    Constructs a detailed record of every player's performance in every game,
+    resolved against the identity bridge to ensure consistent player IDs.
+
+    Args:
+        con (duckdb.DuckDBPyConnection): The DuckDB connection.
+    """
     con.execute("""
         INSERT INTO fact_player_gamelogs (
             player_id, team_id, game_id, date, minutes_played,

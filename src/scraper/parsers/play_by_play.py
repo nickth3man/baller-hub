@@ -109,11 +109,27 @@ class ScoresParser:
         self.home_team_score_group_name = home_team_score_group_name
 
     def parse_scores(self, formatted_scores):
-        """Regex match the score string."""
+        """
+        Regex match the score string.
+
+        Args:
+            formatted_scores (str): e.g. "10-8".
+
+        Returns:
+            Match | None: Regex match object.
+        """
         return re.search(self.scores_regex, formatted_scores)
 
     def parse_away_team_score(self, formatted_scores):
-        """Extract away team score integer."""
+        """
+        Extract away team score integer.
+
+        Args:
+            formatted_scores (str): e.g. "10-8".
+
+        Returns:
+            int: Away team score.
+        """
         return int(
             self.parse_scores(formatted_scores=formatted_scores).group(
                 self.away_team_score_group_name
@@ -121,7 +137,15 @@ class ScoresParser:
         )
 
     def parse_home_team_score(self, formatted_scores):
-        """Extract home team score integer."""
+        """
+        Extract home team score integer.
+
+        Args:
+            formatted_scores (str): e.g. "10-8".
+
+        Returns:
+            int: Home team score.
+        """
         return int(
             self.parse_scores(formatted_scores=formatted_scores).group(
                 self.home_team_score_group_name

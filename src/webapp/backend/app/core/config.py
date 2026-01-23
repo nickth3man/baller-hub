@@ -11,6 +11,11 @@ PROJECT_ROOT = Path(__file__).resolve().parents[5]
 
 
 class Settings(BaseSettings):
+    """Application settings using Pydantic BaseSettings.
+
+    Loads configuration from environment variables and .env file.
+    """
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -24,6 +29,15 @@ class Settings(BaseSettings):
 
     database_url: str = f"duckdb:///{PROJECT_ROOT}/src/webapp/baller.duckdb"
     database_echo: bool = False
+
+    @property
+    def duckdb_path(self) -> Path:
+        """Get the absolute path to the DuckDB database file.
+
+        Returns:
+            Path: The path to the database file.
+        """
+        return PROJECT_ROOT / "src/webapp/baller.duckdb"
 
     redis_url: str = "redis://localhost:6379/0"
 
@@ -44,6 +58,14 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_required_settings(self) -> "Settings":
+        """Validate that critical settings are present and secure.
+
+        Returns:
+            Settings: The validated settings object.
+
+        Raises:
+            ValueError: If JWT_SECRET_KEY is missing or too short.
+        """
         if not self.jwt_secret_key or len(self.jwt_secret_key) < 32:
             raise ValueError(
                 "JWT_SECRET_KEY environment variable is required and must be at least 32 characters"
@@ -54,6 +76,11 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    """Get a cached instance of the application settings.
+
+    Returns:
+        Settings: The application settings.
+    """
     return Settings()
 
 

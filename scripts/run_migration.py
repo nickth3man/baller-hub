@@ -1,3 +1,10 @@
+"""
+Script to run database migrations (Deprecated).
+
+This script was used to migrate data to the legacy DuckDB instance.
+It is now deprecated in favor of `src/etl/builder.py`.
+"""
+
 import logging
 import sys
 import time
@@ -21,6 +28,12 @@ except ImportError as e:
 
 
 def setup_logging():
+    """
+    Configure logging for the migration process.
+
+    Returns:
+        tuple: (logger, log_file_path)
+    """
     # Create logs directory in project root
     log_dir = Path(__file__).resolve().parent.parent / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -53,6 +66,11 @@ def setup_logging():
 
 
 def run_migration():
+    """
+    Execute the database migration process.
+
+    Deprecated: Use src/etl/builder.py instead.
+    """
     logger, log_file = setup_logging()
     logger.warning("=" * 60)
     logger.warning("DEPRECATED: This script is deprecated.")

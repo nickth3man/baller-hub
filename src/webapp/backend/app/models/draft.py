@@ -8,6 +8,18 @@ from app.models.player import POSITION_ENUM, Position
 
 
 class Draft(SQLModel, table=True):
+    """Represents an NBA Draft event.
+
+    Attributes:
+        draft_id: Unique identifier for the draft.
+        season_id: Foreign key to the season.
+        year: Year of the draft.
+        draft_date: Date the draft took place.
+        round_count: Number of rounds in the draft.
+        pick_count: Total number of picks in the draft.
+        picks: List of picks in this draft.
+    """
+
     __tablename__ = "draft"
 
     draft_id: int | None = Field(default=None, primary_key=True)
@@ -21,6 +33,25 @@ class Draft(SQLModel, table=True):
 
 
 class DraftPick(SQLModel, table=True):
+    """Represents a single pick in an NBA Draft.
+
+    Attributes:
+        pick_id: Unique identifier for the pick.
+        draft_id: Foreign key to the draft.
+        overall_pick: Overall pick number in the draft.
+        round_number: Round number.
+        round_pick: Pick number within the round.
+        team_id: Foreign key to the team making the pick.
+        player_id: Foreign key to the player selected.
+        original_team_id: Foreign key to the team that originally held the pick (if traded).
+        trade_notes: Notes about any trades involving this pick.
+        college: College attended by the player (if applicable).
+        height_in: Height of the player in inches at draft time.
+        weight_lbs: Weight of the player in pounds at draft time.
+        position: Position of the player.
+        draft: The draft event this pick belongs to.
+    """
+
     __tablename__ = "draft_pick"
 
     pick_id: int | None = Field(default=None, primary_key=True)

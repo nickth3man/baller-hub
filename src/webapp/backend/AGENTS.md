@@ -1,30 +1,32 @@
-# src/webapp/backend AGENTS.md
+# PROJECT KNOWLEDGE BASE
 
 **Generated:** 2026-01-22
-**Context:** FastAPI backend service.
+**Context:** FastAPI Service
 
 ## OVERVIEW
-The REST API server for Baller Hub, built with FastAPI. It handles data persistence (PostgreSQL), search (Meilisearch), and serves the frontend.
+The core API service powered by FastAPI, handling data persistence, business logic, and search functionality. It exposes a RESTful API consumed by the frontend and other clients.
 
 ## FOLDER STRUCTURE
-- `app/api/v1/`: Versioned API route handlers.
-- `app/core/`: Configuration and environment settings.
-- `app/db/`: Database session management and migrations.
-- `app/models/`: SQLModel (SQLAlchemy + Pydantic) database tables.
-- `app/services/`: Business logic layer isolated from HTTP transport.
-- `tests/`: Backend-specific test suite.
+- `app/api/`: Route handlers and endpoints.
+- `app/core/`: Configuration and lifespan management.
+- `app/models/`: SQLModel database schemas.
+- `app/services/`: Business logic layer (Service Pattern).
+- `app/db/`: Database connection and session management.
 
 ## CORE BEHAVIORS & PATTERNS
-- **Service Layer**: Business logic resides in `services/`, not in route handlers.
-- **Async Database**: All database interactions use asynchronous sessions.
-- **Dependency Injection**: FastAPI `Depends` is used for service and database access.
+- **Async First**: All I/O operations (DB, HTTP) must be `async/await`.
+- **Service Layer**: Logic resides in `app/services/`, not in API routes.
+- **Dependency Injection**: Use FastAPI's `Depends` for all resource access (DB sessions, services).
+- **Pydantic V2**: Use strict typing and validation for all data schemas.
 
 ## CONVENTIONS
-- **Commands**: `uv run uvicorn` (run), `uv run alembic` (db), `uv run ruff check` (lint), `uv run ty check` (type).
-- **Naming**: Snake_case for models and schemas.
-- **Imports**: Absolute imports from `app` (e.g., `from app.core import config`).
+- **Testing**: `pytest` for unit/integration tests; mock external services.
+- **Linting**: Strict `ruff` compliance; no unused imports.
+- **Type Safety**: `mypy`/`ty` enabled; fully type-hinted codebases required.
+- **Error Handling**: Use custom exceptions in `services/`, caught by global handlers.
 
 ## WORKING AGREEMENTS
-- **Secrets**: Never commit secrets. Use `.env` file and `app/core/config.py`.
-- **Migrations**: Always generate a migration when modifying `models/`.
-- **No Sync I/O**: Avoid blocking calls in async route handlers.
+- **No Global State**: Avoid global variables; use Dependency Injection.
+- **Database Migrations**: Review `alembic` migrations before applying.
+- **API Versioning**: Prefix all routes with `/api/v1`.
+- **Documentation**: Keep docstrings up-to-date for OpenAPI generation.

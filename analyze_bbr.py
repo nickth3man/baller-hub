@@ -1,4 +1,12 @@
+"""
+Analyze Basketball Reference pages to find statistical tables.
+
+This script fetches pages from basketball-reference.com and identifies
+tables with IDs, including those hidden in HTML comments.
+"""
+
 import logging
+
 
 from curl_cffi import requests
 from lxml import html
@@ -15,11 +23,11 @@ BROWSER_IMPERSONATION = "chrome120"
 
 def get_table_info(url):
     """
-    Fetches a web page and prints summaries of HTML tables with IDs, including tables that are inside HTML comments.
+    Fetches a web page and prints summaries of HTML tables with IDs.
 
-    Prints the HTTP status code, response content length, a list of visible tables (ID and up to five header names), a list of tables found inside HTML comments (ID and up to five header names), and counts for each category. On error or non-200 responses, prints an error message.
+    Identifies visible tables and tables hidden inside HTML comments.
 
-    Parameters:
+    Args:
         url (str): The fully qualified URL to fetch and analyze.
     """
     logger.info("--- Analyzing %s ---", url)

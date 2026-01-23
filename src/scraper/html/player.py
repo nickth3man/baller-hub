@@ -2,11 +2,18 @@
 
 
 class PlayerPageTotalsRow:
-    """
-    Single row in the player's 'Totals' table (stats per season).
+    """Single row in the player's 'Totals' table (stats per season).
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the row.
     """
 
     def __init__(self, html):
+        """Initialize the row wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the row.
+        """
         self.html = html
 
     @property
@@ -20,17 +27,32 @@ class PlayerPageTotalsRow:
         return None
 
     def __eq__(self, other):
+        """Check if two rows represent the same HTML element.
+
+        Args:
+            other (object): The other object to compare.
+
+        Returns:
+            bool: True if the rows wrap the same HTML element, False otherwise.
+        """
         if isinstance(other, PlayerPageTotalsRow):
             return self.html == other.html
         return False
 
 
 class PlayerPageTotalsTable:
-    """
-    Wrapper for the 'Totals' table on a player page.
+    """Wrapper for the 'Totals' table on a player page.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the table.
     """
 
     def __init__(self, html):
+        """Initialize the table wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the table.
+        """
         self.html = html
 
     @property
@@ -42,17 +64,32 @@ class PlayerPageTotalsTable:
         ]
 
     def __eq__(self, other):
+        """Check if two tables represent the same HTML element.
+
+        Args:
+            other (object): The other object to compare.
+
+        Returns:
+            bool: True if the tables wrap the same HTML element, False otherwise.
+        """
         if isinstance(other, PlayerPageTotalsTable):
             return self.html == other.html
         return False
 
 
 class PlayerPage:
-    """
-    Wraps a player's profile page (e.g., /players/j/jamesle01.html).
+    """Wraps a player's profile page (e.g., /players/j/jamesle01.html).
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the page.
     """
 
     def __init__(self, html):
+        """Initialize the page wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the page.
+        """
         self.html = html
 
     @property

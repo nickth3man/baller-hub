@@ -63,6 +63,10 @@ def standings(
 
     Returns:
         dict: A dictionary containing standings data if no output_type is specified.
+
+    Raises:
+        InvalidSeason: If the requested season is invalid or not found.
+        requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
         http_service = _get_http_service()
@@ -111,6 +115,10 @@ def player_box_scores(
 
     Returns:
         list[dict]: A list of box scores if output_type is None.
+
+    Raises:
+        InvalidDate: If the date is invalid or no games were played.
+        requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     # MENTAL MODEL: Execution Flow
     # 1. User calls client.player_box_scores()
@@ -164,6 +172,10 @@ def regular_season_player_box_scores(
 
     Returns:
         list[dict]: List of game logs.
+
+    Raises:
+        InvalidPlayerAndSeason: If the player or season is invalid.
+        requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
         http_service = _get_http_service()
@@ -216,6 +228,10 @@ def playoff_player_box_scores(
 
     Returns:
         list[dict]: List of playoff game logs.
+
+    Raises:
+        InvalidPlayerAndSeason: If the player or season is invalid.
+        requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
         http_service = _get_http_service()
@@ -266,6 +282,10 @@ def season_schedule(
 
     Returns:
         list[dict]: List of games containing date, home/away teams, and scores (if played).
+
+    Raises:
+        InvalidSeason: If the requested season is invalid or not found.
+        requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
         http_service = _get_http_service()
@@ -307,6 +327,10 @@ def players_season_totals(
 
     Returns:
         list[dict]: List of player totals (points, rebounds, assists, etc. per game).
+
+    Raises:
+        InvalidSeason: If the requested season is invalid or not found.
+        requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
         http_service = _get_http_service()
@@ -349,6 +373,10 @@ def players_advanced_season_totals(
 
     Returns:
         list[dict]: List of advanced player stats.
+
+    Raises:
+        InvalidSeason: If the requested season is invalid or not found.
+        requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
         http_service = _get_http_service()
@@ -394,6 +422,10 @@ def team_box_scores(
 
     Returns:
         list[dict]: List of team stats for that day's games.
+
+    Raises:
+        InvalidDate: If the date is invalid or no games were played.
+        requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
         http_service = _get_http_service()
@@ -440,6 +472,10 @@ def play_by_play(
 
     Returns:
         list[dict]: Chronological list of plays.
+
+    Raises:
+        InvalidDate: If the date is invalid or no games were played.
+        requests.exceptions.HTTPError: If an HTTP error occurs.
     """
     try:
         http_service = _get_http_service()

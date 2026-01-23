@@ -1,33 +1,32 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-01-22
-**Structure:** Monorepo (Scraper + Webapp)
-
 ## OVERVIEW
-Baller Hub is a Basketball Reference clone comprising a Python-based scraper core, a FastAPI backend, and a Next.js frontend. The project is organized as a monorepo managed by `uv` for Python and `npm` for JavaScript/TypeScript.
+Baller Hub is a Basketball Reference clone with a Python scraper core, FastAPI backend, and Next.js frontend managed as a monorepo.
 
-## FOLDER STRUCTURE
-- `src/scraper/`: Core data extraction library (Python).
-- `src/webapp/backend/`: FastAPI backend service (Python).
-- `src/webapp/frontend/`: Next.js 15 frontend application (TypeScript).
-- `tests/`: Global test suite covering unit, integration, and end-to-end scenarios.
-- `docs/`: Project documentation.
+## STRUCTURE
+- `src/`: Shared source root.
+  - `scraper/`: Data extraction logic.
+  - `webapp/`: Web application (Backend + Frontend).
+- `tests/`: Global test suite.
 
-## CORE BEHAVIORS & PATTERNS
-- **Monorepo Architecture**: Shared Python environment via `uv`, distinct frontend management via `npm`.
-- **Data Flow**: Scraper -> Raw Data -> FastAPI -> Frontend.
-- **Testing Strategy**: Hierarchical testing with frozen fixtures for stability.
+## WHERE TO LOOK
+| Task | Component | Reference |
+|------|-----------|-----------|
+| Data Extraction, Parsing | Scraper | `src/scraper/AGENTS.md` |
+| API, Database, Backend | Webapp Backend | `src/webapp/backend/AGENTS.md` |
+| UI, Client-side Logic | Webapp Frontend | `src/webapp/frontend/AGENTS.md` |
+| General Webapp Arch | Webapp Root | `src/webapp/AGENTS.md` |
 
 ## CONVENTIONS
-- **Python**: Strict typing (`beartype`, `mypy`/`ty`), `snake_case`, `ruff` formatting.
-- **TypeScript**: `PascalCase` for components, `prettier` formatting, `npm` for dependency management.
-- **Git**: Atomic commits with descriptive messages.
-- **Commands**:
-    - Python: `uv sync`, `uv run pytest`, `uv run ruff check`, `uv run ty check`.
-    - Frontend: `npm install`, `npm run lint`, `npm run format`.
+- **Management**: `uv` for Python (root workspace), `npm` for Frontend.
+- **Typing**: Strict Python (`mypy`/`beartype`) and TypeScript strict mode.
+- **Style**: `ruff` (Python), `prettier` (TS/JS).
+- **Git**: Atomic commits, conventional messages.
 
-## WORKING AGREEMENTS
-- **Directory Integrity**: Respect the `src/` root structure. Do not create top-level code directories outside `src/` or `tests/`.
-- **Dependency Management**: Always use `uv` for Python packages and `npm` for Node packages.
-- **Documentation**: Update sub-directory `AGENTS.md` files when modifying architecture.
-- **Code Search**: If you are unsure how to do something, use `gh_grep` to search code examples from GitHub.
+## COMMANDS
+- **Python**: `uv sync`, `uv run pytest`, `uv run ruff check`, `uv run ty check`
+- **Frontend**: `npm install`, `npm run dev`, `npm run lint`
+
+## NOTES
+- **Monorepo**: Respect `src/` root. Do not create top-level code dirs.
+- **Deps**: Python deps are centralized in `pyproject.toml` (root).

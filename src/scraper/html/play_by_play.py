@@ -2,11 +2,18 @@
 
 
 class PlayByPlayPage:
-    """
-    Wraps the Play-by-Play page content.
+    """Wraps the Play-by-Play page content.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the page.
     """
 
     def __init__(self, html):
+        """Initialize the page wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the page.
+        """
         self.html = html
 
     @property
@@ -21,16 +28,12 @@ class PlayByPlayPage:
 
     @property
     def play_by_play_table(self):
-        """
-        PlayByPlayTable: The main play-by-play table object.
-        """
+        """PlayByPlayTable: The main play-by-play table object."""
         return PlayByPlayTable(html=self.html.xpath(self.table_query)[0])
 
     @property
     def team_names(self):
-        """
-        list[str]: Names of the teams playing (e.g. ['Boston Celtics', 'Los Angeles Lakers']).
-        """
+        """list[str]: Names of the teams playing (e.g. ['Boston Celtics', 'Los Angeles Lakers'])."""
         names = self.html.xpath(self.team_names_query)
 
         return [name.text_content() for name in names]
@@ -42,23 +45,28 @@ class PlayByPlayPage:
 
     @property
     def home_team_name(self):
-        """Name of the home team."""
+        """str: Name of the home team."""
         return self.team_names[1]
 
 
 class PlayByPlayTable:
-    """
-    Wraps the main table containing all play events.
+    """Wraps the main table containing all play events.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the table.
     """
 
     def __init__(self, html):
+        """Initialize the table wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the table.
+        """
         self.html = html
 
     @property
     def rows(self):
-        """
-        list[PlayByPlayRow]: Chronological list of play events.
-        """
+        """list[PlayByPlayRow]: Chronological list of play events."""
         return [
             PlayByPlayRow(html=row_html)
             # Ignore first row in table
@@ -67,11 +75,18 @@ class PlayByPlayTable:
 
 
 class PlayByPlayRow:
-    """
-    Wraps a single row (event) in the play-by-play table.
+    """Wraps a single row (event) in the play-by-play table.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the row.
     """
 
     def __init__(self, html):
+        """Initialize the row wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the row.
+        """
         self.html = html
 
     @property
@@ -124,8 +139,7 @@ class PlayByPlayRow:
 
     @property
     def has_play_by_play_data(self):
-        """
-        bool: True if this row contains valid game event data.
+        """bool: True if this row contains valid game event data.
 
         Filters out period headers, spacers, and invalid rows.
         """

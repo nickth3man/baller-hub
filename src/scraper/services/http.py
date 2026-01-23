@@ -57,6 +57,9 @@ class HTTPService:
     def _create_session(self):
         """
         Creates a requests Session with retry logic.
+
+        Returns:
+            requests.Session: A configured requests session.
         """
         session = requests.Session()
         session.headers.update(
@@ -86,6 +89,12 @@ class HTTPService:
         - Historical box scores: Immutable -> Long TTL (30 days)
         - Historical season data: Rarely changes -> Long TTL (7 days)
         - Current season/daily data: Changes often -> Short TTL (1 day or less)
+
+        Args:
+            url (str): The URL to determine TTL for.
+
+        Returns:
+            timedelta: The time-to-live for the cached URL.
         """
         # Historical Box Scores (e.g. /boxscores/pbp/2023...)
         if re.search(r"/boxscores/(?:pbp/)?\d{8}", url):
@@ -156,6 +165,15 @@ class HTTPService:
     def standings(self, season_end_year):
         """
         Fetches division standings for a given season.
+
+        Args:
+            season_end_year (int): The year the season ends.
+
+        Returns:
+            list[dict]: A list of division standings.
+
+        Raises:
+            ValueError: If parsing fails.
         """
         url = URLBuilder.standings(season_end_year)
 
@@ -183,6 +201,17 @@ class HTTPService:
     def player_box_scores(self, day, month, year):
         """
         Fetches daily leader stats for all players on a specific date.
+
+        Args:
+            day (int): Day of the month.
+            month (int): Month number.
+            year (int): Year.
+
+        Returns:
+            list[dict]: A list of player box scores.
+
+        Raises:
+            InvalidDate: If the date is invalid or has no data.
         """
         url = URLBuilder.player_box_scores(day=day, month=month, year=year)
 
@@ -199,6 +228,17 @@ class HTTPService:
     ):
         """
         Fetches the regular season game log for a specific player.
+
+        Args:
+            player_identifier (str): The unique player ID.
+            season_end_year (int): The year the season ends.
+            include_inactive_games (bool, optional): Whether to include inactive games. Defaults to False.
+
+        Returns:
+            list[dict]: A list of regular season game logs.
+
+        Raises:
+            InvalidPlayerAndSeason: If the player or season is invalid.
         """
         url = URLBuilder.player_season_box_scores(
             player_identifier=player_identifier, season_end_year=season_end_year

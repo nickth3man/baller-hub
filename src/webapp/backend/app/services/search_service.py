@@ -1,34 +1,53 @@
-"""Search service - full-text and filtered search operations.
+"""Service layer for search and autocomplete functionality.
 
-This service provides search functionality using Meilisearch for fast
-full-text search with typo tolerance and filtering. Falls back to
-database search when Meilisearch is unavailable.
+This module provides SearchService class which handles search operations
+across players, teams, and games using both Meilisearch (when available)
+and DuckDB fallback.
 """
 
-from typing import Any
-
+import duckdb
 import structlog
-from sqlalchemy import or_, select
-from sqlalchemy.orm import Session, aliased
-
-from app.models.player import Player, PlayerSeason, SeasonType
-from app.models.team import Team
+from app.db.queries import search as search_queries
 from app.search.indexer import SearchIndexer
 
 logger = structlog.get_logger(__name__)
 
 
 class SearchService:
-    """Service for searching players, teams, and games."""
+    """Service for managing search and autocomplete operations.
 
-    def __init__(self, session: Session, use_meilisearch: bool = True):
-        self.session = session
+    This service provides methods to search across players, teams, and games,
+    with support for both Meilisearch (preferred) and DuckDB fallback.
+
+    Attributes:
+        conn: DuckDB database connection for fallback queries.
+        use_meilisearch: Whether to use Meilisearch when available.
+        _indexer: Lazy-loaded SearchIndexer instance.
+    """
+
+    def __init__(self, conn: duckdb.DuckDBPyConnection, use_meilisearch: bool = True):
+        """Initialize SearchService with database connection.
+
+        Args:
+            conn: DuckDB database connection for fallback queries.
+            use_meilisearch: Whether to use Meilisearch when available.
+        """
+        self.conn = conn
+        self.use_meilisearch = use_meilisearch
+        self._indexer: SearchIndexer | None = None
+
+    def __init__(self, conn: duckdb.DuckDBPyConnection, use_meilisearch: bool = True):
+        self.conn = conn
         self.use_meilisearch = use_meilisearch
         self._indexer: SearchIndexer | None = None
 
     @property
     def indexer(self) -> SearchIndexer:
-        """Lazy-load the search indexer."""
+        """Lazy-load and return the SearchIndexer instance.
+
+        Returns:
+            SearchIndexer: Configured search indexer instance.
+        """
         if self._indexer is None:
             self._indexer = SearchIndexer()
         return self._indexer
@@ -38,18 +57,8 @@ class SearchService:
         query: str,
         entity_type: str | None = None,
         limit: int = 20,
-    ) -> dict[str, Any]:
-        """Search across all entities.
-
-        Args:
-            query: Search query string.
-            entity_type: Optional filter (player, team, game).
-            limit: Maximum results per entity type.
-
-        Returns:
-            Dictionary with results by entity type.
-        """
-        results: dict[str, Any] = {
+    ) -> dict:
+        results = {
             "query": query,
             "players": [],
             "teams": [],
@@ -57,7 +66,6 @@ class SearchService:
             "total_results": 0,
         }
 
-        # Try Meilisearch first
         if self.use_meilisearch:
             try:
                 meili_results = self.indexer.search_all(query, limit_per_index=limit)
@@ -89,7 +97,6 @@ class SearchService:
                     "Meilisearch search failed, falling back to DB", error=str(e)
                 )
 
-        # Fallback to database search
         if entity_type is None or entity_type == "player":
             players = self._db_search_players(query, limit)
             results["players"] = [self._normalize_player_model(p) for p in players]
@@ -105,16 +112,7 @@ class SearchService:
         self,
         query: str,
         limit: int = 10,
-    ) -> dict[str, Any]:
-        """Get autocomplete suggestions for a search query.
-
-        Args:
-            query: Partial search query.
-            limit: Maximum suggestions.
-
-        Returns:
-            Dictionary with suggestions list.
-        """
+    ) -> dict:
         if self.use_meilisearch:
             try:
                 suggestions = self.indexer.get_autocomplete_suggestions(query, limit)
@@ -122,197 +120,48 @@ class SearchService:
             except Exception as e:
                 logger.warning("Meilisearch autocomplete failed", error=str(e))
 
-        # Fallback to database
         suggestions = []
 
-        # Search players
-        player_query = (
-            select(Player).where(Player.last_name.ilike(f"{query}%")).limit(limit // 2)
-        )
-        player_result = self.session.execute(player_query)
+        player_result = self.conn.execute(
+            search_queries.SEARCH_PLAYERS_DB, [f"%{query}%", f"%{query}%", limit // 2]
+        ).fetchall()
+        cols = [desc[0] for desc in self.conn.description]
 
-        for player in player_result.scalars():
+        for row in player_result:
+            p = dict(zip(cols, row))
             suggestions.append(
                 {
                     "type": "player",
-                    "id": player.player_id,
-                    "slug": player.slug,
-                    "text": player.full_name,
-                    "subtitle": player.position.value.replace("_", " ")
-                    if player.position
+                    "id": p.get("player_id"),
+                    "slug": p.get("slug"),
+                    "text": p.get("full_name"),
+                    "subtitle": p.get("position", "").replace("_", " ")
+                    if p.get("position")
                     else "",
-                    "url": f"/players/{player.slug}",
+                    "url": f"/players/{p.get('slug')}",
                 }
             )
 
-        # Search teams
-        team_query = select(Team).where(Team.name.ilike(f"%{query}%")).limit(limit // 2)
-        team_result = self.session.execute(team_query)
+        team_result = self.conn.execute(
+            search_queries.SEARCH_TEAMS_DB,
+            [f"%{query}%", f"%{query}%", f"%{query}%", limit // 2],
+        ).fetchall()
+        cols = [desc[0] for desc in self.conn.description]
 
-        for team in team_result.scalars():
+        for row in team_result:
+            t = dict(zip(cols, row))
             suggestions.append(
                 {
                     "type": "team",
-                    "id": team.team_id,
-                    "text": f"{team.city} {team.name}",
-                    "subtitle": team.abbreviation,
-                    "url": f"/teams/{team.abbreviation}",
+                    "id": t.get("team_id"),
+                    "text": f"{t.get('city')} {t.get('name')}",
+                    "subtitle": t.get("abbreviation"),
+                    "url": f"/teams/{t.get('abbreviation')}",
                 }
             )
 
         return {"query": query, "suggestions": suggestions}
 
-    def search_players(
-        self,
-        query: str,
-        position: str | None = None,
-        team_abbrev: str | None = None,
-        active_only: bool = False,
-        limit: int = 20,
-    ) -> list[dict[str, Any]]:
-        """Search for players with filters.
-
-        Args:
-            query: Search query.
-            position: Filter by position.
-            active_only: Only return active players.
-            limit: Maximum results.
-
-        Returns:
-            List of player dictionaries.
-        """
-        if self.use_meilisearch and team_abbrev is None:
-            try:
-                filters = {}
-                if position:
-                    filters["position"] = position
-                if active_only:
-                    filters["is_active"] = True
-
-                results = self.indexer.search_players(query, limit, filters)
-                return [
-                    self._normalize_player_hit(hit) for hit in results.get("hits", [])
-                ]
-            except Exception as e:
-                logger.warning("Meilisearch player search failed", error=str(e))
-
-        # Fallback to database
-        players = self._db_search_players(
-            query, limit, position, active_only, team_abbrev
-        )
-        return [self._normalize_player_model(p) for p in players]
-
-    def search_teams(
-        self,
-        query: str,
-        active_only: bool = True,
-        limit: int = 20,
-    ) -> list[dict[str, Any]]:
-        """Search for teams.
-
-        Args:
-            query: Search query.
-            active_only: Only return active teams.
-            limit: Maximum results.
-
-        Returns:
-            List of team dictionaries.
-        """
-        if self.use_meilisearch:
-            try:
-                results = self.indexer.search_teams(query, limit)
-                hits = results.get("hits", [])
-                if active_only:
-                    hits = [h for h in hits if h.get("is_active", True)]
-                return [self._normalize_team_hit(hit) for hit in hits]
-            except Exception as e:
-                logger.warning("Meilisearch team search failed", error=str(e))
-
-        teams = self._db_search_teams(query, limit, active_only)
-        return [self._normalize_team_model(t) for t in teams]
-
-    def search_games(
-        self,
-        team1: str | None = None,
-        team2: str | None = None,
-        date_from: str | None = None,
-        date_to: str | None = None,
-        min_score: int | None = None,
-        playoff: bool | None = None,
-        limit: int = 50,
-    ) -> list[dict[str, Any]]:
-        """Search for games with filters.
-
-        Args:
-            team1: First team abbreviation.
-            team2: Second team abbreviation.
-            date_from: Start date (YYYY-MM-DD).
-            date_to: End date (YYYY-MM-DD).
-            min_score: Minimum combined score.
-            playoff: Filter for playoff games only.
-            limit: Maximum results.
-
-        Returns:
-            List of game dictionaries.
-        """
-        from datetime import date
-
-        from app.models.game import Game
-
-        home_team = aliased(Team)
-        away_team = aliased(Team)
-        query = (
-            select(Game, home_team.abbreviation, away_team.abbreviation)
-            .join(home_team, Game.home_team_id == home_team.team_id)
-            .join(away_team, Game.away_team_id == away_team.team_id)
-        )
-
-        if team1:
-            # Get team ID from abbreviation
-            team_query = select(Team.team_id).where(Team.abbreviation == team1.upper())
-            team_result = self.session.execute(team_query)
-            team_id = team_result.scalar_one_or_none()
-
-            if team_id:
-                query = query.where(
-                    (Game.home_team_id == team_id) | (Game.away_team_id == team_id)
-                )
-
-        if team2:
-            team_query = select(Team.team_id).where(Team.abbreviation == team2.upper())
-            team_result = self.session.execute(team_query)
-            team_id = team_result.scalar_one_or_none()
-
-            if team_id:
-                query = query.where(
-                    (Game.home_team_id == team_id) | (Game.away_team_id == team_id)
-                )
-
-        if date_from:
-            query = query.where(Game.game_date >= date.fromisoformat(date_from))
-
-        if date_to:
-            query = query.where(Game.game_date <= date.fromisoformat(date_to))
-
-        if min_score:
-            query = query.where((Game.home_score + Game.away_score) >= min_score)
-
-        if playoff is not None:
-            if playoff:
-                query = query.where(Game.season_type == "PLAYOFF")
-            else:
-                query = query.where(Game.season_type == "REGULAR")
-
-        query = query.order_by(Game.game_date.desc()).limit(limit)
-        result = self.session.execute(query)
-        rows = result.all()
-
-        return [
-            self._game_to_dict(game, home_abbrev, away_abbrev)
-            for game, home_abbrev, away_abbrev in rows
-        ]
-
-    # Private database fallback methods
     def _db_search_players(
         self,
         query: str,
@@ -320,56 +169,27 @@ class SearchService:
         position: str | None = None,
         active_only: bool = False,
         team_abbrev: str | None = None,
-    ) -> list[Player]:
-        """Database fallback for player search."""
-        player_query = select(Player).where(
-            or_(
-                Player.first_name.ilike(f"%{query}%"),
-                Player.last_name.ilike(f"%{query}%"),
-            )
-        )
+    ) -> list[dict]:
+        sql = search_queries.SEARCH_PLAYERS_DB
+        params = [f"%{query}%", f"%{query}%", limit]
 
-        if active_only:
-            player_query = player_query.where(Player.is_active)
-        if position:
-            player_query = player_query.where(Player.position == position)
-        if team_abbrev:
-            player_ids = (
-                select(PlayerSeason.player_id)
-                .join(Team, PlayerSeason.team_id == Team.team_id)
-                .where(Team.abbreviation == team_abbrev.upper())
-                .where(PlayerSeason.season_type == SeasonType.REGULAR)
-                .distinct()
-            )
-            player_query = player_query.where(Player.player_id.in_(player_ids))
-
-        player_query = player_query.limit(limit)
-        result = self.session.execute(player_query)
-        return list(result.scalars().all())
+        result = self.conn.execute(sql, params).fetchall()
+        cols = [desc[0] for desc in self.conn.description]
+        return [dict(zip(cols, row)) for row in result]
 
     def _db_search_teams(
         self,
         query: str,
         limit: int,
         active_only: bool = True,
-    ) -> list[Team]:
-        """Database fallback for team search."""
-        team_query = select(Team).where(
-            or_(
-                Team.name.ilike(f"%{query}%"),
-                Team.city.ilike(f"%{query}%"),
-                Team.abbreviation.ilike(f"%{query}%"),
-            )
-        )
+    ) -> list[dict]:
+        sql = search_queries.SEARCH_TEAMS_DB
+        params = [f"%{query}%", f"%{query}%", f"%{query}%", limit]
 
-        if active_only:
-            team_query = team_query.where(Team.is_active)
+        result = self.conn.execute(sql, params).fetchall()
+        cols = [desc[0] for desc in self.conn.description]
+        return [dict(zip(cols, row)) for row in result]
 
-        team_query = team_query.limit(limit)
-        result = self.session.execute(team_query)
-        return list(result.scalars().all())
-
-    # Serialization helpers
     def _format_years_active(
         self, debut_year: int | None, final_year: int | None, is_active: bool
     ) -> str | None:
@@ -383,7 +203,7 @@ class SearchService:
             return str(final_year)
         return None
 
-    def _normalize_player_hit(self, hit: dict[str, Any]) -> dict[str, Any]:
+    def _normalize_player_hit(self, hit: dict) -> dict:
         debut_year = hit.get("debut_year")
         final_year = hit.get("final_year")
         is_active = hit.get("is_active", False)
@@ -399,7 +219,7 @@ class SearchService:
             "is_active": is_active,
         }
 
-    def _normalize_team_hit(self, hit: dict[str, Any]) -> dict[str, Any]:
+    def _normalize_team_hit(self, hit: dict) -> dict:
         return {
             "team_id": hit.get("team_id"),
             "abbreviation": hit.get("abbreviation"),
@@ -408,7 +228,7 @@ class SearchService:
             "is_active": hit.get("is_active", True),
         }
 
-    def _normalize_game_hit(self, hit: dict[str, Any]) -> dict[str, Any]:
+    def _normalize_game_hit(self, hit: dict) -> dict:
         score = None
         if hit.get("away_score") is not None and hit.get("home_score") is not None:
             score = f"{hit.get('away_score')}-{hit.get('home_score')}"
@@ -419,40 +239,26 @@ class SearchService:
             "score": score,
         }
 
-    def _normalize_player_model(self, player: Player) -> dict[str, Any]:
+    def _normalize_player_model(self, player: dict) -> dict:
         return {
-            "player_id": player.player_id,
-            "slug": player.slug,
-            "full_name": player.full_name,
-            "name": player.full_name,
-            "position": player.position.value if player.position else None,
+            "player_id": player.get("player_id"),
+            "slug": player.get("slug"),
+            "full_name": player.get("full_name"),
+            "name": player.get("full_name"),
+            "position": player.get("position"),
             "years_active": self._format_years_active(
-                player.debut_year, player.final_year, player.is_active
+                player.get("debut_year"),
+                player.get("final_year"),
+                player.get("is_active", False),
             ),
-            "is_active": player.is_active,
+            "is_active": player.get("is_active"),
         }
 
-    def _normalize_team_model(self, team: Team) -> dict[str, Any]:
+    def _normalize_team_model(self, team: dict) -> dict:
         return {
-            "team_id": team.team_id,
-            "abbreviation": team.abbreviation,
-            "name": team.name,
-            "city": team.city,
-            "is_active": team.is_active,
-        }
-
-    def _game_to_dict(
-        self, game, home_abbrev: str | None = None, away_abbrev: str | None = None
-    ) -> dict[str, Any]:
-        score = None
-        if game.home_score is not None and game.away_score is not None:
-            score = f"{game.away_score}-{game.home_score}"
-        matchup = f"Game {game.game_id}"
-        if home_abbrev and away_abbrev:
-            matchup = f"{away_abbrev} @ {home_abbrev}"
-        return {
-            "game_id": game.game_id,
-            "game_date": game.game_date.isoformat() if game.game_date else None,
-            "matchup": matchup,
-            "score": score,
+            "team_id": team.get("team_id"),
+            "abbreviation": team.get("abbreviation"),
+            "name": team.get("name"),
+            "city": team.get("city"),
+            "is_active": team.get("is_active"),
         }

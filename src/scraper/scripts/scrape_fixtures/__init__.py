@@ -1,3 +1,11 @@
+"""
+Fixture scraping module.
+
+This module contains the logic for scraping HTML fixtures from basketball-reference.com
+for use in integration testing. It includes resilience features like circuit breaking,
+rate limiting, and adaptive concurrency.
+"""
+
 from __future__ import annotations
 
 from src.scraper.scripts.scrape_fixtures.circuit_breaker import CircuitBreaker

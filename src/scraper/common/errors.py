@@ -19,6 +19,11 @@ class InvalidDate(Exception):
     1. The date does not exist (e.g., February 30th).
     2. No games were played on that date.
     3. The URL constructed for that date returns a 404.
+
+    Args:
+        day (int): The day of the month.
+        month (int): The month number (1-12).
+        year (int): The year.
     """
 
     def __init__(self, day, month, year):
@@ -36,6 +41,9 @@ class InvalidSeason(Exception):
     Common causes:
     1. Requesting a future season that hasn't started.
     2. Requesting a year before data is available (e.g., pre-1946).
+
+    Args:
+        season_end_year (int): The year the season ends.
     """
 
     def __init__(self, season_end_year):
@@ -49,6 +57,10 @@ class InvalidPlayerAndSeason(Exception):
 
     This is thrown when querying player logs (regular season or playoffs)
     if the player did not play in that season or if the player ID is incorrect.
+
+    Args:
+        player_identifier (str): The unique player ID.
+        season_end_year (int): The year the season ends.
     """
 
     def __init__(self, player_identifier, season_end_year):

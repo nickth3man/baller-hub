@@ -25,11 +25,27 @@ class PlayerBoxScoreOutcomeParser:
         )
 
     def search_formatted_outcome(self, formatted_outcome):
-        """Regex match the outcome string (e.g. 'W, 110-95')."""
+        """
+        Regex match the outcome string (e.g. 'W, 110-95').
+
+        Args:
+            formatted_outcome (str): The raw outcome string.
+
+        Returns:
+            Match | None: The regex match object or None.
+        """
         return re.search(self.formatted_outcome_regex, formatted_outcome)
 
     def parse_outcome_abbreviation(self, formatted_outcome):
-        """Extract just the 'W' or 'L' from the string."""
+        """
+        Extract just the 'W' or 'L' from the string.
+
+        Args:
+            formatted_outcome (str): The raw outcome string.
+
+        Returns:
+            str: The outcome abbreviation.
+        """
         return self.search_formatted_outcome(formatted_outcome=formatted_outcome).group(
             self.outcome_abbreviation_regex_group_name
         )

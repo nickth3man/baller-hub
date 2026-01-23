@@ -1,3 +1,11 @@
+"""
+Database schema definition and setup.
+
+Defines the structure of staging tables, dimensional tables, fact tables,
+and the V2 relational schema (Franchises, Team Seasons, Player Stats).
+Includes schema creation (DDL) and view setup.
+"""
+
 import duckdb
 
 STAGING_TABLES: dict[str, list[str]] = {
@@ -36,16 +44,43 @@ STAGING_TABLES: dict[str, list[str]] = {
         "game_sub_label",
         "series_game_number",
     ],
-    "staging_team_histories": [
+    "staging_team_details": [
         "team_id",
-        "team_city",
-        "team_name",
-        "team_abbrev",
-        "season_founded",
-        "season_active_till",
-        "league",
+        "abbreviation",
+        "nickname",
+        "yearfounded",
+        "city",
+        "arena",
+        "arenacapacity",
+        "owner",
+        "generalmanager",
+        "headcoach",
+        "dleagueaffiliation",
+        "facebook",
+        "instagram",
+        "twitter",
     ],
-    "staging_player_statistics": [
+    "staging_team_abbrev": [
+        "season",
+        "lg",
+        "team",
+        "abbreviation",
+        "playoffs",
+    ],
+    "staging_player_career_info": [
+        "player",
+        "player_id",
+        "pos",
+        "ht_in_in",
+        "wt",
+        "birth_date",
+        "colleges",
+        "from_year",
+        "to_year",
+        "debut",
+        "hof",
+    ],
+    "staging_playerstatistics": [
         "first_name",
         "last_name",
         "person_id",
@@ -167,7 +202,7 @@ STAGING_TABLES: dict[str, list[str]] = {
         "pts",
         "trp_dbl",
     ],
-    "staging_player_advanced": [
+    "staging_advanced": [
         "season",
         "lg",
         "player",
@@ -232,6 +267,34 @@ STAGING_TABLES: dict[str, list[str]] = {
         "corner_3_point_percent",
         "num_heaves_attempted",
         "num_heaves_made",
+    ],
+    "staging_player_play_by_play": [
+        "season",
+        "lg",
+        "player",
+        "player_id",
+        "age",
+        "team",
+        "pos",
+        "g",
+        "gs",
+        "mp",
+        "pg_percent",
+        "sg_percent",
+        "sf_percent",
+        "pf_percent",
+        "c_percent",
+        "on_court_plus_minus_per_100_poss",
+        "net_plus_minus_per_100_poss",
+        "bad_pass_turnover",
+        "lost_ball_turnover",
+        "shooting_foul_committed",
+        "offensive_foul_committed",
+        "shooting_foul_drawn",
+        "offensive_foul_drawn",
+        "points_generated_by_assists",
+        "and1",
+        "fga_blocked",
     ],
     "staging_draft_pick_history": [
         "season",
@@ -358,6 +421,9 @@ def setup_views(con: duckdb.DuckDBPyConnection) -> None:
     Create SQL views (player, team, season, player_season) that expose the star-schema tables in the shape expected by SQLModel, and create placeholder empty tables for a set of models to prevent runtime errors.
 
     The views surface data from dim_players, dim_teams, and fact_player_gamelogs into normalized shapes used by downstream code; placeholder tables are created with a single integer `id` column if they do not already exist.
+
+    Args:
+        con (duckdb.DuckDBPyConnection): The DuckDB connection.
     """
     con.execute("""
         CREATE OR REPLACE VIEW player AS
@@ -476,10 +542,229 @@ def setup_schema(con: duckdb.DuckDBPyConnection) -> None:
 
     Creates core dimensional and fact tables (dim_players, dim_teams, bridge_ids, fact_player_gamelogs), creates staging tables defined in STAGING_TABLES with all columns as VARCHAR, and invokes setup_views to create additional views and placeholder tables.
 
-    Parameters:
+    Args:
         con (duckdb.DuckDBPyConnection): Connection used to execute DDL statements.
     """
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS franchises (
+            franchise_id VARCHAR PRIMARY KEY,
+            full_name VARCHAR,
+            city VARCHAR,
+            year_founded INTEGER,
+            is_active BOOLEAN
+        )
+    """)
+
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS team_seasons (
+            season_id VARCHAR,
+            franchise_id VARCHAR,
+            team_name VARCHAR,
+            abbreviation VARCHAR,
+            head_coach VARCHAR,
+            general_manager VARCHAR,
+            owner VARCHAR,
+            arena VARCHAR,
+            arena_capacity INTEGER,
+            PRIMARY KEY (season_id, franchise_id)
+        )
+    """)
+
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS team_season_stats (
+            season_id VARCHAR,
+            franchise_id VARCHAR,
+            games_played INTEGER,
+            wins INTEGER,
+            losses INTEGER,
+            win_percentage DOUBLE,
+            mov DOUBLE,
+            sos DOUBLE,
+            srs DOUBLE,
+            offensive_rating DOUBLE,
+            defensive_rating DOUBLE,
+            net_rating DOUBLE,
+            pace DOUBLE,
+            free_throw_rate DOUBLE,
+            three_point_attempt_rate DOUBLE,
+            true_shooting_percentage DOUBLE,
+            effective_fg_percentage DOUBLE,
+            turnover_percentage DOUBLE,
+            offensive_rebound_percentage DOUBLE,
+            PRIMARY KEY (season_id, franchise_id)
+        )
+    """)
+
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS player_season_stats (
+            player_id VARCHAR,
+            season_id VARCHAR,
+            franchise_id VARCHAR,
+            team_abbrev VARCHAR,
+            games_played INTEGER,
+            games_started INTEGER,
+            minutes_played INTEGER,
+            field_goals_made INTEGER,
+            field_goals_attempted INTEGER,
+            three_pointers_made INTEGER,
+            three_pointers_attempted INTEGER,
+            two_pointers_made INTEGER,
+            two_pointers_attempted INTEGER,
+            free_throws_made INTEGER,
+            free_throws_attempted INTEGER,
+            offensive_rebounds INTEGER,
+            defensive_rebounds INTEGER,
+            total_rebounds INTEGER,
+            assists INTEGER,
+            steals INTEGER,
+            blocks INTEGER,
+            turnovers INTEGER,
+            personal_fouls INTEGER,
+            points INTEGER
+        )
+    """)
+
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS player_season_advanced (
+            player_id VARCHAR,
+            season_id VARCHAR,
+            franchise_id VARCHAR,
+            per DOUBLE,
+            true_shooting_percentage DOUBLE,
+            three_point_attempt_rate DOUBLE,
+            free_throw_rate DOUBLE,
+            offensive_rebound_percentage DOUBLE,
+            defensive_rebound_percentage DOUBLE,
+            total_rebound_percentage DOUBLE,
+            assist_percentage DOUBLE,
+            steal_percentage DOUBLE,
+            block_percentage DOUBLE,
+            turnover_percentage DOUBLE,
+            usage_percentage DOUBLE,
+            offensive_win_shares DOUBLE,
+            defensive_win_shares DOUBLE,
+            win_shares DOUBLE,
+            win_shares_per_48 DOUBLE,
+            offensive_box_plus_minus DOUBLE,
+            defensive_box_plus_minus DOUBLE,
+            box_plus_minus DOUBLE,
+            vorp DOUBLE
+        )
+    """)
+
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS player_season_shooting (
+            player_id VARCHAR,
+            season_id VARCHAR,
+            franchise_id VARCHAR,
+            avg_dist_fga DOUBLE,
+            percent_fga_2p DOUBLE,
+            percent_fga_0_3 DOUBLE,
+            percent_fga_3_10 DOUBLE,
+            percent_fga_10_16 DOUBLE,
+            percent_fga_16_3p DOUBLE,
+            percent_fga_3p DOUBLE,
+            fg_percent_2p DOUBLE,
+            fg_percent_0_3 DOUBLE,
+            fg_percent_3_10 DOUBLE,
+            fg_percent_10_16 DOUBLE,
+            fg_percent_16_3p DOUBLE,
+            fg_percent_3p DOUBLE,
+            percent_assisted_2p DOUBLE,
+            percent_assisted_3p DOUBLE,
+            percent_dunks_of_fga DOUBLE,
+            num_dunks INTEGER,
+            percent_corner_3s_of_3pa DOUBLE,
+            corner_3_point_percent DOUBLE,
+            num_heaves_attempted INTEGER,
+            num_heaves_made INTEGER
+        )
+    """)
+
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS player_season_play_by_play (
+            player_id VARCHAR,
+            season_id VARCHAR,
+            franchise_id VARCHAR,
+            pg_percent INTEGER,
+            sg_percent INTEGER,
+            sf_percent INTEGER,
+            pf_percent INTEGER,
+            c_percent INTEGER,
+            on_court_plus_minus_per_100 DOUBLE,
+            net_plus_minus_per_100 DOUBLE,
+            bad_pass_turnovers INTEGER,
+            lost_ball_turnovers INTEGER,
+            shooting_fouls_committed INTEGER,
+            offensive_fouls_committed INTEGER,
+            shooting_fouls_drawn INTEGER,
+            offensive_fouls_drawn INTEGER,
+            points_generated_by_assists INTEGER,
+            and1s INTEGER,
+            fga_blocked INTEGER
+        )
+    """)
+
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS games (
+            game_id VARCHAR PRIMARY KEY,
+            season_id VARCHAR,
+            game_date DATE,
+            home_franchise_id VARCHAR,
+            away_franchise_id VARCHAR,
+            home_score INTEGER,
+            away_score INTEGER,
+            winner_franchise_id VARCHAR,
+            game_type VARCHAR,
+            attendance INTEGER,
+            arena_id VARCHAR,
+            duration_minutes INTEGER
+        )
+    """)
+
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS player_game_stats (
+            player_id VARCHAR,
+            game_id VARCHAR,
+            franchise_id VARCHAR,
+            minutes_played DOUBLE,
+            pts INTEGER,
+            ast INTEGER,
+            reb INTEGER,
+            blk INTEGER,
+            stl INTEGER,
+            tov INTEGER,
+            fgm INTEGER,
+            fga INTEGER,
+            fg3m INTEGER,
+            fg3a INTEGER,
+            ftm INTEGER,
+            fta INTEGER,
+            plus_minus INTEGER,
+            game_score DOUBLE,
+            PRIMARY KEY (player_id, game_id)
+        )
+    """)
+
     # Create Core Dimensional Tables (Preserved from existing schema)
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS players (
+            person_id VARCHAR PRIMARY KEY,
+            player_slug VARCHAR UNIQUE NOT NULL,
+            first_name VARCHAR,
+            last_name VARCHAR,
+            birth_date DATE,
+            height_string VARCHAR,
+            height_inches INTEGER,
+            weight INTEGER,
+            draft_year INTEGER,
+            draft_round INTEGER,
+            draft_number INTEGER,
+            from_year INTEGER,
+            to_year INTEGER,
+            is_hof BOOLEAN
+        )
+    """)
     con.execute("""
         CREATE TABLE IF NOT EXISTS dim_players (
             bref_id VARCHAR PRIMARY KEY,

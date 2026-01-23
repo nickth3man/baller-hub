@@ -1,1 +1,3 @@
-"""Utility scripts for the webapp."""
+"""
+Script module for backend maintenance and data seeding tasks.
+"""

@@ -16,6 +16,11 @@ DEFAULT_JSON_OPTIONS = {
 
 
 def _ensure_parent_dir(path):
+    """Ensure that the parent directory of the given path exists.
+
+    Args:
+        path (str | None): The file path.
+    """
     if not path:
         return
     Path(path).parent.mkdir(parents=True, exist_ok=True)
@@ -44,6 +49,12 @@ class FileOptions:
         return FileOptions(path=path, mode=mode)
 
     def __init__(self, path, mode):
+        """Initialize FileOptions.
+
+        Args:
+            path (str | None): The file path.
+            mode (OutputWriteOption | None): The write mode.
+        """
         self.path = path
         self.mode = mode
 
@@ -53,6 +64,14 @@ class FileOptions:
         return self.path is not None and self.mode is not None
 
     def __eq__(self, other):
+        """Check equality with another FileOptions instance.
+
+        Args:
+            other: The object to compare with.
+
+        Returns:
+            bool: True if equal, False otherwise.
+        """
         if isinstance(other, FileOptions):
             return self.path == other.path and self.mode == other.mode
         return False
@@ -98,11 +117,26 @@ class OutputOptions:
         )
 
     def __init__(self, file_options, formatting_options, output_type):
+        """Initialize OutputOptions.
+
+        Args:
+            file_options (FileOptions): File output settings.
+            formatting_options (dict): Format-specific settings.
+            output_type (OutputType): The type of output (JSON/CSV).
+        """
         self.file_options = file_options
         self.formatting_options = formatting_options
         self.output_type = output_type
 
     def __eq__(self, other):
+        """Check equality with another OutputOptions instance.
+
+        Args:
+            other: The object to compare with.
+
+        Returns:
+            bool: True if equal, False otherwise.
+        """
         if isinstance(other, OutputOptions):
             return (
                 self.file_options == other.file_options
@@ -119,6 +153,11 @@ class Writer:
     """
 
     def __init__(self, value_formatter):
+        """Initialize the Writer.
+
+        Args:
+            value_formatter (Callable): A function/callable to format values.
+        """
         self.value_formatter = value_formatter
 
     def write(self, data, options):
@@ -177,6 +216,14 @@ class CSVWriter(Writer):
     """
 
     def rows(self, data):
+        """Convert data into a list of rows for CSV writing.
+
+        Args:
+            data (list[dict]): The input data.
+
+        Returns:
+            list[dict]: A list of row dictionaries with formatted values.
+        """
         return [
             {key: self.value_formatter(value) for key, value in row.items()}
             for row in data
@@ -216,6 +263,14 @@ class SearchCSVWriter(CSVWriter):
     """
 
     def rows(self, data):
+        """Convert search results into a list of rows.
+
+        Args:
+            data (dict): The search results data containing a 'players' list.
+
+        Returns:
+            list[dict]: Flattened list of player data rows.
+        """
         return [
             {key: self.value_formatter(value) for key, value in row.items()}
             for row in data["players"]

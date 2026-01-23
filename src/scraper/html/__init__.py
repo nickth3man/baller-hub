@@ -1,4 +1,9 @@
-# Re-export all classes for backward compatibility
+"""Exposes HTML wrapper classes for scraping basketball-reference.com pages.
+
+This module re-exports all page and row wrapper classes to provide a flat
+namespace for the scraper.
+"""
+
 from .base_rows import (
     BasicBoxScoreRow,
     PlayerBoxScoreRow,
