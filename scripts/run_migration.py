@@ -54,6 +54,12 @@ def setup_logging():
 
 def run_migration():
     logger, log_file = setup_logging()
+    logger.warning("=" * 60)
+    logger.warning("DEPRECATED: This script is deprecated.")
+    logger.warning("Please use 'src/etl/builder.py' for the unified ETL pipeline.")
+    logger.warning("This script targets the legacy root 'baller.duckdb' path.")
+    logger.warning("=" * 60)
+
     db_path = "baller.duckdb"
     con = None
     start_time = time.time()

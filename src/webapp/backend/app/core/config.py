@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     debug: bool = False
 
-    database_url: str = f"duckdb:///{PROJECT_ROOT}/baller.duckdb"
+    database_url: str = f"duckdb:///{PROJECT_ROOT}/src/webapp/baller.duckdb"
     database_echo: bool = False
 
     redis_url: str = "redis://localhost:6379/0"
