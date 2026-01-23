@@ -92,7 +92,7 @@ def get_table_info(url):
                         )
                         commented_table_count += 1
                 except Exception:
-                    pass
+                    logger.warning("Failed to parse table in comment", exc_info=True)
         logger.info("Found %d tables in comments.", commented_table_count)
 
     except Exception:

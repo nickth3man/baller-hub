@@ -59,7 +59,7 @@ def load_staging(con: duckdb.DuckDBPyConnection, root: Path) -> None:
             f"""
             COPY {table_name}
             FROM '{file_path.as_posix()}'
-            (FORMAT CSV, HEADER, DELIMITER ',', AUTO_DETECT=TRUE)
+            (FORMAT CSV, HEADER, DELIMITER ',', QUOTE '"', ESCAPE '"', AUTO_DETECT TRUE)
             """
         )
 

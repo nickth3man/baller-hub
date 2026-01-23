@@ -110,7 +110,6 @@ tests/integration/files/**/*.html
 !tests/integration/files/**/.gitkeep
 /.antigravity
 baller.duckdb
-/tests/integration/files
 /.cline
 /PR_FEEDBACK_DETAILED.md
 analyze_all_comments.py
