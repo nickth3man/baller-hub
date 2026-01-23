@@ -159,3 +159,8 @@ include = ["tests/**/*.py"]
 missing-argument = "ignore"
 unresolved-attribute = "ignore"
 invalid-assignment = "ignore"
+
+
+[tool.uv.workspace]
+members = ["src/webapp/backend"]
+

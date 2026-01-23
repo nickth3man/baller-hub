@@ -143,15 +143,20 @@ class PlayByPlayRow:
 
         Filters out period headers, spacers, and invalid rows.
         """
-        # TODO: @nickth3man refactor this to be slightly clearer
-        # Need to avoid rows that indicate start of period
-        # Or denote tipoff / end of period (colspan = 5)
-        # Or are one of the table headers for each period group (aria-label = Time)
-        # There are certain cases, like at 10 minute mark in https://www.basketball-reference.com/boxscores/pbp/199911160ATL.html
-        # where there are no event details. Probably a visual bug on Basketball Reference's side of things.
-        return (
-            not self.is_start_of_period
-            and len(self.html) >= 2
-            and self.html[1].get("colspan") != "5"
-            and self.timestamp_cell.get("aria-label") != "Time"
-        )
+        if self.is_start_of_period:
+            return False
+
+        if len(self.html) < 2:
+            return False
+
+        # Rows with colspan="5" are usually "End of 1st Quarter" or similar spacers
+        is_period_spacer = self.html[1].get("colspan") == "5"
+        if is_period_spacer:
+            return False
+
+        # Header rows for each period have aria-label="Time" on the first cell
+        is_header_row = self.timestamp_cell.get("aria-label") == "Time"
+        if is_header_row:
+            return False
+
+        return True
