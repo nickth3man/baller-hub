@@ -90,7 +90,7 @@ out/
 
 # Database files
 raw-data/database/sqlite/nba.sqlite
-raw-data/misc-csv/csv_3/play_by_play.csv
+raw-data/misc-csv/play_by_play.csv
 
 # Test output directories
 tests/integration/output/**.csv
