@@ -16,7 +16,7 @@ class TestPlayerRegularSeasonBoxScores(TestCase):
         mocked_regular_season_player_box_scores.side_effect = HTTPError(
             response=MagicMock(status_code=codes.internal_server_error)
         )
-        self.assertRaises(
+        self.assertRaises(  # noqa: PT027
             InvalidPlayerAndSeasonError,
             regular_season_player_box_scores,
             "Mock Player",
@@ -30,7 +30,7 @@ class TestPlayerRegularSeasonBoxScores(TestCase):
         mocked_regular_season_player_box_scores.side_effect = HTTPError(
             response=MagicMock(status_code=codes.not_found)
         )
-        self.assertRaises(
+        self.assertRaises(  # noqa: PT027
             InvalidPlayerAndSeasonError,
             regular_season_player_box_scores,
             "Mock Player",
@@ -42,6 +42,6 @@ class TestPlayerRegularSeasonBoxScores(TestCase):
         mocked_regular_season_player_box_scores.side_effect = HTTPError(
             response=MagicMock(status_code=codes.bad_request)
         )
-        self.assertRaises(
+        self.assertRaises(  # noqa: PT027
             HTTPError, regular_season_player_box_scores, "Mock Player", 2000
         )

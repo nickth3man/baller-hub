@@ -17,7 +17,10 @@ class TestPlayerSeasonTotalsRow(TestCase):
             ]
         )
 
-        assert PlayerSeasonTotalsRow(html=self.html).position_abbreviations == "some position abbreviations"
+        assert (
+            PlayerSeasonTotalsRow(html=self.html).position_abbreviations
+            == "some position abbreviations"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="pos"]')
 
     def test_position_abbreviations_is_empty_string_when_cells_do_not_exist(self):
@@ -60,7 +63,9 @@ class TestPlayerSeasonTotalsRow(TestCase):
             ]
         )
 
-        assert PlayerSeasonTotalsRow(html=self.html).games_started == "some games started"
+        assert (
+            PlayerSeasonTotalsRow(html=self.html).games_started == "some games started"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="games_started"]')
 
     def test_games_started_is_empty_string_when_cells_do_not_exist(self):

@@ -19,7 +19,7 @@ def get_connection() -> duckdb.DuckDBPyConnection:
     Returns:
         duckdb.DuckDBPyConnection: Read-only database connection.
     """
-    global _conn
+    global _conn  # noqa: PLW0603
     if _conn is None:
         _conn = duckdb.connect(str(settings.duckdb_path), read_only=True)
     return _conn
@@ -31,7 +31,7 @@ def close_connection():
     Resets the singleton connection to None so a new connection
     can be created on next call to get_connection().
     """
-    global _conn
+    global _conn  # noqa: PLW0603
     if _conn:
         _conn.close()
         _conn = None

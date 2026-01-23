@@ -1,5 +1,7 @@
 """Service for coordinating parsing operations."""
 
+from functools import cached_property
+
 from src.core.domain import (
     DIVISIONS_TO_CONFERENCES,
     LEAGUE_ABBREVIATIONS_TO_LEAGUE,
@@ -61,252 +63,157 @@ class ParserService:
     )
     SEARCH_RESULT_RESOURCE_LOCATION_REGEX = r"(https?:\/\/www\.basketball-reference\.com\/)?(?P<resource_type>.+?(?=\/)).*\/(?P<resource_identifier>.+).html"
 
-    def __init__(self):
-        # Parsers are initialized lazily
-        self._team_abbreviation_parser = None
-        self._league_abbreviation_parser = None
-        self._location_abbreviation_parser = None
-        self._outcome_abbreviation_parser = None
-        self._outcome_parser = None
-        self._period_details_parser = None
-        self._period_timestamp_parser = None
-        self._position_abbreviation_parser = None
-        self._seconds_played_parser = None
-        self._scores_parser = None
-        self._search_result_name_parser = None
-        self._search_result_location_parser = None
-        self._team_name_parser = None
-        self._play_by_plays_parser = None
-        self._player_box_scores_parser = None
-        self._player_data_parser = None
-        self._player_season_box_scores_parser = None
-        self._player_season_totals_parser = None
-        self._player_advanced_season_totals_parser = None
-        self._scheduled_start_time_parser = None
-        self._scheduled_games_parser = None
-        self._search_results_parser = None
-        self._team_totals_parser = None
-        self._division_name_parser = None
-        self._team_standings_parser = None
-        self._conference_division_standings_parser = None
-
-    @property
+    @cached_property
     def team_abbreviation_parser(self):
-        if self._team_abbreviation_parser is None:
-            self._team_abbreviation_parser = TeamAbbreviationParser(
-                abbreviations_to_teams=TEAM_ABBREVIATIONS_TO_TEAM
-            )
-        return self._team_abbreviation_parser
+        return TeamAbbreviationParser(abbreviations_to_teams=TEAM_ABBREVIATIONS_TO_TEAM)
 
-    @property
+    @cached_property
     def league_abbreviation_parser(self):
-        if self._league_abbreviation_parser is None:
-            self._league_abbreviation_parser = LeagueAbbreviationParser(
-                abbreviations_to_league=LEAGUE_ABBREVIATIONS_TO_LEAGUE
-            )
-        return self._league_abbreviation_parser
+        return LeagueAbbreviationParser(
+            abbreviations_to_league=LEAGUE_ABBREVIATIONS_TO_LEAGUE
+        )
 
-    @property
+    @cached_property
     def location_abbreviation_parser(self):
-        if self._location_abbreviation_parser is None:
-            self._location_abbreviation_parser = LocationAbbreviationParser(
-                abbreviations_to_locations=LOCATION_ABBREVIATIONS_TO_POSITION,
-            )
-        return self._location_abbreviation_parser
+        return LocationAbbreviationParser(
+            abbreviations_to_locations=LOCATION_ABBREVIATIONS_TO_POSITION,
+        )
 
-    @property
+    @cached_property
     def outcome_abbreviation_parser(self):
-        if self._outcome_abbreviation_parser is None:
-            self._outcome_abbreviation_parser = OutcomeAbbreviationParser(
-                abbreviations_to_outcomes=OUTCOME_ABBREVIATIONS_TO_OUTCOME,
-            )
-        return self._outcome_abbreviation_parser
+        return OutcomeAbbreviationParser(
+            abbreviations_to_outcomes=OUTCOME_ABBREVIATIONS_TO_OUTCOME,
+        )
 
-    @property
+    @cached_property
     def outcome_parser(self):
-        if self._outcome_parser is None:
-            self._outcome_parser = PlayerBoxScoreOutcomeParser(
-                outcome_abbreviation_parser=self.outcome_abbreviation_parser
-            )
-        return self._outcome_parser
+        return PlayerBoxScoreOutcomeParser(
+            outcome_abbreviation_parser=self.outcome_abbreviation_parser
+        )
 
-    @property
+    @cached_property
     def period_details_parser(self):
-        if self._period_details_parser is None:
-            self._period_details_parser = PeriodDetailsParser(
-                regulation_periods_count=4
-            )
-        return self._period_details_parser
+        return PeriodDetailsParser(regulation_periods_count=4)
 
-    @property
+    @cached_property
     def period_timestamp_parser(self):
-        if self._period_timestamp_parser is None:
-            self._period_timestamp_parser = PeriodTimestampParser(
-                timestamp_format=ParserService.PLAY_BY_PLAY_TIMESTAMP_FORMAT
-            )
-        return self._period_timestamp_parser
+        return PeriodTimestampParser(
+            timestamp_format=ParserService.PLAY_BY_PLAY_TIMESTAMP_FORMAT
+        )
 
-    @property
+    @cached_property
     def position_abbreviation_parser(self):
-        if self._position_abbreviation_parser is None:
-            self._position_abbreviation_parser = PositionAbbreviationParser(
-                abbreviations_to_positions=POSITION_ABBREVIATIONS_TO_POSITION,
-            )
-        return self._position_abbreviation_parser
+        return PositionAbbreviationParser(
+            abbreviations_to_positions=POSITION_ABBREVIATIONS_TO_POSITION,
+        )
 
-    @property
+    @cached_property
     def seconds_played_parser(self):
-        if self._seconds_played_parser is None:
-            self._seconds_played_parser = SecondsPlayedParser()
-        return self._seconds_played_parser
+        return SecondsPlayedParser()
 
-    @property
+    @cached_property
     def scores_parser(self):
-        if self._scores_parser is None:
-            self._scores_parser = ScoresParser(
-                scores_regex=ParserService.PLAY_BY_PLAY_SCORES_REGEX
-            )
-        return self._scores_parser
+        return ScoresParser(scores_regex=ParserService.PLAY_BY_PLAY_SCORES_REGEX)
 
-    @property
+    @cached_property
     def search_result_name_parser(self):
-        if self._search_result_name_parser is None:
-            self._search_result_name_parser = SearchResultNameParser()
-        return self._search_result_name_parser
+        return SearchResultNameParser()
 
-    @property
+    @cached_property
     def search_result_location_parser(self):
-        if self._search_result_location_parser is None:
-            self._search_result_location_parser = ResourceLocationParser(
-                resource_location_regex=ParserService.SEARCH_RESULT_RESOURCE_LOCATION_REGEX
-            )
-        return self._search_result_location_parser
+        return ResourceLocationParser(
+            resource_location_regex=ParserService.SEARCH_RESULT_RESOURCE_LOCATION_REGEX
+        )
 
-    @property
+    @cached_property
     def team_name_parser(self):
-        if self._team_name_parser is None:
-            self._team_name_parser = TeamNameParser(
-                team_names_to_teams=TEAM_NAME_TO_TEAM
-            )
-        return self._team_name_parser
+        return TeamNameParser(team_names_to_teams=TEAM_NAME_TO_TEAM)
 
-    @property
+    @cached_property
     def play_by_plays_parser(self):
-        if self._play_by_plays_parser is None:
-            self._play_by_plays_parser = PlayByPlaysParser(
-                period_details_parser=self.period_details_parser,
-                period_timestamp_parser=self.period_timestamp_parser,
-                scores_parser=self.scores_parser,
-            )
-        return self._play_by_plays_parser
+        return PlayByPlaysParser(
+            period_details_parser=self.period_details_parser,
+            period_timestamp_parser=self.period_timestamp_parser,
+            scores_parser=self.scores_parser,
+        )
 
-    @property
+    @cached_property
     def player_box_scores_parser(self):
-        if self._player_box_scores_parser is None:
-            self._player_box_scores_parser = PlayerBoxScoresParser(
-                team_abbreviation_parser=self.team_abbreviation_parser,
-                location_abbreviation_parser=self.location_abbreviation_parser,
-                outcome_abbreviation_parser=self.outcome_abbreviation_parser,
-                seconds_played_parser=self.seconds_played_parser,
-            )
-        return self._player_box_scores_parser
+        return PlayerBoxScoresParser(
+            team_abbreviation_parser=self.team_abbreviation_parser,
+            location_abbreviation_parser=self.location_abbreviation_parser,
+            outcome_abbreviation_parser=self.outcome_abbreviation_parser,
+            seconds_played_parser=self.seconds_played_parser,
+        )
 
-    @property
+    @cached_property
     def player_data_parser(self):
-        if self._player_data_parser is None:
-            self._player_data_parser = PlayerDataParser(
-                search_result_location_parser=self.search_result_location_parser,
-                league_abbreviation_parser=self.league_abbreviation_parser,
-            )
-        return self._player_data_parser
+        return PlayerDataParser(
+            search_result_location_parser=self.search_result_location_parser,
+            league_abbreviation_parser=self.league_abbreviation_parser,
+        )
 
-    @property
+    @cached_property
     def player_season_box_scores_parser(self):
-        if self._player_season_box_scores_parser is None:
-            self._player_season_box_scores_parser = PlayerSeasonBoxScoresParser(
-                team_abbreviation_parser=self.team_abbreviation_parser,
-                location_abbreviation_parser=self.location_abbreviation_parser,
-                outcome_parser=self.outcome_parser,
-                seconds_played_parser=self.seconds_played_parser,
-            )
-        return self._player_season_box_scores_parser
+        return PlayerSeasonBoxScoresParser(
+            team_abbreviation_parser=self.team_abbreviation_parser,
+            location_abbreviation_parser=self.location_abbreviation_parser,
+            outcome_parser=self.outcome_parser,
+            seconds_played_parser=self.seconds_played_parser,
+        )
 
-    @property
+    @cached_property
     def player_season_totals_parser(self):
-        if self._player_season_totals_parser is None:
-            self._player_season_totals_parser = PlayerSeasonTotalsParser(
-                position_abbreviation_parser=self.position_abbreviation_parser,
-                team_abbreviation_parser=self.team_abbreviation_parser,
-            )
-        return self._player_season_totals_parser
+        return PlayerSeasonTotalsParser(
+            position_abbreviation_parser=self.position_abbreviation_parser,
+            team_abbreviation_parser=self.team_abbreviation_parser,
+        )
 
-    @property
+    @cached_property
     def player_advanced_season_totals_parser(self):
-        if self._player_advanced_season_totals_parser is None:
-            self._player_advanced_season_totals_parser = (
-                PlayerAdvancedSeasonTotalsParser(
-                    team_abbreviation_parser=self.team_abbreviation_parser,
-                    position_abbreviation_parser=self.position_abbreviation_parser,
-                )
-            )
-        return self._player_advanced_season_totals_parser
+        return PlayerAdvancedSeasonTotalsParser(
+            team_abbreviation_parser=self.team_abbreviation_parser,
+            position_abbreviation_parser=self.position_abbreviation_parser,
+        )
 
-    @property
+    @cached_property
     def scheduled_start_time_parser(self):
-        if self._scheduled_start_time_parser is None:
-            self._scheduled_start_time_parser = ScheduledStartTimeParser()
-        return self._scheduled_start_time_parser
+        return ScheduledStartTimeParser()
 
-    @property
+    @cached_property
     def scheduled_games_parser(self):
-        if self._scheduled_games_parser is None:
-            self._scheduled_games_parser = ScheduledGamesParser(
-                start_time_parser=self.scheduled_start_time_parser,
-                team_name_parser=self.team_name_parser,
-            )
-        return self._scheduled_games_parser
+        return ScheduledGamesParser(
+            start_time_parser=self.scheduled_start_time_parser,
+            team_name_parser=self.team_name_parser,
+        )
 
-    @property
+    @cached_property
     def search_results_parser(self):
-        if self._search_results_parser is None:
-            self._search_results_parser = SearchResultsParser(
-                search_result_name_parser=self.search_result_name_parser,
-                search_result_location_parser=self.search_result_location_parser,
-                league_abbreviation_parser=self.league_abbreviation_parser,
-            )
-        return self._search_results_parser
+        return SearchResultsParser(
+            search_result_name_parser=self.search_result_name_parser,
+            search_result_location_parser=self.search_result_location_parser,
+            league_abbreviation_parser=self.league_abbreviation_parser,
+        )
 
-    @property
+    @cached_property
     def team_totals_parser(self):
-        if self._team_totals_parser is None:
-            self._team_totals_parser = TeamTotalsParser(
-                team_abbreviation_parser=self.team_abbreviation_parser
-            )
-        return self._team_totals_parser
+        return TeamTotalsParser(team_abbreviation_parser=self.team_abbreviation_parser)
 
-    @property
+    @cached_property
     def division_name_parser(self):
-        if self._division_name_parser is None:
-            self._division_name_parser = DivisionNameParser(divisions=Division)
-        return self._division_name_parser
+        return DivisionNameParser(divisions=Division)
 
-    @property
+    @cached_property
     def team_standings_parser(self):
-        if self._team_standings_parser is None:
-            self._team_standings_parser = TeamStandingsParser(teams=Team)
-        return self._team_standings_parser
+        return TeamStandingsParser(teams=Team)
 
-    @property
+    @cached_property
     def conference_division_standings_parser(self):
-        if self._conference_division_standings_parser is None:
-            self._conference_division_standings_parser = (
-                ConferenceDivisionStandingsParser(
-                    division_name_parser=self.division_name_parser,
-                    team_standings_parser=self.team_standings_parser,
-                    divisions_to_conferences=DIVISIONS_TO_CONFERENCES,
-                )
-            )
-        return self._conference_division_standings_parser
+        return ConferenceDivisionStandingsParser(
+            division_name_parser=self.division_name_parser,
+            team_standings_parser=self.team_standings_parser,
+            divisions_to_conferences=DIVISIONS_TO_CONFERENCES,
+        )
 
     def parse_division_standings(self, standings):
         """Parse raw division standing rows into structured data."""

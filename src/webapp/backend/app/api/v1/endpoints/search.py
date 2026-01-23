@@ -53,7 +53,7 @@ def autocomplete(
 
 
 @router.get("/players")
-def search_players(
+def search_players(  # noqa: PLR0913
     q: str = Query(..., min_length=2),
     position: str | None = None,
     team_abbrev: str | None = None,
@@ -85,7 +85,7 @@ def search_players(
 
 
 @router.get("/games")
-def search_games(
+def search_games(  # noqa: PLR0913
     team1: str | None = None,
     team2: str | None = None,
     date_from: str | None = None,

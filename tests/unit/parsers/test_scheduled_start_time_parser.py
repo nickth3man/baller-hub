@@ -13,7 +13,7 @@ class TestScheduledStartTimeParser(TestCase):
         )
         expected_datetime = (
             pytz.timezone("US/Eastern")
-            .localize(datetime(year=2017, month=10, day=17, hour=20, minute=1))
+            .localize(datetime(year=2017, month=10, day=17, hour=20, minute=1))  # noqa: DTZ001
             .astimezone(pytz.utc)
         )
 
@@ -25,7 +25,7 @@ class TestScheduledStartTimeParser(TestCase):
         )
         expected_datetime = (
             pytz.timezone("US/Eastern")
-            .localize(datetime(year=2017, month=10, day=17, hour=8, minute=1))
+            .localize(datetime(year=2017, month=10, day=17, hour=8, minute=1))  # noqa: DTZ001
             .astimezone(pytz.utc)
         )
 
@@ -37,7 +37,7 @@ class TestScheduledStartTimeParser(TestCase):
         )
         expected_datetime = (
             pytz.timezone("US/Eastern")
-            .localize(datetime(year=2017, month=10, day=17, hour=19, minute=30))
+            .localize(datetime(year=2017, month=10, day=17, hour=19, minute=30))  # noqa: DTZ001
             .astimezone(pytz.utc)
         )
 
@@ -49,7 +49,7 @@ class TestScheduledStartTimeParser(TestCase):
         )
         expected_datetime = (
             pytz.timezone("US/Eastern")
-            .localize(datetime(year=2017, month=10, day=17, hour=7, minute=30))
+            .localize(datetime(year=2017, month=10, day=17, hour=7, minute=30))  # noqa: DTZ001
             .astimezone(pytz.utc)
         )
 

@@ -39,5 +39,7 @@ class TestPlayerPage(TestCase):
         html = MagicMock()
         html.xpath = MagicMock(return_value=[first_table, second_table])
 
-        assert PlayerPage(html=html).totals_table == PlayerPageTotalsTable(html=first_table)
+        assert PlayerPage(html=html).totals_table == PlayerPageTotalsTable(
+            html=first_table
+        )
         html.xpath.assert_called_once_with('.//table[@id="per_game"]')

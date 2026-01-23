@@ -637,9 +637,10 @@ class CSVRelationshipAnalyzer:
             "entity_relationship_summary": er_summary,
         }
 
-    def print_summary(self, report: dict):
+    def print_summary(self, report: dict):  # noqa: PLR0912
         """
         Print a human-readable summary of the analysis.
+
 
         Args:
             report (dict): The analysis report to summarize.
@@ -763,8 +764,9 @@ class CSVRelationshipAnalyzer:
         return report
 
 
-def json_serializer(obj):
+def json_serializer(obj):  # noqa: PLR0911
     """Custom JSON serializer for complex types."""
+
     if isinstance(obj, set):
         return list(obj)
     if isinstance(obj, np.integer):

@@ -14,7 +14,7 @@ class TestSeasonSchedule(TestCase):
         mocked_season_schedule.side_effect = HTTPError(
             response=MagicMock(status_code=codes.not_found)
         )
-        self.assertRaisesRegex(
+        self.assertRaisesRegex(  # noqa: PT027
             InvalidSeasonError,
             "Season end year of jaebaebae is invalid",
             season_schedule,
@@ -26,4 +26,4 @@ class TestSeasonSchedule(TestCase):
         mocked_season_schedule.side_effect = HTTPError(
             response=MagicMock(status_code=codes.internal_server_error)
         )
-        self.assertRaises(HTTPError, season_schedule, season_end_year=2018)
+        self.assertRaises(HTTPError, season_schedule, season_end_year=2018)  # noqa: PT027

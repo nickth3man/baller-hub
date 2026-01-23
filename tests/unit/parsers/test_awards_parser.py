@@ -38,5 +38,5 @@ class TestAwardsParser(TestCase):
         assert result["award"] == "Most Valuable Player"
         assert len(result["winners"]) == 1
         assert result["winners"][0]["player"] == "Nikola Jokić"
-        assert result["winners"][0]["age"] == 28
-        assert result["winners"][0]["voting_share"] == 0.926
+        assert result["winners"][0]["age"] == 28  # noqa: PLR2004
+        assert result["winners"][0]["voting_share"] == 0.926  # noqa: PLR2004

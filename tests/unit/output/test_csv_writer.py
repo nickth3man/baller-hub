@@ -14,7 +14,7 @@ class TestCSVWriter(TestCase):
 
     @mock.patch("csv.DictWriter")
     def test_opens_correct_file(self, mock_csv_dict_writer):
-        with mock.patch("builtins.open", mock.mock_open()) as mock_file:
+        with mock.patch("pathlib.Path.open", mock.mock_open()) as mock_file:
             mock_csv_dict_writer.return_value = self.csv_dict_writer
             self.writer.write(
                 data=self.DATA,
@@ -28,7 +28,6 @@ class TestCSVWriter(TestCase):
                 ),
             )
             mock_file.assert_called_with(
-                "some file path",
                 OutputWriteOption.WRITE.value,
                 newline="",
                 encoding="utf8",
@@ -36,7 +35,7 @@ class TestCSVWriter(TestCase):
 
     @mock.patch("csv.DictWriter")
     def test_file_and_columns_are_used_by_writer(self, mock_csv_dict_writer):
-        with mock.patch("builtins.open", mock.mock_open()) as mock_file:
+        with mock.patch("pathlib.Path.open", mock.mock_open()) as mock_file:
             mock_csv_dict_writer.return_value = self.csv_dict_writer
             self.writer.write(
                 data=self.DATA,
@@ -55,7 +54,7 @@ class TestCSVWriter(TestCase):
 
     @mock.patch("csv.DictWriter")
     def test_header_is_written(self, mock_csv_dict_writer):
-        with mock.patch("builtins.open", mock.mock_open()):
+        with mock.patch("pathlib.Path.open", mock.mock_open()):
             mock_csv_dict_writer.return_value = self.csv_dict_writer
             self.writer.write(
                 data=self.DATA,
@@ -72,7 +71,7 @@ class TestCSVWriter(TestCase):
 
     @mock.patch("csv.DictWriter")
     def test_rows_are_written(self, mock_csv_dict_writer):
-        with mock.patch("builtins.open", mock.mock_open()):
+        with mock.patch("pathlib.Path.open", mock.mock_open()):
             mock_csv_dict_writer.return_value = self.csv_dict_writer
             self.writer.write(
                 data=self.DATA,

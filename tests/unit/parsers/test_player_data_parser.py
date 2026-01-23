@@ -110,4 +110,8 @@ class TestPlayerDataParser(TestCase):
                 league_abbreviations=["NBA", "ABA", "BAA", "NBA", "ABA", "BAA"],
             )
         )
-        assert parsed_player["leagues"] == {League.NATIONAL_BASKETBALL_ASSOCIATION, League.AMERICAN_BASKETBALL_ASSOCIATION, League.BASKETBALL_ASSOCIATION_OF_AMERICA}
+        assert parsed_player["leagues"] == {
+            League.NATIONAL_BASKETBALL_ASSOCIATION,
+            League.AMERICAN_BASKETBALL_ASSOCIATION,
+            League.BASKETBALL_ASSOCIATION_OF_AMERICA,
+        }

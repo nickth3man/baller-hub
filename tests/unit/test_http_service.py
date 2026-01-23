@@ -12,7 +12,7 @@ class TestHTTPService(TestCase):
         response = mock.Mock(status_code=codes.multiple_choices)
 
         with mock.patch.object(service, "_fetch", return_value=response):
-            self.assertRaisesRegex(
+            self.assertRaisesRegex(  # noqa: PT027
                 InvalidDateError,
                 "Date with year set to 2018, month set to 1, and day set to 1 is invalid",
                 service.player_box_scores,

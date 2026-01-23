@@ -2,6 +2,7 @@
 
 import re
 from datetime import timedelta
+from http import HTTPStatus
 
 import requests
 from lxml import html
@@ -156,7 +157,7 @@ class HTTPService:
         response.raise_for_status()
 
         # Cache successful responses
-        if not params and response.status_code == 200:
+        if not params and response.status_code == HTTPStatus.OK:
             ttl = self._get_ttl(url)
             self.cache.set(url, response.content, ttl=ttl)
 
@@ -219,7 +220,7 @@ class HTTPService:
 
         response = self._fetch(url=url, allow_redirects=False)
 
-        if response.status_code == 200:
+        if response.status_code == HTTPStatus.OK:
             page = DailyLeadersPage(html=html.fromstring(response.content))
             return self.parser.parse_player_box_scores(box_scores=page.daily_leaders)
 

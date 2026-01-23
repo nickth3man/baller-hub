@@ -82,6 +82,8 @@ class ScheduleRow:
             return self.html == other.html
         return False
 
+    __hash__ = None
+
     @property
     def start_date(self):
         """str: Date of the game."""

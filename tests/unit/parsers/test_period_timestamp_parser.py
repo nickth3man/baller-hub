@@ -11,7 +11,7 @@ class TestPeriodTimestampParser(TestCase):
         )
 
     def test_less_than_a_minute_to_seconds(self):
-        assert self.parser.to_seconds(timestamp="0:32.1") == 32.1
+        assert self.parser.to_seconds(timestamp="0:32.1") == 32.1  # noqa: PLR2004
 
     def test_more_than_a_minute_to_seconds(self):
-        assert self.parser.to_seconds(timestamp="11:24.5") == 684.5
+        assert self.parser.to_seconds(timestamp="11:24.5") == 684.5  # noqa: PLR2004

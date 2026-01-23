@@ -13,7 +13,7 @@ class TestPlayerBoxScores(TestCase):
         mocked_player_box_scores.side_effect = HTTPError(
             response=mock.Mock(status_code=codes.not_found)
         )
-        self.assertRaises(
+        self.assertRaises(  # noqa: PT027
             InvalidDateError, player_box_scores, day=1, month=1, year=2018
         )
 
@@ -22,4 +22,4 @@ class TestPlayerBoxScores(TestCase):
         mocked_player_box_scores.side_effect = HTTPError(
             response=mock.Mock(status_code=codes.server_error)
         )
-        self.assertRaises(HTTPError, player_box_scores, day=1, month=1, year=2018)
+        self.assertRaises(HTTPError, player_box_scores, day=1, month=1, year=2018)  # noqa: PT027

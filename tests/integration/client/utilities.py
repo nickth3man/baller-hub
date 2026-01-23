@@ -23,7 +23,7 @@ class ResponseMocker:
 
         return klass
 
-    def mock(self, callable):
+    def mock(self, callable):  # noqa: A002
         @functools.wraps(callable)
         def inner(*args, **kwargs):
             with requests_mock.Mocker() as m:
@@ -33,11 +33,9 @@ class ResponseMocker:
                 ) in self._basketball_reference_paths_by_filename.items():
                     if not filename.endswith(".html"):
                         msg = f"Unexpected prefix for {filename}. Expected all files in to end with .html."
-                        raise ValueError(
-                            msg
-                        )
+                        raise ValueError(msg)
 
-                    with open(filename, encoding="utf-8") as file_input:
+                    with open(filename, encoding="utf-8") as file_input:  # noqa: PTH123
                         m.get(
                             f"https://www.basketball-reference.com/{basketball_reference_path}",
                             text=file_input.read(),
@@ -58,8 +56,8 @@ class ResponseMocker:
 class SeasonScheduleMocker(ResponseMocker):
     def __init__(self, schedules_directory: str, season_end_year: int):
         basketball_reference_paths_by_filename: dict[str, str] = {}
-        html_files_directory = os.path.join(schedules_directory, str(season_end_year))
-        for file in os.listdir(os.fsencode(html_files_directory)):
+        html_files_directory = os.path.join(schedules_directory, str(season_end_year))  # noqa: PTH118
+        for file in os.listdir(os.fsencode(html_files_directory)):  # noqa: PTH208
             filename = os.fsdecode(file)
             if not filename.endswith(".html"):
                 continue
@@ -68,7 +66,7 @@ class SeasonScheduleMocker(ResponseMocker):
             else:
                 key = f"leagues/NBA_{season_end_year}_games-{filename}"
             basketball_reference_paths_by_filename[
-                os.path.join(html_files_directory, filename)
+                os.path.join(html_files_directory, filename)  # noqa: PTH118
             ] = key
 
         super().__init__(

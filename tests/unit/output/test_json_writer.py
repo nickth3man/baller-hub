@@ -55,7 +55,7 @@ class TestJSONWriter(TestCase):
 
     @mock.patch("json.dump")
     def test_writing_to_file_with_default_options(self, json_dump):
-        with mock.patch("builtins.open", mock.mock_open()) as mock_file:
+        with mock.patch("pathlib.Path.open", mock.mock_open()) as mock_file:
             options = mock.Mock(
                 formatting_options={},
                 file_options=mock.Mock(
@@ -67,7 +67,7 @@ class TestJSONWriter(TestCase):
 
             self.writer.write(data=self.mock_data, options=options)
             mock_file.assert_called_once_with(
-                "some path", OutputWriteOption.WRITE.value, newline="", encoding="utf8"
+                OutputWriteOption.WRITE.value, newline="", encoding="utf8"
             )
             json_dump.assert_called_once_with(
                 self.mock_data,
@@ -79,7 +79,7 @@ class TestJSONWriter(TestCase):
 
     @mock.patch("json.dump")
     def test_writing_to_file_with_custom_options(self, json_dump):
-        with mock.patch("builtins.open", mock.mock_open()) as mock_file:
+        with mock.patch("pathlib.Path.open", mock.mock_open()) as mock_file:
             options = mock.Mock(
                 formatting_options={
                     "jae": "baebae",
@@ -93,7 +93,7 @@ class TestJSONWriter(TestCase):
             )
             self.writer.write(data=self.mock_data, options=options)
             mock_file.assert_called_once_with(
-                "some path", OutputWriteOption.WRITE.value, newline="", encoding="utf8"
+                OutputWriteOption.WRITE.value, newline="", encoding="utf8"
             )
             json_dump.assert_called_once_with(
                 self.mock_data,

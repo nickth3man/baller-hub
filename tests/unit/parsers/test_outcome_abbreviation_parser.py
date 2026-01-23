@@ -11,7 +11,7 @@ class TestOutcomeAbbreviationParser(TestCase):
         )
 
     def test_parse_unknown_outcome_symbol(self):
-        self.assertRaises(ValueError, self.parser.from_abbreviation, "jaebaebae")
+        self.assertRaises(ValueError, self.parser.from_abbreviation, "jaebaebae")  # noqa: PT027
 
     def test_parse_win(self):
         assert self.parser.from_abbreviation("W") == Outcome.WIN

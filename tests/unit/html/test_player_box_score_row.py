@@ -12,7 +12,9 @@ class TestPlayerBoxScoreRow(TestCase):
         assert PlayerBoxScoreRow(html=MagicMock()) != 1
 
     def test_not_equal_when_both_rows_but_different_html(self):
-        assert PlayerBoxScoreRow(html=MagicMock(name="first html")) != PlayerBoxScoreRow(html=MagicMock(name="second html"))
+        assert PlayerBoxScoreRow(
+            html=MagicMock(name="first html")
+        ) != PlayerBoxScoreRow(html=MagicMock(name="second html"))
 
     def test_equal_when_both_rows_and_same_html(self):
         html = MagicMock(name="shared html")
@@ -21,7 +23,10 @@ class TestPlayerBoxScoreRow(TestCase):
     def test_team_abbreviation_when_cells_exist(self):
         cell = MagicMock(text_content=MagicMock(return_value="some team abbreviation"))
         self.html.xpath = MagicMock(return_value=[cell])
-        assert PlayerBoxScoreRow(html=self.html).team_abbreviation == "some team abbreviation"
+        assert (
+            PlayerBoxScoreRow(html=self.html).team_abbreviation
+            == "some team abbreviation"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="team_id"]')
 
     def test_team_abbreviation_is_empty_string_when_cells_do_not_exist(self):
@@ -34,7 +39,10 @@ class TestPlayerBoxScoreRow(TestCase):
             text_content=MagicMock(return_value="some location abbreviation")
         )
         self.html.xpath = MagicMock(return_value=[cell])
-        assert PlayerBoxScoreRow(html=self.html).location_abbreviation == "some location abbreviation"
+        assert (
+            PlayerBoxScoreRow(html=self.html).location_abbreviation
+            == "some location abbreviation"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="game_location"]')
 
     def test_location_abbreviation_is_empty_string_when_cells_exist(self):
@@ -47,7 +55,10 @@ class TestPlayerBoxScoreRow(TestCase):
             text_content=MagicMock(return_value="some opponent abbreviation")
         )
         self.html.xpath = MagicMock(return_value=[cell])
-        assert PlayerBoxScoreRow(html=self.html).opponent_abbreviation == "some opponent abbreviation"
+        assert (
+            PlayerBoxScoreRow(html=self.html).opponent_abbreviation
+            == "some opponent abbreviation"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="opp_id"]')
 
     def test_opponent_abbreviation_is_empty_string_when_cells_exist(self):

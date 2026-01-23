@@ -39,6 +39,8 @@ class PlayerPageTotalsRow:
             return self.html == other.html
         return False
 
+    __hash__ = None
+
 
 class PlayerPageTotalsTable:
     """Wrapper for the 'Totals' table on a player page.
@@ -75,6 +77,8 @@ class PlayerPageTotalsTable:
         if isinstance(other, PlayerPageTotalsTable):
             return self.html == other.html
         return False
+
+    __hash__ = None
 
 
 class PlayerPage:

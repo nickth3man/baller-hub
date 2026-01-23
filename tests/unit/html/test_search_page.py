@@ -6,7 +6,10 @@ from src.scraper.html import PlayerSearchResult, SearchPage
 
 class TestSearchPage(TestCase):
     def test_nba_aba_baa_players_content_query(self):
-        assert SearchPage(html=MagicMock()).nba_aba_baa_players_content_query == '//div[@id="searches"]/div[@id="players"]'
+        assert (
+            SearchPage(html=MagicMock()).nba_aba_baa_players_content_query
+            == '//div[@id="searches"]/div[@id="players"]'
+        )
 
     @patch.object(
         SearchPage, "nba_aba_baa_players_content_query", new_callable=PropertyMock
@@ -14,7 +17,10 @@ class TestSearchPage(TestCase):
     def test_nba_aba_baa_players_pagination_links_query(self, mocked_query):
         mocked_query.return_value = "some query"
 
-        assert SearchPage(html=MagicMock()).nba_aba_baa_players_pagination_links_query == 'some query/div[@class="search-pagination"]/a'
+        assert (
+            SearchPage(html=MagicMock()).nba_aba_baa_players_pagination_links_query
+            == 'some query/div[@class="search-pagination"]/a'
+        )
 
     @patch.object(
         SearchPage, "nba_aba_baa_players_content_query", new_callable=PropertyMock
@@ -22,7 +28,10 @@ class TestSearchPage(TestCase):
     def test_nba_aba_baa_player_search_items_query(self, mocked_query):
         mocked_query.return_value = "some query"
 
-        assert SearchPage(html=MagicMock()).nba_aba_baa_player_search_items_query == 'some query/div[@class="search-item"]'
+        assert (
+            SearchPage(html=MagicMock()).nba_aba_baa_player_search_items_query
+            == 'some query/div[@class="search-item"]'
+        )
 
     @patch.object(
         SearchPage,
@@ -59,7 +68,10 @@ class TestSearchPage(TestCase):
         link.attrib.__getitem__ = MagicMock(return_value="some text content")
         mocked_links.return_value = [link]
 
-        assert SearchPage(html=MagicMock()).nba_aba_baa_players_pagination_url == "some text content"
+        assert (
+            SearchPage(html=MagicMock()).nba_aba_baa_players_pagination_url
+            == "some text content"
+        )
         link.attrib.__getitem__.assert_called_once_with("href")
 
     @patch.object(
@@ -92,7 +104,10 @@ class TestSearchPage(TestCase):
         )
         mocked_links.return_value = [first_link, second_link]
 
-        assert SearchPage(html=MagicMock()).nba_aba_baa_players_pagination_url == "some other text content"
+        assert (
+            SearchPage(html=MagicMock()).nba_aba_baa_players_pagination_url
+            == "some other text content"
+        )
         second_link.attrib.__getitem__.assert_called_once_with("href")
 
     @patch.object(
@@ -108,4 +123,8 @@ class TestSearchPage(TestCase):
         html = MagicMock()
         html.xpath = MagicMock(return_value=[first_result, second_result, third_result])
 
-        assert SearchPage(html=html).nba_aba_baa_players == [PlayerSearchResult(html=first_result), PlayerSearchResult(html=second_result), PlayerSearchResult(html=third_result)]
+        assert SearchPage(html=html).nba_aba_baa_players == [
+            PlayerSearchResult(html=first_result),
+            PlayerSearchResult(html=second_result),
+            PlayerSearchResult(html=third_result),
+        ]

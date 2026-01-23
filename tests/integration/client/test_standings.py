@@ -35,14 +35,14 @@ class StandingsMocker:
 
         return klass
 
-    def mock(self, callable):
+    def mock(self, callable):  # noqa: A002
         @functools.wraps(callable)
         def inner(*args, **kwargs):
-            html_files_directory = os.path.join(
+            html_files_directory = os.path.join(  # noqa: PTH118
                 self._schedules_directory, str(self._season_end_year)
             )
-            standings_fixture_path = os.path.join(
-                os.path.dirname(__file__),
+            standings_fixture_path = os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 "../files/standings",
                 f"{self._season_end_year}.html",
             )
@@ -53,21 +53,21 @@ class StandingsMocker:
                 patch("src.scraper.services.cache.FileCache.set", return_value=None),
                 requests_mock.Mocker() as m,
             ):
-                if os.path.exists(standings_fixture_path):
-                    with open(standings_fixture_path, encoding="utf-8") as file_input:
+                if os.path.exists(standings_fixture_path):  # noqa: PTH110
+                    with open(standings_fixture_path, encoding="utf-8") as file_input:  # noqa: PTH123
                         key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
                         m.get(key, text=file_input.read(), status_code=200)
-                for file in os.listdir(os.fsencode(html_files_directory)):
+                for file in os.listdir(os.fsencode(html_files_directory)):  # noqa: PTH208
                     filename = os.fsdecode(file)
                     if not filename.endswith(".html"):
                         continue
 
-                    filepath = os.path.join(html_files_directory, filename)
-                    with open(filepath, encoding="utf-8") as file_input:
+                    filepath = os.path.join(html_files_directory, filename)  # noqa: PTH118
+                    with open(filepath, encoding="utf-8") as file_input:  # noqa: PTH123
                         file_content = file_input.read()
                         # Mock the standings URL (NBA_YEAR.html, not NBA_YEAR_games.html)
                         if filename.startswith(str(self._season_end_year)):
-                            if os.path.exists(standings_fixture_path):
+                            if os.path.exists(standings_fixture_path):  # noqa: PTH110
                                 continue
                             key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
                             m.get(key, text=file_content, status_code=200)
@@ -90,8 +90,8 @@ class StandingsMocker:
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(
-        os.path.dirname(__file__),
+    schedules_directory=os.path.join(  # noqa: PTH118
+        os.path.dirname(__file__),  # noqa: PTH120
         "../files/schedule",
     ),
     season_end_year=2000,
@@ -99,26 +99,26 @@ class StandingsMocker:
 class Test2000StandingsInMemory(TestCase):
     def test_2000_standings(self):
         result = standings(season_end_year=2000)
-        assert len(result) == 29
+        assert len(result) == 29  # noqa: PLR2004
 
         miami_heat = result[0]
         assert miami_heat["team"] == Team.MIAMI_HEAT
-        assert miami_heat["wins"] == 52
-        assert miami_heat["losses"] == 30
+        assert miami_heat["wins"] == 52  # noqa: PLR2004
+        assert miami_heat["losses"] == 30  # noqa: PLR2004
         assert miami_heat["division"] == Division.ATLANTIC
         assert miami_heat["conference"] == Conference.EASTERN
 
         los_angeles_clippers = result[28]
         assert los_angeles_clippers["team"] == Team.LOS_ANGELES_CLIPPERS
-        assert los_angeles_clippers["wins"] == 15
-        assert los_angeles_clippers["losses"] == 67
+        assert los_angeles_clippers["wins"] == 15  # noqa: PLR2004
+        assert los_angeles_clippers["losses"] == 67  # noqa: PLR2004
         assert los_angeles_clippers["division"] == Division.PACIFIC
         assert los_angeles_clippers["conference"] == Conference.WESTERN
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(
-        os.path.dirname(__file__),
+    schedules_directory=os.path.join(  # noqa: PTH118
+        os.path.dirname(__file__),  # noqa: PTH120
         "../files/schedule",
     ),
     season_end_year=2001,
@@ -126,26 +126,26 @@ class Test2000StandingsInMemory(TestCase):
 class Test2001StandingsInMemory(TestCase):
     def test_2001_standings(self):
         result = standings(season_end_year=2001)
-        assert len(result) == 29
+        assert len(result) == 29  # noqa: PLR2004
 
         philadelphia_76ers = result[0]
         assert philadelphia_76ers["team"] == Team.PHILADELPHIA_76ERS
-        assert philadelphia_76ers["wins"] == 56
-        assert philadelphia_76ers["losses"] == 26
+        assert philadelphia_76ers["wins"] == 56  # noqa: PLR2004
+        assert philadelphia_76ers["losses"] == 26  # noqa: PLR2004
         assert philadelphia_76ers["division"] == Division.ATLANTIC
         assert philadelphia_76ers["conference"] == Conference.EASTERN
 
         golden_state_warriors = result[28]
         assert golden_state_warriors["team"] == Team.GOLDEN_STATE_WARRIORS
-        assert golden_state_warriors["wins"] == 17
-        assert golden_state_warriors["losses"] == 65
+        assert golden_state_warriors["wins"] == 17  # noqa: PLR2004
+        assert golden_state_warriors["losses"] == 65  # noqa: PLR2004
         assert golden_state_warriors["division"] == Division.PACIFIC
         assert golden_state_warriors["conference"] == Conference.WESTERN
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(
-        os.path.dirname(__file__),
+    schedules_directory=os.path.join(  # noqa: PTH118
+        os.path.dirname(__file__),  # noqa: PTH120
         "../files/schedule",
     ),
     season_end_year=2002,
@@ -153,26 +153,26 @@ class Test2001StandingsInMemory(TestCase):
 class Test2002StandingsInMemory(TestCase):
     def test_2002_standings(self):
         result = standings(season_end_year=2002)
-        assert len(result) == 29
+        assert len(result) == 29  # noqa: PLR2004
 
         nets = result[0]
         assert nets["team"] == Team.NEW_JERSEY_NETS
-        assert nets["wins"] == 52
-        assert nets["losses"] == 30
+        assert nets["wins"] == 52  # noqa: PLR2004
+        assert nets["losses"] == 30  # noqa: PLR2004
         assert nets["division"] == Division.ATLANTIC
         assert nets["conference"] == Conference.EASTERN
 
         golden_state_warriors = result[28]
         assert golden_state_warriors["team"] == Team.GOLDEN_STATE_WARRIORS
-        assert golden_state_warriors["wins"] == 21
-        assert golden_state_warriors["losses"] == 61
+        assert golden_state_warriors["wins"] == 21  # noqa: PLR2004
+        assert golden_state_warriors["losses"] == 61  # noqa: PLR2004
         assert golden_state_warriors["division"] == Division.PACIFIC
         assert golden_state_warriors["conference"] == Conference.WESTERN
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(
-        os.path.dirname(__file__),
+    schedules_directory=os.path.join(  # noqa: PTH118
+        os.path.dirname(__file__),  # noqa: PTH120
         "../files/schedule",
     ),
     season_end_year=2005,
@@ -180,54 +180,54 @@ class Test2002StandingsInMemory(TestCase):
 class Test2005StandingsInMemory(TestCase):
     def test_2005_standings(self):
         result = standings(season_end_year=2005)
-        assert len(result) == 30
+        assert len(result) == 30  # noqa: PLR2004
 
         phoenix_suns = result[0]
         assert phoenix_suns["team"] == Team.BOSTON_CELTICS
-        assert phoenix_suns["wins"] == 45
-        assert phoenix_suns["losses"] == 37
+        assert phoenix_suns["wins"] == 45  # noqa: PLR2004
+        assert phoenix_suns["losses"] == 37  # noqa: PLR2004
         assert phoenix_suns["division"] == Division.ATLANTIC
         assert phoenix_suns["conference"] == Conference.EASTERN
 
         detroit_pistons = result[5]
         assert detroit_pistons["team"] == Team.DETROIT_PISTONS
-        assert detroit_pistons["wins"] == 54
-        assert detroit_pistons["losses"] == 28
+        assert detroit_pistons["wins"] == 54  # noqa: PLR2004
+        assert detroit_pistons["losses"] == 28  # noqa: PLR2004
         assert detroit_pistons["division"] == Division.CENTRAL
         assert detroit_pistons["conference"] == Conference.EASTERN
 
         miami_heat = result[10]
         assert miami_heat["team"] == Team.MIAMI_HEAT
-        assert miami_heat["wins"] == 59
-        assert miami_heat["losses"] == 23
+        assert miami_heat["wins"] == 59  # noqa: PLR2004
+        assert miami_heat["losses"] == 23  # noqa: PLR2004
         assert miami_heat["division"] == Division.SOUTHEAST
         assert miami_heat["conference"] == Conference.EASTERN
 
         seattle_supersonics = result[15]
         assert seattle_supersonics["team"] == Team.SEATTLE_SUPERSONICS
-        assert seattle_supersonics["wins"] == 52
-        assert seattle_supersonics["losses"] == 30
+        assert seattle_supersonics["wins"] == 52  # noqa: PLR2004
+        assert seattle_supersonics["losses"] == 30  # noqa: PLR2004
         assert seattle_supersonics["division"] == Division.NORTHWEST
         assert seattle_supersonics["conference"] == Conference.WESTERN
 
         phoenix_suns = result[20]
         assert phoenix_suns["team"] == Team.PHOENIX_SUNS
-        assert phoenix_suns["wins"] == 62
-        assert phoenix_suns["losses"] == 20
+        assert phoenix_suns["wins"] == 62  # noqa: PLR2004
+        assert phoenix_suns["losses"] == 20  # noqa: PLR2004
         assert phoenix_suns["division"] == Division.PACIFIC
         assert phoenix_suns["conference"] == Conference.WESTERN
 
         new_orleans_hornets = result[29]
         assert new_orleans_hornets["team"] == Team.NEW_ORLEANS_HORNETS
-        assert new_orleans_hornets["wins"] == 18
-        assert new_orleans_hornets["losses"] == 64
+        assert new_orleans_hornets["wins"] == 18  # noqa: PLR2004
+        assert new_orleans_hornets["losses"] == 64  # noqa: PLR2004
         assert new_orleans_hornets["division"] == Division.SOUTHWEST
         assert new_orleans_hornets["conference"] == Conference.WESTERN
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(
-        os.path.dirname(__file__),
+    schedules_directory=os.path.join(  # noqa: PTH118
+        os.path.dirname(__file__),  # noqa: PTH120
         "../files/schedule",
     ),
     season_end_year=2020,
@@ -235,69 +235,69 @@ class Test2005StandingsInMemory(TestCase):
 class Test2020StandingsInMemory(TestCase):
     def test_2020_standings(self):
         result = standings(season_end_year=2020)
-        assert len(result) == 30
+        assert len(result) == 30  # noqa: PLR2004
 
         toronto_raptors = result[0]
         assert toronto_raptors["team"] == Team.TORONTO_RAPTORS
-        assert toronto_raptors["wins"] == 53
-        assert toronto_raptors["losses"] == 19
+        assert toronto_raptors["wins"] == 53  # noqa: PLR2004
+        assert toronto_raptors["losses"] == 19  # noqa: PLR2004
         assert toronto_raptors["division"] == Division.ATLANTIC
         assert toronto_raptors["conference"] == Conference.EASTERN
 
         milwaukee_bucks = result[5]
         assert milwaukee_bucks["team"] == Team.MILWAUKEE_BUCKS
-        assert milwaukee_bucks["wins"] == 56
-        assert milwaukee_bucks["losses"] == 17
+        assert milwaukee_bucks["wins"] == 56  # noqa: PLR2004
+        assert milwaukee_bucks["losses"] == 17  # noqa: PLR2004
         assert milwaukee_bucks["division"] == Division.CENTRAL
         assert milwaukee_bucks["conference"] == Conference.EASTERN
 
         orlando_magic = result[11]
         assert orlando_magic["team"] == Team.ORLANDO_MAGIC
-        assert orlando_magic["wins"] == 33
-        assert orlando_magic["losses"] == 40
+        assert orlando_magic["wins"] == 33  # noqa: PLR2004
+        assert orlando_magic["losses"] == 40  # noqa: PLR2004
         assert orlando_magic["division"] == Division.SOUTHEAST
         assert orlando_magic["conference"] == Conference.EASTERN
 
         denver_nuggets = result[15]
         assert denver_nuggets["team"] == Team.DENVER_NUGGETS
-        assert denver_nuggets["wins"] == 46
-        assert denver_nuggets["losses"] == 27
+        assert denver_nuggets["wins"] == 46  # noqa: PLR2004
+        assert denver_nuggets["losses"] == 27  # noqa: PLR2004
         assert denver_nuggets["division"] == Division.NORTHWEST
         assert denver_nuggets["conference"] == Conference.WESTERN
 
         golden_state_warriors = result[24]
         assert golden_state_warriors["team"] == Team.GOLDEN_STATE_WARRIORS
-        assert golden_state_warriors["wins"] == 15
-        assert golden_state_warriors["losses"] == 50
+        assert golden_state_warriors["wins"] == 15  # noqa: PLR2004
+        assert golden_state_warriors["losses"] == 50  # noqa: PLR2004
         assert golden_state_warriors["division"] == Division.PACIFIC
         assert golden_state_warriors["conference"] == Conference.WESTERN
 
         dallas_mavericks = result[26]
         assert dallas_mavericks["team"] == Team.DALLAS_MAVERICKS
-        assert dallas_mavericks["wins"] == 43
-        assert dallas_mavericks["losses"] == 32
+        assert dallas_mavericks["wins"] == 43  # noqa: PLR2004
+        assert dallas_mavericks["losses"] == 32  # noqa: PLR2004
         assert dallas_mavericks["division"] == Division.SOUTHWEST
         assert dallas_mavericks["conference"] == Conference.WESTERN
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(
-        os.path.dirname(__file__),
+    schedules_directory=os.path.join(  # noqa: PTH118
+        os.path.dirname(__file__),  # noqa: PTH120
         "../files/schedule",
     ),
     season_end_year=2001,
 )
 class TestCSVStandingsFor2001(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(
-            os.path.dirname(__file__), "./output/generated/standings/2001.csv"
+        self.output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__), "./output/generated/standings/2001.csv"  # noqa: PTH120
         )
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__), "./output/expected/standings/2001.csv"
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__), "./output/expected/standings/2001.csv"  # noqa: PTH120
         )
 
     def tearDown(self):
-        os.remove(self.output_file_path)
+        os.remove(self.output_file_path)  # noqa: PTH107
 
     def test_2001_standings(self):
         standings(
@@ -310,23 +310,23 @@ class TestCSVStandingsFor2001(TestCase):
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(
-        os.path.dirname(__file__),
+    schedules_directory=os.path.join(  # noqa: PTH118
+        os.path.dirname(__file__),  # noqa: PTH120
         "../files/schedule",
     ),
     season_end_year=2001,
 )
 class TestJSONPlayerBoxScores2001(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(
-            os.path.dirname(__file__), "./output/generated/standings/2001.json"
+        self.output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__), "./output/generated/standings/2001.json"  # noqa: PTH120
         )
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__), "./output/expected/standings/2001.json"
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__), "./output/expected/standings/2001.json"  # noqa: PTH120
         )
 
     def tearDown(self):
-        os.remove(self.output_file_path)
+        os.remove(self.output_file_path)  # noqa: PTH107
 
     def test_2001_standings(self):
         standings(
@@ -340,16 +340,16 @@ class TestJSONPlayerBoxScores2001(TestCase):
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(
-        os.path.dirname(__file__),
+    schedules_directory=os.path.join(  # noqa: PTH118
+        os.path.dirname(__file__),  # noqa: PTH120
         "../files/schedule",
     ),
     season_end_year=2001,
 )
 class TestInMemoryJSONStandings2001(TestCase):
     def setUp(self):
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__), "./output/expected/standings/2001.json"
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__), "./output/expected/standings/2001.json"  # noqa: PTH120
         )
 
     def test_2001_standings(self):
@@ -358,30 +358,30 @@ class TestInMemoryJSONStandings2001(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(
+        with open(  # noqa: PTH123
             self.expected_output_file_path, encoding="utf-8"
         ) as expected_output_file:
             assert json.loads(box_scores) == json.load(expected_output_file)
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(
-        os.path.dirname(__file__),
+    schedules_directory=os.path.join(  # noqa: PTH118
+        os.path.dirname(__file__),  # noqa: PTH120
         "../files/schedule",
     ),
     season_end_year=2019,
 )
 class TestCSVStandingsFor2019(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(
-            os.path.dirname(__file__), "./output/generated/standings/2019.csv"
+        self.output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__), "./output/generated/standings/2019.csv"  # noqa: PTH120
         )
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__), "./output/expected/standings/2019.csv"
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__), "./output/expected/standings/2019.csv"  # noqa: PTH120
         )
 
     def tearDown(self):
-        os.remove(self.output_file_path)
+        os.remove(self.output_file_path)  # noqa: PTH107
 
     def test_2019_standings(self):
         standings(
@@ -394,23 +394,23 @@ class TestCSVStandingsFor2019(TestCase):
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(
-        os.path.dirname(__file__),
+    schedules_directory=os.path.join(  # noqa: PTH118
+        os.path.dirname(__file__),  # noqa: PTH120
         "../files/schedule",
     ),
     season_end_year=2019,
 )
 class TestJSONPlayerBoxScores2019(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(
-            os.path.dirname(__file__), "./output/generated/standings/2019.json"
+        self.output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__), "./output/generated/standings/2019.json"  # noqa: PTH120
         )
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__), "./output/expected/standings/2019.json"
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__), "./output/expected/standings/2019.json"  # noqa: PTH120
         )
 
     def tearDown(self):
-        os.remove(self.output_file_path)
+        os.remove(self.output_file_path)  # noqa: PTH107
 
     def test_2019_standings(self):
         standings(
@@ -424,16 +424,16 @@ class TestJSONPlayerBoxScores2019(TestCase):
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(
-        os.path.dirname(__file__),
+    schedules_directory=os.path.join(  # noqa: PTH118
+        os.path.dirname(__file__),  # noqa: PTH120
         "../files/schedule",
     ),
     season_end_year=2019,
 )
 class TestInMemoryJSONStandings2019(TestCase):
     def setUp(self):
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__), "./output/expected/standings/2019.json"
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__), "./output/expected/standings/2019.json"  # noqa: PTH120
         )
 
     def test_2019_standings(self):
@@ -442,7 +442,7 @@ class TestInMemoryJSONStandings2019(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(
+        with open(  # noqa: PTH123
             self.expected_output_file_path, encoding="utf-8"
         ) as expected_output_file:
             assert json.loads(box_scores) == json.load(expected_output_file)

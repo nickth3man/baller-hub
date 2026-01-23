@@ -89,9 +89,7 @@ class PeriodTimestampParser:
         Returns:
             float: Total seconds remaining.
         """
-        dt = datetime.strptime(timestamp, self.timestamp_format).replace(
-            tzinfo=UTC
-        )
+        dt = datetime.strptime(timestamp, self.timestamp_format).replace(tzinfo=UTC)
         return float((dt.minute * 60) + dt.second + (dt.microsecond / 1000000))
 
 

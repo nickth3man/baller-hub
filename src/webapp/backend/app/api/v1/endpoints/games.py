@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.get("/", response_model=GameList)
-def list_games(
+def list_games(  # noqa: PLR0913
     start_date: date | None = Query(None, alias="startDate"),
     end_date: date | None = Query(None, alias="endDate"),
     team: str | None = None,

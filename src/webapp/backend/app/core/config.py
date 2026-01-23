@@ -66,11 +66,9 @@ class Settings(BaseSettings):
         Raises:
             ValueError: If JWT_SECRET_KEY is missing or too short.
         """
-        if not self.jwt_secret_key or len(self.jwt_secret_key) < 32:
+        if not self.jwt_secret_key or len(self.jwt_secret_key) < 32:  # noqa: PLR2004
             msg = "JWT_SECRET_KEY environment variable is required and must be at least 32 characters"
-            raise ValueError(
-                msg
-            )
+            raise ValueError(msg)
 
         return self
 

@@ -93,7 +93,7 @@ def standings(
     return output_service.output(data=values, options=options)
 
 
-def player_box_scores(
+def player_box_scores(  # noqa: PLR0913
     day,
     month,
     year,
@@ -152,7 +152,7 @@ def player_box_scores(
     return output_service.output(data=values, options=options)
 
 
-def regular_season_player_box_scores(
+def regular_season_player_box_scores(  # noqa: PLR0913
     player_identifier,
     season_end_year,
     output_type=None,
@@ -189,7 +189,8 @@ def regular_season_player_box_scores(
         )
     except requests.exceptions.HTTPError as http_error:
         if (
-            http_error.response.status_code in (requests.codes.internal_server_error, requests.codes.not_found)  # ty: ignore[unresolved-attribute]
+            http_error.response.status_code
+            in (requests.codes.internal_server_error, requests.codes.not_found)  # ty: ignore[unresolved-attribute]
         ):
             raise InvalidPlayerAndSeasonError(
                 player_identifier=player_identifier, season_end_year=season_end_year
@@ -209,7 +210,7 @@ def regular_season_player_box_scores(
     return output_service.output(data=values, options=options)
 
 
-def playoff_player_box_scores(
+def playoff_player_box_scores(  # noqa: PLR0913
     player_identifier,
     season_end_year,
     output_type=None,
@@ -244,7 +245,8 @@ def playoff_player_box_scores(
         )
     except requests.exceptions.HTTPError as http_error:
         if (
-            http_error.response.status_code in (requests.codes.internal_server_error, requests.codes.not_found)  # ty: ignore[unresolved-attribute]
+            http_error.response.status_code
+            in (requests.codes.internal_server_error, requests.codes.not_found)  # ty: ignore[unresolved-attribute]
         ):
             raise InvalidPlayerAndSeasonError(
                 player_identifier=player_identifier, season_end_year=season_end_year
@@ -353,7 +355,7 @@ def players_season_totals(
     return output_service.output(data=values, options=options)
 
 
-def players_advanced_season_totals(
+def players_advanced_season_totals(  # noqa: PLR0913
     season_end_year,
     include_combined_values=False,
     output_type=None,
@@ -401,7 +403,7 @@ def players_advanced_season_totals(
     return output_service.output(data=values, options=options)
 
 
-def team_box_scores(
+def team_box_scores(  # noqa: PLR0913
     day,
     month,
     year,
@@ -448,7 +450,7 @@ def team_box_scores(
     return output_service.output(data=values, options=options)
 
 
-def play_by_play(
+def play_by_play(  # noqa: PLR0913
     home_team,
     day,
     month,

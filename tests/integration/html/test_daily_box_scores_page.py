@@ -8,8 +8,8 @@ from src.scraper.html import DailyBoxScoresPage
 
 class TestDailyBoxScoresPage(TestCase):
     def setUp(self):
-        with open(
-            os.path.join(os.path.dirname(__file__), "../files/boxscores/2017/1/1.html"),
+        with open(  # noqa: PTH123
+            os.path.join(os.path.dirname(__file__), "../files/boxscores/2017/1/1.html"),  # noqa: PTH118, PTH120
             encoding="utf-8",
         ) as file_input:
             self.january_01_2017_box_scores = file_input.read()
@@ -21,7 +21,7 @@ class TestDailyBoxScoresPage(TestCase):
     def test_parse_urls(self):
         page = DailyBoxScoresPage(html=html.fromstring(self.january_01_2017_box_scores))
         urls = page.game_url_paths
-        assert len(urls) == 5
+        assert len(urls) == 5  # noqa: PLR2004
         assert urls[0] == "/boxscores/201701010ATL.html"
         assert urls[1] == "/boxscores/201701010IND.html"
         assert urls[2] == "/boxscores/201701010LAL.html"

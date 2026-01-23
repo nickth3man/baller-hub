@@ -19,9 +19,9 @@ from src.scraper.parsers import (
 
 class TestPlayersAdvancedSeasonTotals(TestCase):
     def setUp(self):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 "../files/player_advanced_season_totals/2019.html",
             ),
             encoding="utf-8",
@@ -50,28 +50,28 @@ class TestPlayersAdvancedSeasonTotals(TestCase):
         assert philly_jimmy_butler["name"] == "Jimmy Butler"
         assert philly_jimmy_butler["positions"] == [Position.SMALL_FORWARD]
         assert philly_jimmy_butler["team"] == Team.PHILADELPHIA_76ERS
-        assert philly_jimmy_butler["games_played"] == 55
-        assert philly_jimmy_butler["minutes_played"] == 1824
-        assert philly_jimmy_butler["player_efficiency_rating"] == 19.8
-        assert philly_jimmy_butler["true_shooting_percentage"] == 0.569
-        assert philly_jimmy_butler["three_point_attempt_rate"] == 0.198
-        assert philly_jimmy_butler["free_throw_attempt_rate"] == 0.407
-        assert philly_jimmy_butler["offensive_rebound_percentage"] == 6.3
-        assert philly_jimmy_butler["defensive_rebound_percentage"] == 10.4
-        assert philly_jimmy_butler["total_rebound_percentage"] == 8.4
-        assert philly_jimmy_butler["assist_percentage"] == 18.0
-        assert philly_jimmy_butler["steal_percentage"] == 2.6
-        assert philly_jimmy_butler["block_percentage"] == 1.2
-        assert philly_jimmy_butler["turnover_percentage"] == 8.4
-        assert philly_jimmy_butler["usage_percentage"] == 22.1
-        assert philly_jimmy_butler["offensive_win_shares"] == 4.4
-        assert philly_jimmy_butler["defensive_win_shares"] == 2.1
-        assert philly_jimmy_butler["win_shares"] == 6.6
-        assert philly_jimmy_butler["win_shares_per_48_minutes"] == 0.172
-        assert philly_jimmy_butler["offensive_box_plus_minus"] == 2.4
-        assert philly_jimmy_butler["defensive_box_plus_minus"] == 0.7
-        assert philly_jimmy_butler["box_plus_minus"] == 3.1
-        assert philly_jimmy_butler["value_over_replacement_player"] == 2.4
+        assert philly_jimmy_butler["games_played"] == 55  # noqa: PLR2004
+        assert philly_jimmy_butler["minutes_played"] == 1824  # noqa: PLR2004
+        assert philly_jimmy_butler["player_efficiency_rating"] == 19.8  # noqa: PLR2004
+        assert philly_jimmy_butler["true_shooting_percentage"] == 0.569  # noqa: PLR2004
+        assert philly_jimmy_butler["three_point_attempt_rate"] == 0.198  # noqa: PLR2004
+        assert philly_jimmy_butler["free_throw_attempt_rate"] == 0.407  # noqa: PLR2004
+        assert philly_jimmy_butler["offensive_rebound_percentage"] == 6.3  # noqa: PLR2004
+        assert philly_jimmy_butler["defensive_rebound_percentage"] == 10.4  # noqa: PLR2004
+        assert philly_jimmy_butler["total_rebound_percentage"] == 8.4  # noqa: PLR2004
+        assert philly_jimmy_butler["assist_percentage"] == 18.0  # noqa: PLR2004
+        assert philly_jimmy_butler["steal_percentage"] == 2.6  # noqa: PLR2004
+        assert philly_jimmy_butler["block_percentage"] == 1.2  # noqa: PLR2004
+        assert philly_jimmy_butler["turnover_percentage"] == 8.4  # noqa: PLR2004
+        assert philly_jimmy_butler["usage_percentage"] == 22.1  # noqa: PLR2004
+        assert philly_jimmy_butler["offensive_win_shares"] == 4.4  # noqa: PLR2004
+        assert philly_jimmy_butler["defensive_win_shares"] == 2.1  # noqa: PLR2004
+        assert philly_jimmy_butler["win_shares"] == 6.6  # noqa: PLR2004
+        assert philly_jimmy_butler["win_shares_per_48_minutes"] == 0.172  # noqa: PLR2004
+        assert philly_jimmy_butler["offensive_box_plus_minus"] == 2.4  # noqa: PLR2004
+        assert philly_jimmy_butler["defensive_box_plus_minus"] == 0.7  # noqa: PLR2004
+        assert philly_jimmy_butler["box_plus_minus"] == 3.1  # noqa: PLR2004
+        assert philly_jimmy_butler["value_over_replacement_player"] == 2.4  # noqa: PLR2004
 
     def test_2019_jimmy_butler_combined_season_totals(self):
         parsed_season_totals = self.parser.parse(
@@ -84,25 +84,25 @@ class TestPlayersAdvancedSeasonTotals(TestCase):
         assert philly_jimmy_butler["name"] == "Jimmy Butler"
         assert philly_jimmy_butler["positions"] == [Position.SHOOTING_GUARD]
         assert philly_jimmy_butler["team"] is None
-        assert philly_jimmy_butler["games_played"] == 65
-        assert philly_jimmy_butler["minutes_played"] == 2185
-        assert philly_jimmy_butler["player_efficiency_rating"] == 20.2
-        assert philly_jimmy_butler["true_shooting_percentage"] == 0.571
-        assert philly_jimmy_butler["three_point_attempt_rate"] == 0.213
-        assert philly_jimmy_butler["free_throw_attempt_rate"] == 0.404
-        assert philly_jimmy_butler["offensive_rebound_percentage"] == 6.0
-        assert philly_jimmy_butler["defensive_rebound_percentage"] == 10.5
-        assert philly_jimmy_butler["total_rebound_percentage"] == 8.3
-        assert philly_jimmy_butler["assist_percentage"] == 18.0
-        assert philly_jimmy_butler["steal_percentage"] == 2.7
-        assert philly_jimmy_butler["block_percentage"] == 1.4
-        assert philly_jimmy_butler["turnover_percentage"] == 8.2
-        assert philly_jimmy_butler["usage_percentage"] == 22.3
-        assert philly_jimmy_butler["offensive_win_shares"] == 5.4
-        assert philly_jimmy_butler["defensive_win_shares"] == 2.5
-        assert philly_jimmy_butler["win_shares"] == 7.9
-        assert philly_jimmy_butler["win_shares_per_48_minutes"] == 0.173
-        assert philly_jimmy_butler["offensive_box_plus_minus"] == 2.8
-        assert philly_jimmy_butler["defensive_box_plus_minus"] == 0.9
-        assert philly_jimmy_butler["box_plus_minus"] == 3.7
-        assert philly_jimmy_butler["value_over_replacement_player"] == 3.2
+        assert philly_jimmy_butler["games_played"] == 65  # noqa: PLR2004
+        assert philly_jimmy_butler["minutes_played"] == 2185  # noqa: PLR2004
+        assert philly_jimmy_butler["player_efficiency_rating"] == 20.2  # noqa: PLR2004
+        assert philly_jimmy_butler["true_shooting_percentage"] == 0.571  # noqa: PLR2004
+        assert philly_jimmy_butler["three_point_attempt_rate"] == 0.213  # noqa: PLR2004
+        assert philly_jimmy_butler["free_throw_attempt_rate"] == 0.404  # noqa: PLR2004
+        assert philly_jimmy_butler["offensive_rebound_percentage"] == 6.0  # noqa: PLR2004
+        assert philly_jimmy_butler["defensive_rebound_percentage"] == 10.5  # noqa: PLR2004
+        assert philly_jimmy_butler["total_rebound_percentage"] == 8.3  # noqa: PLR2004
+        assert philly_jimmy_butler["assist_percentage"] == 18.0  # noqa: PLR2004
+        assert philly_jimmy_butler["steal_percentage"] == 2.7  # noqa: PLR2004
+        assert philly_jimmy_butler["block_percentage"] == 1.4  # noqa: PLR2004
+        assert philly_jimmy_butler["turnover_percentage"] == 8.2  # noqa: PLR2004
+        assert philly_jimmy_butler["usage_percentage"] == 22.3  # noqa: PLR2004
+        assert philly_jimmy_butler["offensive_win_shares"] == 5.4  # noqa: PLR2004
+        assert philly_jimmy_butler["defensive_win_shares"] == 2.5  # noqa: PLR2004
+        assert philly_jimmy_butler["win_shares"] == 7.9  # noqa: PLR2004
+        assert philly_jimmy_butler["win_shares_per_48_minutes"] == 0.173  # noqa: PLR2004
+        assert philly_jimmy_butler["offensive_box_plus_minus"] == 2.8  # noqa: PLR2004
+        assert philly_jimmy_butler["defensive_box_plus_minus"] == 0.9  # noqa: PLR2004
+        assert philly_jimmy_butler["box_plus_minus"] == 3.7  # noqa: PLR2004
+        assert philly_jimmy_butler["value_over_replacement_player"] == 3.2  # noqa: PLR2004

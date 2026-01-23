@@ -2,10 +2,10 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import BaseModel, Field
-from sqlalchemy import JSON as JSONType
+from sqlalchemy import JSON
 from sqlmodel import Field as SQLField
 from sqlmodel import SQLModel
 
@@ -46,7 +46,7 @@ class ValidationIssue(BaseModel):
     affected_count: int = Field(default=0, description="Total affected rows")
 
     class Config:
-        json_schema_extra = {
+        json_schema_extra: ClassVar[dict[str, Any]] = {
             "example": {
                 "rule_id": "GAME_TEAMS_DIFFERENT",
                 "rule_name": "Home and away teams must be different",
@@ -101,7 +101,7 @@ class ValidationResult(BaseModel):
     config_version: str = Field(default="1.0", description="Validation config version")
 
     class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
+        json_encoders: ClassVar[dict[Any, Any]] = {datetime: lambda v: v.isoformat()}
 
 
 class ValidationRun(SQLModel, table=True):
@@ -112,11 +112,11 @@ class ValidationRun(SQLModel, table=True):
     run_id: str = SQLField(primary_key=True, max_length=50)
     timestamp: datetime = SQLField(default_factory=datetime.utcnow, index=True)
 
-    target_tables: list[str] | None = SQLField(default=None, sa_type=JSONType)
+    target_tables: list[str] | None = SQLField(default=None, sa_type=JSON)
 
-    summary: dict[str, Any] | None = SQLField(default=None, sa_type=JSONType)
+    summary: dict[str, Any] | None = SQLField(default=None, sa_type=JSON)
 
-    issues: list[dict[str, Any]] | None = SQLField(default=None, sa_type=JSONType)
+    issues: list[dict[str, Any]] | None = SQLField(default=None, sa_type=JSON)
 
     duration_seconds: float = SQLField(default=0.0)
 

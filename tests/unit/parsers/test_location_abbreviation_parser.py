@@ -17,4 +17,4 @@ class TestLocationAbbreviationParser(TestCase):
         assert self.parser.from_abbreviation("") == Location.HOME
 
     def test_parse_unknown_location_symbol(self):
-        self.assertRaises(ValueError, self.parser.from_abbreviation, "jaebaebae")
+        self.assertRaises(ValueError, self.parser.from_abbreviation, "jaebaebae")  # noqa: PT027

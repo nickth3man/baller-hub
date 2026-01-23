@@ -76,6 +76,8 @@ class FileOptions:
             return self.path == other.path and self.mode == other.mode
         return False
 
+    __hash__ = None
+
 
 class OutputOptions:
     """
@@ -146,6 +148,8 @@ class OutputOptions:
             )
 
         return False
+
+    __hash__ = None
 
 
 class Writer:

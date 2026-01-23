@@ -69,6 +69,10 @@ class FileCache:
             cached_at = datetime.fromisoformat(meta["cached_at"])
             ttl = timedelta(seconds=meta.get("ttl", self._default_ttl.total_seconds()))
 
+            # Ensure cached_at is timezone-aware (UTC)
+            if cached_at.tzinfo is None:
+                cached_at = cached_at.replace(tzinfo=UTC)
+
             if datetime.now(UTC) - cached_at > ttl:
                 return None
 

@@ -27,7 +27,10 @@ class TestRowFormatter(TestCase):
         assert format_value([Position.POINT_GUARD]) == "POINT GUARD"
 
     def test_positions_array_with_multiple_positions(self):
-        assert format_value([Position.POINT_GUARD, Position.SHOOTING_GUARD]) == "POINT GUARD-SHOOTING GUARD"
+        assert (
+            format_value([Position.POINT_GUARD, Position.SHOOTING_GUARD])
+            == "POINT GUARD-SHOOTING GUARD"
+        )
 
     def test_positions_set_with_single_position(self):
         assert format_value({Position.POINT_GUARD}) == "POINT GUARD"

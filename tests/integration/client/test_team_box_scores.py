@@ -12,29 +12,29 @@ from tests.integration.client.utilities import ResponseMocker
 class BoxScoresResponseMocker(ResponseMocker):
     def __init__(self, boxscore_date: date):
         year, month, day = boxscore_date.year, boxscore_date.month, boxscore_date.day
-        files_base = os.path.join(os.path.dirname(__file__), "../files")
+        files_base = os.path.join(os.path.dirname(__file__), "../files")  # noqa: PTH118, PTH120
 
         # New structure: boxscores/index/{YYYY-MM-DD}.html and boxscores/{YYYYMMDD0}{TEAM}.html
-        index_path = os.path.join(
+        index_path = os.path.join(  # noqa: PTH118
             files_base, f"boxscores/index/{year}-{month:02d}-{day:02d}.html"
         )
-        boxscores_dir = os.path.join(files_base, "boxscores")
+        boxscores_dir = os.path.join(files_base, "boxscores")  # noqa: PTH118
 
         basketball_reference_paths_by_filename = {}
 
         # Add daily index page
-        if os.path.exists(index_path):
+        if os.path.exists(index_path):  # noqa: PTH110
             key = f"boxscores/?day={day}&month={month}&year={year}"
             basketball_reference_paths_by_filename[index_path] = key
 
         # Add individual boxscore files for this date
         # Format: {YYYYMMDD0}{TEAM}.html (e.g., 201801010TOR.html)
         date_prefix = f"{year}{month:02d}{day:02d}0"
-        if os.path.exists(boxscores_dir):
-            for file in os.listdir(os.fsencode(boxscores_dir)):
+        if os.path.exists(boxscores_dir):  # noqa: PTH110
+            for file in os.listdir(os.fsencode(boxscores_dir)):  # noqa: PTH208
                 filename = os.fsdecode(file)
                 if filename.endswith(".html") and filename.startswith(date_prefix):
-                    file_path = os.path.join(boxscores_dir, filename)
+                    file_path = os.path.join(boxscores_dir, filename)  # noqa: PTH118
                     key = f"boxscores/{filename}"
                     basketball_reference_paths_by_filename[file_path] = key
 
@@ -47,7 +47,7 @@ class BoxScoresResponseMocker(ResponseMocker):
 class Test20180101TeamBoxScoresInMemoryOutput(TestCase):
     def test_output(self):
         team_box_scores = client.team_box_scores(day=1, month=1, year=2018)
-        self.assertListEqual(
+        self.assertListEqual(  # noqa: PT009
             team_box_scores,
             [
                 {
@@ -210,30 +210,102 @@ class Test20180101TeamBoxScoresInMemoryOutput(TestCase):
 class Test20010101TeamBoxScoresInMemoryOutput(TestCase):
     def test_length(self):
         team_box_scores = client.team_box_scores(day=1, month=1, year=2001)
-        assert len(team_box_scores) == 4
+        assert len(team_box_scores) == 4  # noqa: PLR2004
 
     def test_output(self):
         team_box_scores = client.team_box_scores(day=1, month=1, year=2001)
-        assert {"team": Team.HOUSTON_ROCKETS, "outcome": Outcome.LOSS, "minutes_played": 240, "made_field_goals": 31, "attempted_field_goals": 77, "made_three_point_field_goals": 6, "attempted_three_point_field_goals": 17, "made_free_throws": 28, "attempted_free_throws": 37, "offensive_rebounds": 10, "defensive_rebounds": 26, "assists": 16, "steals": 4, "blocks": 3, "turnovers": 11, "personal_fouls": 19, "points": 96} in team_box_scores
-        assert {"team": Team.MINNESOTA_TIMBERWOLVES, "outcome": Outcome.WIN, "minutes_played": 240, "made_field_goals": 41, "attempted_field_goals": 82, "made_three_point_field_goals": 3, "attempted_three_point_field_goals": 9, "made_free_throws": 21, "attempted_free_throws": 27, "offensive_rebounds": 11, "defensive_rebounds": 36, "assists": 35, "steals": 6, "blocks": 2, "turnovers": 8, "personal_fouls": 29, "points": 106} in team_box_scores
-        assert {"team": Team.CHARLOTTE_HORNETS, "outcome": Outcome.LOSS, "minutes_played": 240, "made_field_goals": 26, "attempted_field_goals": 80, "made_three_point_field_goals": 3, "attempted_three_point_field_goals": 10, "made_free_throws": 12, "attempted_free_throws": 14, "offensive_rebounds": 15, "defensive_rebounds": 26, "assists": 16, "steals": 7, "blocks": 1, "turnovers": 15, "personal_fouls": 25, "points": 67} in team_box_scores
-        assert {"team": Team.PORTLAND_TRAIL_BLAZERS, "outcome": Outcome.WIN, "minutes_played": 240, "made_field_goals": 29, "attempted_field_goals": 70, "made_three_point_field_goals": 4, "attempted_three_point_field_goals": 15, "made_free_throws": 27, "attempted_free_throws": 30, "offensive_rebounds": 11, "defensive_rebounds": 36, "assists": 20, "steals": 8, "blocks": 4, "turnovers": 14, "personal_fouls": 17, "points": 89} in team_box_scores
+        assert {
+            "team": Team.HOUSTON_ROCKETS,
+            "outcome": Outcome.LOSS,
+            "minutes_played": 240,
+            "made_field_goals": 31,
+            "attempted_field_goals": 77,
+            "made_three_point_field_goals": 6,
+            "attempted_three_point_field_goals": 17,
+            "made_free_throws": 28,
+            "attempted_free_throws": 37,
+            "offensive_rebounds": 10,
+            "defensive_rebounds": 26,
+            "assists": 16,
+            "steals": 4,
+            "blocks": 3,
+            "turnovers": 11,
+            "personal_fouls": 19,
+            "points": 96,
+        } in team_box_scores
+        assert {
+            "team": Team.MINNESOTA_TIMBERWOLVES,
+            "outcome": Outcome.WIN,
+            "minutes_played": 240,
+            "made_field_goals": 41,
+            "attempted_field_goals": 82,
+            "made_three_point_field_goals": 3,
+            "attempted_three_point_field_goals": 9,
+            "made_free_throws": 21,
+            "attempted_free_throws": 27,
+            "offensive_rebounds": 11,
+            "defensive_rebounds": 36,
+            "assists": 35,
+            "steals": 6,
+            "blocks": 2,
+            "turnovers": 8,
+            "personal_fouls": 29,
+            "points": 106,
+        } in team_box_scores
+        assert {
+            "team": Team.CHARLOTTE_HORNETS,
+            "outcome": Outcome.LOSS,
+            "minutes_played": 240,
+            "made_field_goals": 26,
+            "attempted_field_goals": 80,
+            "made_three_point_field_goals": 3,
+            "attempted_three_point_field_goals": 10,
+            "made_free_throws": 12,
+            "attempted_free_throws": 14,
+            "offensive_rebounds": 15,
+            "defensive_rebounds": 26,
+            "assists": 16,
+            "steals": 7,
+            "blocks": 1,
+            "turnovers": 15,
+            "personal_fouls": 25,
+            "points": 67,
+        } in team_box_scores
+        assert {
+            "team": Team.PORTLAND_TRAIL_BLAZERS,
+            "outcome": Outcome.WIN,
+            "minutes_played": 240,
+            "made_field_goals": 29,
+            "attempted_field_goals": 70,
+            "made_three_point_field_goals": 4,
+            "attempted_three_point_field_goals": 15,
+            "made_free_throws": 27,
+            "attempted_free_throws": 30,
+            "offensive_rebounds": 11,
+            "defensive_rebounds": 36,
+            "assists": 20,
+            "steals": 8,
+            "blocks": 4,
+            "turnovers": 14,
+            "personal_fouls": 17,
+            "points": 89,
+        } in team_box_scores
 
 
 @BoxScoresResponseMocker(boxscore_date=date(year=2018, month=1, day=1))
 class TestTeamBoxScoresCSVOutput(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             "./output/generated/team_box_scores/2018/01/01.csv",
         )
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             "./output/expected/team_box_scores/2018/01/01.csv",
         )
 
     def tearDown(self):
-        os.remove(self.output_file_path)
+        os.remove(self.output_file_path)  # noqa: PTH107
 
     def test_output(self):
         client.team_box_scores(
@@ -251,8 +323,8 @@ class TestTeamBoxScoresCSVOutput(TestCase):
 @BoxScoresResponseMocker(boxscore_date=date(year=2018, month=1, day=1))
 class TestTeamBoxScoresInMemoryJSON(TestCase):
     def setUp(self):
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             "./output/expected/team_box_scores/2018/01/01.json",
         )
 
@@ -263,7 +335,7 @@ class TestTeamBoxScoresInMemoryJSON(TestCase):
             year=2018,
             output_type=OutputType.JSON,
         )
-        with open(
+        with open(  # noqa: PTH123
             self.expected_output_file_path, encoding="utf-8"
         ) as expected_output_file:
             assert json.loads(results) == json.load(expected_output_file)
@@ -272,17 +344,17 @@ class TestTeamBoxScoresInMemoryJSON(TestCase):
 @BoxScoresResponseMocker(boxscore_date=date(year=2018, month=1, day=1))
 class TestTeamBoxScoresJSONOutput(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             "./output/generated/team_box_scores/2018/01/01.json",
         )
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             "./output/expected/team_box_scores/2018/01/01.json",
         )
 
     def tearDown(self):
-        os.remove(self.output_file_path)
+        os.remove(self.output_file_path)  # noqa: PTH107
 
     def test_output(self):
         client.team_box_scores(

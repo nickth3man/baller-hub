@@ -9,10 +9,16 @@ class TestSchedulePage(TestCase):
         self.html = MagicMock()
 
     def test_other_months_schedule_links_query(self):
-        assert SchedulePage(html=self.html).other_months_schedule_links_query == '//div[@id="content"]/div[@class="filter"]/div[not(contains(@class, "current"))]/a'
+        assert (
+            SchedulePage(html=self.html).other_months_schedule_links_query
+            == '//div[@id="content"]/div[@class="filter"]/div[not(contains(@class, "current"))]/a'
+        )
 
     def test_rows_query(self):
-        assert SchedulePage(html=self.html).rows_query == '//table[@id="schedule"]//tbody/tr'
+        assert (
+            SchedulePage(html=self.html).rows_query
+            == '//table[@id="schedule"]//tbody/tr'
+        )
 
     @patch.object(
         SchedulePage, "other_months_schedule_links_query", new_callable=PropertyMock

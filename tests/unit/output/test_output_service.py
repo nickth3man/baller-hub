@@ -16,7 +16,12 @@ class TestOutput(TestCase):
         )
 
     def test_return_values_when_output_type_is_none(self):
-        assert self.values == self.output_service.output(data=self.values, options=OutputOptions(file_options=FileOptions.of(), formatting_options={}, output_type=None))
+        assert self.values == self.output_service.output(
+            data=self.values,
+            options=OutputOptions(
+                file_options=FileOptions.of(), formatting_options={}, output_type=None
+            ),
+        )
 
     def test_output_json_when_output_write_option_is_none_and_no_custom_options(self):
         options = OutputOptions(
@@ -107,7 +112,7 @@ class TestOutput(TestCase):
             ),
             formatting_options={},
         )
-        self.assertRaisesRegex(
+        self.assertRaisesRegex(  # noqa: PT027
             ValueError,
             "Unknown output type: jaebaebae",
             self.output_service.output,

@@ -4,6 +4,14 @@ import {
   StandingsTeam,
   StandingsView,
 } from "@/lib/api";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/(components)/ui/Table";
 
 function StandingsTable({
   title,
@@ -18,44 +26,47 @@ function StandingsTable({
         <h2 className="text-lg font-semibold">{title}</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100 text-gray-700">
-            <tr>
-              <th className="px-4 py-3 text-left">Team</th>
-              <th className="px-3 py-3 text-center">W</th>
-              <th className="px-3 py-3 text-center">L</th>
-              <th className="px-3 py-3 text-center">PCT</th>
-              <th className="px-3 py-3 text-center">GB</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader className="bg-gray-100">
+            <TableRow>
+              <TableHead className="w-[40%] text-gray-700">Team</TableHead>
+              <TableHead className="text-center text-gray-700">W</TableHead>
+              <TableHead className="text-center text-gray-700">L</TableHead>
+              <TableHead className="text-center text-gray-700">PCT</TableHead>
+              <TableHead className="text-center text-gray-700">GB</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {teams.map((team, idx) => (
-              <tr
+              <TableRow
                 key={team.team_id}
                 className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
               >
-                <td className="px-4 py-3 font-medium text-gray-900">
+                <TableCell className="font-medium text-gray-900">
                   {team.abbreviation}
-                </td>
-                <td className="px-3 py-3 text-center">{team.wins}</td>
-                <td className="px-3 py-3 text-center">{team.losses}</td>
-                <td className="px-3 py-3 text-center">
+                </TableCell>
+                <TableCell className="text-center">{team.wins}</TableCell>
+                <TableCell className="text-center">{team.losses}</TableCell>
+                <TableCell className="text-center">
                   {(team.win_pct * 100).toFixed(1)}%
-                </td>
-                <td className="px-3 py-3 text-center">
+                </TableCell>
+                <TableCell className="text-center">
                   {team.games_back.toFixed(1)}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
             {teams.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="px-4 py-6 text-center text-gray-500"
+                >
                   No standings available.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

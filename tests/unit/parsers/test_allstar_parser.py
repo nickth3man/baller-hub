@@ -33,7 +33,7 @@ class TestAllStarParser(TestCase):
         assert result["mvp"] == "Giannis Antetokounmpo"
         assert len(result["east_roster"]) == 1
         assert result["east_roster"][0]["player"] == "Joel Embiid"
-        assert result["east_roster"][0]["points"] == 30
+        assert result["east_roster"][0]["points"] == 30  # noqa: PLR2004
         assert len(result["west_roster"]) == 1
         assert result["west_roster"][0]["player"] == "LeBron James"
-        assert result["west_roster"][0]["points"] == 25
+        assert result["west_roster"][0]["points"] == 25  # noqa: PLR2004

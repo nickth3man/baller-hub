@@ -29,5 +29,5 @@ class TestLeadersParser(TestCase):
         assert len(result["leaders"]) == 1
         assert result["leaders"][0]["rank"] == 1
         assert result["leaders"][0]["player"] == "LeBron James"
-        assert result["leaders"][0]["value"] == 40474.0
+        assert result["leaders"][0]["value"] == 40474.0  # noqa: PLR2004
         assert result["leaders"][0]["player_id"] == "jamesle01"

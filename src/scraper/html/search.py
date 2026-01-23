@@ -128,6 +128,8 @@ class SearchResult:
             return self.html == other.html
         return False
 
+    __hash__ = None
+
 
 class PlayerSearchResult(SearchResult):
     """Wraps a search result specifically for a player.

@@ -33,7 +33,9 @@ class TestBasicBoxScoreRow(TestCase):
     def test_made_field_goals_when_cells_exist(self):
         cell = MagicMock(text_content=MagicMock(return_value="some made field goals"))
         self.html.xpath = MagicMock(return_value=[cell])
-        assert BasicBoxScoreRow(html=self.html).made_field_goals == "some made field goals"
+        assert (
+            BasicBoxScoreRow(html=self.html).made_field_goals == "some made field goals"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="fg"]')
 
     def test_made_field_goals_is_empty_string_when_cells_exist(self):
@@ -46,7 +48,10 @@ class TestBasicBoxScoreRow(TestCase):
             text_content=MagicMock(return_value="some attempted field goals")
         )
         self.html.xpath = MagicMock(return_value=[cell])
-        assert BasicBoxScoreRow(html=self.html).attempted_field_goals == "some attempted field goals"
+        assert (
+            BasicBoxScoreRow(html=self.html).attempted_field_goals
+            == "some attempted field goals"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="fga"]')
 
     def test_attempted_field_goals_is_empty_string_when_cells_exist(self):
@@ -59,7 +64,10 @@ class TestBasicBoxScoreRow(TestCase):
             text_content=MagicMock(return_value="some made three point field goals")
         )
         self.html.xpath = MagicMock(return_value=[cell])
-        assert BasicBoxScoreRow(html=self.html).made_three_point_field_goals == "some made three point field goals"
+        assert (
+            BasicBoxScoreRow(html=self.html).made_three_point_field_goals
+            == "some made three point field goals"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="fg3"]')
 
     def test_made_three_point_field_goals_is_empty_string_when_cells_exist(self):
@@ -74,7 +82,10 @@ class TestBasicBoxScoreRow(TestCase):
             )
         )
         self.html.xpath = MagicMock(return_value=[cell])
-        assert BasicBoxScoreRow(html=self.html).attempted_three_point_field_goals == "some attempted three point field goals"
+        assert (
+            BasicBoxScoreRow(html=self.html).attempted_three_point_field_goals
+            == "some attempted three point field goals"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="fg3a"]')
 
     def test_attempted_three_point_field_goals_is_empty_string_when_cells_exist(self):
@@ -85,7 +96,9 @@ class TestBasicBoxScoreRow(TestCase):
     def test_made_free_throws_when_cells_exist(self):
         cell = MagicMock(text_content=MagicMock(return_value="some made free throws"))
         self.html.xpath = MagicMock(return_value=[cell])
-        assert BasicBoxScoreRow(html=self.html).made_free_throws == "some made free throws"
+        assert (
+            BasicBoxScoreRow(html=self.html).made_free_throws == "some made free throws"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="ft"]')
 
     def test_made_free_throws_is_empty_string_when_cells_exist(self):
@@ -98,7 +111,10 @@ class TestBasicBoxScoreRow(TestCase):
             text_content=MagicMock(return_value="some attempted free throws")
         )
         self.html.xpath = MagicMock(return_value=[cell])
-        assert BasicBoxScoreRow(html=self.html).attempted_free_throws == "some attempted free throws"
+        assert (
+            BasicBoxScoreRow(html=self.html).attempted_free_throws
+            == "some attempted free throws"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="fta"]')
 
     def test_attempted_free_throws_is_empty_string_when_cells_exist(self):
@@ -109,7 +125,10 @@ class TestBasicBoxScoreRow(TestCase):
     def test_offensive_rebounds_when_cells_exist(self):
         cell = MagicMock(text_content=MagicMock(return_value="some offensive rebounds"))
         self.html.xpath = MagicMock(return_value=[cell])
-        assert BasicBoxScoreRow(html=self.html).offensive_rebounds == "some offensive rebounds"
+        assert (
+            BasicBoxScoreRow(html=self.html).offensive_rebounds
+            == "some offensive rebounds"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="orb"]')
 
     def test_offensive_rebounds_is_empty_string_when_cells_exist(self):
@@ -120,7 +139,10 @@ class TestBasicBoxScoreRow(TestCase):
     def test_defensive_rebounds_when_cells_exist(self):
         cell = MagicMock(text_content=MagicMock(return_value="some defensive rebounds"))
         self.html.xpath = MagicMock(return_value=[cell])
-        assert BasicBoxScoreRow(html=self.html).defensive_rebounds == "some defensive rebounds"
+        assert (
+            BasicBoxScoreRow(html=self.html).defensive_rebounds
+            == "some defensive rebounds"
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="drb"]')
 
     def test_defensive_rebounds_is_empty_string_when_cells_exist(self):

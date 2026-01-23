@@ -12,11 +12,15 @@ class TestPlayerSeasonBoxScoresRow(TestCase):
         assert PlayerSeasonBoxScoresRow(html=MagicMock()) != 1
 
     def test_not_equal_when_both_rows_but_different_html(self):
-        assert PlayerSeasonBoxScoresRow(html=MagicMock(name="first html")) != PlayerSeasonBoxScoresRow(html=MagicMock(name="second html"))
+        assert PlayerSeasonBoxScoresRow(
+            html=MagicMock(name="first html")
+        ) != PlayerSeasonBoxScoresRow(html=MagicMock(name="second html"))
 
     def test_equal_when_both_rows_and_same_html(self):
         html = MagicMock(name="shared html")
-        assert PlayerSeasonBoxScoresRow(html=html) == PlayerSeasonBoxScoresRow(html=html)
+        assert PlayerSeasonBoxScoresRow(html=html) == PlayerSeasonBoxScoresRow(
+            html=html
+        )
 
     def test_date_when_cells_exist(self):
         self.html.xpath = MagicMock(

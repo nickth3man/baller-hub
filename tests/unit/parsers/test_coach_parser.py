@@ -37,7 +37,7 @@ class TestCoachParser(TestCase):
         assert result["name"] == "Phil Jackson"
         assert len(result["record"]) == 1
         assert result["record"][0]["season"] == "1995-96"
-        assert result["record"][0]["wins"] == 72
-        assert result["record"][0]["losses"] == 10
-        assert result["record"][0]["win_pct"] == 0.878
+        assert result["record"][0]["wins"] == 72  # noqa: PLR2004
+        assert result["record"][0]["losses"] == 10  # noqa: PLR2004
+        assert result["record"][0]["win_pct"] == 0.878  # noqa: PLR2004
         assert result["record"][0]["team"] == "CHICAGO_BULLS"

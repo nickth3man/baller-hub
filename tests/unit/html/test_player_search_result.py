@@ -6,7 +6,10 @@ from src.scraper.html import PlayerSearchResult
 
 class TestPlayerSearchResult(TestCase):
     def test_league_abbreviation_query(self):
-        assert PlayerSearchResult(html=MagicMock()).league_abbreviation_query == './div[@class="search-item-league"]'
+        assert (
+            PlayerSearchResult(html=MagicMock()).league_abbreviation_query
+            == './div[@class="search-item-league"]'
+        )
 
     @patch.object(
         PlayerSearchResult, "league_abbreviation_query", new_callable=PropertyMock
@@ -38,5 +41,7 @@ class TestPlayerSearchResult(TestCase):
         html = MagicMock()
         html.xpath = MagicMock(return_value=[first_abbreviation, second_abbreviation])
 
-        assert PlayerSearchResult(html=html).league_abbreviations == "first abbreviation"
+        assert (
+            PlayerSearchResult(html=html).league_abbreviations == "first abbreviation"
+        )
         html.xpath.assert_called_once_with("some query")

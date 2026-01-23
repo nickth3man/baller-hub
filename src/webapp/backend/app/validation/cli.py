@@ -7,13 +7,13 @@ from pathlib import Path
 
 sys.path[:0] = [str(Path(__file__).parents[3])]
 
-import structlog
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
+import structlog  # noqa: E402
+from sqlalchemy import text  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncSession  # noqa: E402
 
-from app.db.session import async_session_factory
-from app.validation.models import ValidationRun
-from app.validation.runner import DatabaseValidator, ValidationReporter
+from app.db.session import async_session_factory  # noqa: E402
+from app.validation.models import ValidationRun  # noqa: E402
+from app.validation.runner import DatabaseValidator, ValidationReporter  # noqa: E402
 
 logger = structlog.get_logger(__name__)
 
@@ -21,14 +21,14 @@ logger = structlog.get_logger(__name__)
 async def run_validation(
     output_format: str = "console",
     save_to_db: bool = False,
-    tables: list[str] | None = None,
+    _tables: list[str] | None = None,
 ) -> None:
     """Run database validation and output results.
 
     Args:
         output_format: Output format (console, json)
         save_to_db: Whether to save results to database
-        tables: Specific tables to validate (None = all tables)
+        _tables: Specific tables to validate (None = all tables)
     """
 
     async with async_session_factory() as session:

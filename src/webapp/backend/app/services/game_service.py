@@ -31,7 +31,7 @@ class GameService:
         """
         self.conn = conn
 
-    def list_games(
+    def list_games(  # noqa: PLR0913
         self,
         start_date: date | None = None,
         end_date: date | None = None,

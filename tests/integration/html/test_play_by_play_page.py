@@ -8,9 +8,9 @@ from src.scraper.html import PlayByPlayPage
 
 class TestPlayByPlayPage(TestCase):
     def setUp(self):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__), "../files/play_by_play/199911160ATL.html"
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__), "../files/play_by_play/199911160ATL.html"  # noqa: PTH120
             ),
             encoding="utf-8",
         ) as f:
@@ -19,7 +19,7 @@ class TestPlayByPlayPage(TestCase):
     def test_game_url_paths_query(self):
         page = PlayByPlayPage(html=html.fromstring(self._1999_11_16_ATL_html))
         rows = page.play_by_play_table.rows
-        assert len(rows) == 449
+        assert len(rows) == 449  # noqa: PLR2004
 
         last_row = rows[448]
         assert last_row.timestamp == "0:01.0"

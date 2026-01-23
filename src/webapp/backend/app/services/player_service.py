@@ -29,7 +29,7 @@ class PlayerService:
         """
         self.conn = conn
 
-    def list_players(
+    def list_players(  # noqa: PLR0913
         self,
         page: int = 1,
         per_page: int = 50,

@@ -243,6 +243,8 @@ class PlayerSeasonGameLogRow(BasicBoxScoreRow):
             return self.html == other.html
         return False
 
+    __hash__ = None
+
     @property
     def team_abbreviation(self):
         """str: Player's team abbreviation."""
@@ -291,6 +293,8 @@ class PlayerBoxScoreRow(BasicBoxScoreRow):
         if isinstance(other, PlayerBoxScoreRow):
             return self.html == other.html
         return False
+
+    __hash__ = None
 
     @property
     def team_abbreviation(self):

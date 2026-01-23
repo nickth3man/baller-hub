@@ -14,12 +14,17 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         position_abbreviations.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[position_abbreviations])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).position_abbreviations == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).position_abbreviations
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="pos"]')
 
     def test_position_abbreviations_empty_string_when_cells_do_not_exist(self):
         self.html.xpath = MagicMock(return_value=[])
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).position_abbreviations == ""
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).position_abbreviations == ""
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="pos"]')
 
     def test_age_when_cells_exist(self):
@@ -42,7 +47,10 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         team_abbreviation.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[team_abbreviation])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).team_abbreviation == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).team_abbreviation
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="team_name_abbr"]')
 
     def test_team_abbreviation_is_empty_string_when_cells_do_not_exist(self):
@@ -56,7 +64,9 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         games_played.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[games_played])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).games_played == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).games_played == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="games"]')
 
     def test_games_played_when_cells_do_not_exist(self):
@@ -70,7 +80,9 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         minutes_played.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[minutes_played])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).minutes_played == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).minutes_played == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="mp"]')
 
     def test_minutes_played_is_empty_string_when_cells_exist(self):
@@ -84,12 +96,17 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         player_efficiency_rating.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[player_efficiency_rating])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).player_efficiency_rating == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).player_efficiency_rating
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="per"]')
 
     def test_player_efficiency_rating_is_empty_string_when_cells_do_not_exist(self):
         self.html.xpath = MagicMock(return_value=[])
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).player_efficiency_rating == ""
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).player_efficiency_rating == ""
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="per"]')
 
     def test_true_shooting_percentage_when_cells_exist(self):
@@ -98,12 +115,17 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         true_shooting_percentage.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[true_shooting_percentage])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).true_shooting_percentage == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).true_shooting_percentage
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="ts_pct"]')
 
     def test_true_shooting_percentage_is_empty_string_when_cells_do_not_exist(self):
         self.html.xpath = MagicMock(return_value=[])
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).true_shooting_percentage == ""
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).true_shooting_percentage == ""
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="ts_pct"]')
 
     def test_three_point_attempt_rate_when_cells_exist(self):
@@ -112,12 +134,17 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         three_point_attempt_rate.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[three_point_attempt_rate])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).three_point_attempt_rate == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).three_point_attempt_rate
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="fg3a_per_fga_pct"]')
 
     def test_three_point_attempt_rate_is_empty_string_when_cells_do_not_exist(self):
         self.html.xpath = MagicMock(return_value=[])
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).three_point_attempt_rate == ""
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).three_point_attempt_rate == ""
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="fg3a_per_fga_pct"]')
 
     def test_free_throw_attempt_rate_when_cells_exist(self):
@@ -126,12 +153,17 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         free_throw_attempt_rate.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[free_throw_attempt_rate])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).free_throw_attempt_rate == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).free_throw_attempt_rate
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="fta_per_fga_pct"]')
 
     def test_free_throw_attempt_rate_is_empty_string_when_cells_do_not_exist(self):
         self.html.xpath = MagicMock(return_value=[])
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).free_throw_attempt_rate == ""
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).free_throw_attempt_rate == ""
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="fta_per_fga_pct"]')
 
     def test_offensive_rebound_percentage_when_cells_exist(self):
@@ -140,12 +172,18 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         offensive_rebound_percentage.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[offensive_rebound_percentage])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).offensive_rebound_percentage == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).offensive_rebound_percentage
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="orb_pct"]')
 
     def test_offensive_rebound_percentage_is_empty_string_when_cells_do_not_exist(self):
         self.html.xpath = MagicMock(return_value=[])
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).offensive_rebound_percentage == ""
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).offensive_rebound_percentage
+            == ""
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="orb_pct"]')
 
     def test_defensive_rebound_percentage_when_cells_exist(self):
@@ -154,12 +192,18 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         defensive_rebound_percentage.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[defensive_rebound_percentage])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).defensive_rebound_percentage == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).defensive_rebound_percentage
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="drb_pct"]')
 
     def test_defensive_rebound_percentage_is_empty_string_when_cells_do_not_exist(self):
         self.html.xpath = MagicMock(return_value=[])
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).defensive_rebound_percentage == ""
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).defensive_rebound_percentage
+            == ""
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="drb_pct"]')
 
     def test_total_rebound_percentage_when_cells_exist(self):
@@ -168,12 +212,17 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         total_rebound_percentage.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[total_rebound_percentage])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).total_rebound_percentage == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).total_rebound_percentage
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="trb_pct"]')
 
     def test_total_rebound_percentage_when_cells_do_not_exist(self):
         self.html.xpath = MagicMock(return_value=[])
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).total_rebound_percentage == ""
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).total_rebound_percentage == ""
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="trb_pct"]')
 
     def test_assist_percentage_when_cells_exist(self):
@@ -182,7 +231,10 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         assist_percentage.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[assist_percentage])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).assist_percentage == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).assist_percentage
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="ast_pct"]')
 
     def test_assist_percentage_is_empty_string_when_cells_do_not_exist(self):
@@ -196,7 +248,10 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         steal_percentage.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[steal_percentage])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).steal_percentage == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).steal_percentage
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="stl_pct"]')
 
     def test_steal_percentage_is_empty_string_when_cells_do_not_exist(self):
@@ -210,7 +265,10 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         block_percentage.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[block_percentage])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).block_percentage == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).block_percentage
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="blk_pct"]')
 
     def test_block_percentage_is_empty_string_when_cells_do_not_exist(self):
@@ -224,7 +282,10 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         turnover_percentage.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[turnover_percentage])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).turnover_percentage == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).turnover_percentage
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="tov_pct"]')
 
     def test_turnover_percentage_is_empty_string_when_cells_do_not_exist(self):
@@ -238,7 +299,10 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         usage_percentage.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[usage_percentage])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).usage_percentage == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).usage_percentage
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="usg_pct"]')
 
     def test_usage_percentage_is_empty_string_when_no_cells_exist(self):
@@ -252,7 +316,10 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         offensive_win_shares.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[offensive_win_shares])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).offensive_win_shares == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).offensive_win_shares
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="ows"]')
 
     def test_offensive_win_shares_is_empty_string_when_cells_do_not_exist(self):
@@ -266,7 +333,10 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         defensive_win_shares.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[defensive_win_shares])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).defensive_win_shares == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).defensive_win_shares
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="dws"]')
 
     def test_defensive_win_shares_is_empty_string_when_no_cells_exist(self):
@@ -294,12 +364,18 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         win_shares_per_48_minutes.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[win_shares_per_48_minutes])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).win_shares_per_48_minutes == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).win_shares_per_48_minutes
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="ws_per_48"]')
 
     def test_win_shares_per_48_minutes_is_empty_string_when_cells_do_not_exist(self):
         self.html.xpath = MagicMock(return_value=[])
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).win_shares_per_48_minutes == ""
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).win_shares_per_48_minutes
+            == ""
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="ws_per_48"]')
 
     def test_offensive_plus_minus_when_cells_exist(self):
@@ -308,7 +384,10 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         offensive_plus_minus.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[offensive_plus_minus])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).offensive_plus_minus == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).offensive_plus_minus
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="obpm"]')
 
     def test_offensive_plus_minus_when_cells_do_not_exist(self):
@@ -322,7 +401,10 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         defensive_plus_minus.text_content = MagicMock(return_value=text_content)
         self.html.xpath = MagicMock(return_value=[defensive_plus_minus])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).defensive_plus_minus == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).defensive_plus_minus
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="dbpm"]')
 
     def test_defensive_plus_minus_is_empty_string_when_cells_do_not_exist(self):
@@ -352,14 +434,20 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         )
         self.html.xpath = MagicMock(return_value=[value_over_replacement_player])
 
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).value_over_replacement_player == text_content
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).value_over_replacement_player
+            == text_content
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="vorp"]')
 
     def test_value_over_replacement_player_is_empty_string_when_cells_do_not_exist(
         self,
     ):
         self.html.xpath = MagicMock(return_value=[])
-        assert PlayerAdvancedSeasonTotalsRow(html=self.html).value_over_replacement_player == ""
+        assert (
+            PlayerAdvancedSeasonTotalsRow(html=self.html).value_over_replacement_player
+            == ""
+        )
         self.html.xpath.assert_called_once_with('td[@data-stat="vorp"]')
 
     @patch.object(
@@ -368,7 +456,7 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         new_callable=PropertyMock,
         return_value="Not Total",
     )
-    def test_is_not_combined_totals_when_team_abbreviation_is_not_TOT(self, _):
+    def test_is_not_combined_totals_when_team_abbreviation_is_not_TOT(self, _):  # noqa: N802, PT019
         assert not PlayerAdvancedSeasonTotalsRow(html=self.html).is_combined_totals
 
     @patch.object(
@@ -377,5 +465,5 @@ class TestPlayerAdvancedSeasonTotalsRow(TestCase):
         new_callable=PropertyMock,
         return_value="2TM",
     )
-    def test_is_combined_totals_when_team_abbreviation_is_TOT(self, _):
+    def test_is_combined_totals_when_team_abbreviation_is_TOT(self, _):  # noqa: N802, PT019
         assert PlayerAdvancedSeasonTotalsRow(html=self.html).is_combined_totals

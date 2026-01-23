@@ -128,7 +128,7 @@ def get_season_leaders(
 
 
 @router.get("/{season_year}/player-stats")
-def get_season_player_stats(
+def get_season_player_stats(  # noqa: PLR0913
     season_year: int,
     stat_type: str = Query(
         "totals", pattern="^(totals|per_game|advanced|per_36|per_100)$"

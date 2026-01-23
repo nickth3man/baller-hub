@@ -16,7 +16,7 @@ class TestPlayerSeasonTotals(TestCase):
         mocked_players_season_totals.side_effect = HTTPError(
             response=MagicMock(status_code=codes.not_found)
         )
-        self.assertRaisesRegex(
+        self.assertRaisesRegex(  # noqa: PT027
             InvalidSeasonError,
             expected_message,
             players_season_totals,
@@ -28,4 +28,4 @@ class TestPlayerSeasonTotals(TestCase):
         mocked_players_season_totals.side_effect = HTTPError(
             response=MagicMock(status_code=codes.internal_server_error)
         )
-        self.assertRaises(HTTPError, players_season_totals, season_end_year=2018)
+        self.assertRaises(HTTPError, players_season_totals, season_end_year=2018)  # noqa: PT027

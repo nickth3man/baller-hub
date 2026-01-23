@@ -18,4 +18,9 @@ class TestTeamTotalsParser(TestCase):
         opposing_team_totals = TeamTotal(
             team_abbreviation="GSW", totals=MagicMock(points="100")
         )
-        assert self.parser.parse_totals(team_totals=team_totals, opposing_team_totals=opposing_team_totals)["outcome"] is None
+        assert (
+            self.parser.parse_totals(
+                team_totals=team_totals, opposing_team_totals=opposing_team_totals
+            )["outcome"]
+            is None
+        )

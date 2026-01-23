@@ -120,7 +120,7 @@ class SeasonService:
             "leaders": leaders,
         }
 
-    def get_season_player_stats(
+    def get_season_player_stats(  # noqa: PLR0913
         self,
         season_year: int,
         stat_type: str = "totals",

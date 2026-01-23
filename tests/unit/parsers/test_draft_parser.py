@@ -36,7 +36,7 @@ class TestDraftParser(TestCase):
 
         result = self.parser.parse(mock_page)
 
-        assert result["year"] == 2024
+        assert result["year"] == 2024  # noqa: PLR2004
         assert len(result["picks"]) == 1
         assert result["picks"][0]["pick"] == 1
         assert result["picks"][0]["player"] == "Zaccharie Risacher"

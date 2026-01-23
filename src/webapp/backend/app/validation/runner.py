@@ -6,7 +6,7 @@ including referential integrity, data consistency, business logic, and data qual
 
 import json
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -37,7 +37,7 @@ class DatabaseValidator:
         Returns:
             ValidationResult with all findings.
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
         self.results.clear()
 
         logger.info("Starting comprehensive database validation")
@@ -61,12 +61,12 @@ class DatabaseValidator:
             logger.exception("Validation run failed", error=str(e))
             raise
 
-        duration = (datetime.utcnow() - start_time).total_seconds()
+        duration = (datetime.now(UTC) - start_time).total_seconds()
 
         summary = self._build_summary()
         return ValidationResult(
             run_id=str(uuid.uuid4()),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             target_tables=[
                 "game",
                 "player",
@@ -112,7 +112,7 @@ class DatabaseValidator:
             duration_seconds=0.0,
         )
 
-    async def _add_issue(
+    async def _add_issue(  # noqa: PLR0913
         self,
         rule_id: str,
         rule_name: str,
@@ -702,7 +702,7 @@ class ValidationReporter:
                 )
                 if issue.row_identifier:
                     lines.append(f"    ID: {issue.row_identifier}")
-            if result.summary.critical_issues > 10:
+            if result.summary.critical_issues > 10:  # noqa: PLR2004
                 lines.append(
                     f"  ... and {result.summary.critical_issues - 10} more critical issues"
                 )
@@ -715,7 +715,7 @@ class ValidationReporter:
                 f"  [{issue.rule_id}] {issue.table_name}: {issue.error_message}"
                 for issue in major
             )
-            if result.summary.major_issues > 10:
+            if result.summary.major_issues > 10:  # noqa: PLR2004
                 lines.append(
                     f"  ... and {result.summary.major_issues - 10} more major issues"
                 )
@@ -728,7 +728,7 @@ class ValidationReporter:
                 f"  [{issue.rule_id}] {issue.table_name}: {issue.error_message}"
                 for issue in minor
             )
-            if result.summary.minor_issues > 10:
+            if result.summary.minor_issues > 10:  # noqa: PLR2004
                 lines.append(
                     f"  ... and {result.summary.minor_issues - 10} more minor issues"
                 )

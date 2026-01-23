@@ -13,9 +13,9 @@ from src.scraper.common.errors import InvalidPlayerAndSeasonError
 
 class TestRussellWestbrook2019(TestCase):
     def setUp(self):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 "../files/player_box_scores/2019/westbru01.html",
             ),
             encoding="utf-8",
@@ -32,7 +32,7 @@ class TestRussellWestbrook2019(TestCase):
         result = playoff_player_box_scores(
             player_identifier="westbru01", season_end_year=2019
         )
-        assert len(result) == 5
+        assert len(result) == 5  # noqa: PLR2004
 
     @requests_mock.Mocker()
     def test_first_game(self, m):
@@ -46,45 +46,45 @@ class TestRussellWestbrook2019(TestCase):
         )
         first_game = result[0]
         assert first_game["active"]
-        assert datetime.strptime("2019-04-14", "%Y-%m-%d").date() == first_game["date"]
+        assert datetime.strptime("2019-04-14", "%Y-%m-%d").date() == first_game["date"]  # noqa: DTZ007
         assert first_game["team"] == Team.OKLAHOMA_CITY_THUNDER
         assert first_game["outcome"] == Outcome.LOSS
-        assert first_game["seconds_played"] == 2263
+        assert first_game["seconds_played"] == 2263  # noqa: PLR2004
         assert first_game["opponent"] == Team.PORTLAND_TRAIL_BLAZERS
-        assert first_game["made_field_goals"] == 8
-        assert first_game["attempted_field_goals"] == 17
+        assert first_game["made_field_goals"] == 8  # noqa: PLR2004
+        assert first_game["attempted_field_goals"] == 17  # noqa: PLR2004
         assert first_game["made_three_point_field_goals"] == 0
-        assert first_game["attempted_three_point_field_goals"] == 4
-        assert first_game["made_free_throws"] == 8
-        assert first_game["attempted_free_throws"] == 8
+        assert first_game["attempted_three_point_field_goals"] == 4  # noqa: PLR2004
+        assert first_game["made_free_throws"] == 8  # noqa: PLR2004
+        assert first_game["attempted_free_throws"] == 8  # noqa: PLR2004
         assert first_game["offensive_rebounds"] == 0
-        assert first_game["defensive_rebounds"] == 10
-        assert first_game["assists"] == 10
+        assert first_game["defensive_rebounds"] == 10  # noqa: PLR2004
+        assert first_game["assists"] == 10  # noqa: PLR2004
         assert first_game["steals"] == 0
         assert first_game["blocks"] == 0
-        assert first_game["turnovers"] == 4
-        assert first_game["personal_fouls"] == 4
-        assert first_game["points_scored"] == 24
-        assert first_game["game_score"] == 19.7
-        assert first_game["plus_minus"] == -10
+        assert first_game["turnovers"] == 4  # noqa: PLR2004
+        assert first_game["personal_fouls"] == 4  # noqa: PLR2004
+        assert first_game["points_scored"] == 24  # noqa: PLR2004
+        assert first_game["game_score"] == 19.7  # noqa: PLR2004
+        assert first_game["plus_minus"] == -10  # noqa: PLR2004
 
 
 class RussellWestbrook2020IncludingInactiveGames(TestCase):
     def setUp(self):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 "../files/player_box_scores/2020/westbru01.html",
             ),
             encoding="utf-8",
         ) as file_input:
             self._html = file_input.read()
-        self.expected_output_json_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.expected_output_json_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             "./output/expected/playoff_player_box_scores/2020/westbru01/include_inactive.json",
         )
-        self.expected_output_csv_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.expected_output_csv_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             "./output/expected/playoff_player_box_scores/2020/westbru01/include_inactive.csv",
         )
 
@@ -102,7 +102,7 @@ class RussellWestbrook2020IncludingInactiveGames(TestCase):
             output_type=OutputType.JSON,
             include_inactive_games=True,
         )
-        with open(
+        with open(  # noqa: PTH123
             self.expected_output_json_file_path, encoding="utf-8"
         ) as expected_output:
             assert json.loads(results) == json.load(expected_output)
@@ -115,8 +115,8 @@ class RussellWestbrook2020IncludingInactiveGames(TestCase):
             status_code=200,
         )
 
-        output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             "./output/generated/playoff_player_box_scores/2020/westbru01/include_inactive.json",
         )
 
@@ -130,7 +130,7 @@ class RussellWestbrook2020IncludingInactiveGames(TestCase):
             )
             assert filecmp.cmp(output_file_path, self.expected_output_json_file_path)
         finally:
-            os.remove(output_file_path)
+            os.remove(output_file_path)  # noqa: PTH107
 
     @requests_mock.Mocker()
     def test_csv_file_output(self, m):
@@ -140,8 +140,8 @@ class RussellWestbrook2020IncludingInactiveGames(TestCase):
             status_code=200,
         )
 
-        output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             "./output/generated/playoff_player_box_scores/2020/westbru01/include_inactive.csv",
         )
 
@@ -155,14 +155,14 @@ class RussellWestbrook2020IncludingInactiveGames(TestCase):
             )
             assert filecmp.cmp(output_file_path, self.expected_output_csv_file_path)
         finally:
-            os.remove(output_file_path)
+            os.remove(output_file_path)  # noqa: PTH107
 
 
 class TestNonExistentPlayerPlayoffBoxScores(TestCase):
     def setUp(self):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__), "../files/player_box_scores/2020/foobar.html"
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__), "../files/player_box_scores/2020/foobar.html"  # noqa: PTH120
             ),
             encoding="utf-8",
         ) as file_input:
@@ -181,7 +181,7 @@ class TestNonExistentPlayerPlayoffBoxScores(TestCase):
             status_code=200,
         )
 
-        self.assertRaisesRegex(
+        self.assertRaisesRegex(  # noqa: PT027
             InvalidPlayerAndSeasonError,
             'Player with identifier "foobar" in season ending in 2020 is invalid',
             playoff_player_box_scores,
@@ -192,9 +192,9 @@ class TestNonExistentPlayerPlayoffBoxScores(TestCase):
 
 class Giannis2020(TestCase):
     def setUp(self):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 "../files/player_box_scores/2020/antetgi01.html",
             ),
             encoding="utf-8",
@@ -214,9 +214,9 @@ class Giannis2020(TestCase):
             player_identifier="antetgi01", season_end_year=2020
         )
         assert results is not None
-        assert len(results) == 9
+        assert len(results) == 9  # noqa: PLR2004
 
-        d = datetime.strptime("2020-09-08", "%Y-%m-%d").date()
+        d = datetime.strptime("2020-09-08", "%Y-%m-%d").date()  # noqa: DTZ007
         assert all(bs["date"] != d and bs["active"] for bs in results)
 
     @requests_mock.Mocker()
@@ -232,10 +232,12 @@ class Giannis2020(TestCase):
             include_inactive_games=True,
         )
         assert results is not None
-        assert len(results) == 10
+        assert len(results) == 10  # noqa: PLR2004
 
         inactive_game = results[-1]
-        assert datetime.strptime("2020-09-08", "%Y-%m-%d").date() == inactive_game["date"]
+        assert (
+            datetime.strptime("2020-09-08", "%Y-%m-%d").date() == inactive_game["date"]  # noqa: DTZ007
+        )
         assert not inactive_game["active"]
 
         expected_null_stats = {

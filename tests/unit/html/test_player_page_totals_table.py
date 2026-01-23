@@ -19,14 +19,19 @@ class TestPlayerPageTotalsTable(TestCase):
         html = MagicMock()
         html.xpath = MagicMock(return_value=[first_row, second_row])
 
-        assert PlayerPageTotalsTable(html=html).rows == [PlayerPageTotalsRow(html=first_row), PlayerPageTotalsRow(html=second_row)]
+        assert PlayerPageTotalsTable(html=html).rows == [
+            PlayerPageTotalsRow(html=first_row),
+            PlayerPageTotalsRow(html=second_row),
+        ]
         html.xpath.assert_called_once_with(".//tbody/tr")
 
     def test_different_class_is_not_equal(self):
         assert PlayerPageTotalsTable(html=MagicMock()) != "jaebaebae"
 
     def test_different_html_but_same_class_is_not_equal(self):
-        assert PlayerPageTotalsTable(html=MagicMock()) != PlayerPageTotalsTable(html=MagicMock())
+        assert PlayerPageTotalsTable(html=MagicMock()) != PlayerPageTotalsTable(
+            html=MagicMock()
+        )
 
     def test_same_html_and_same_class_is_equal(self):
         html = MagicMock()

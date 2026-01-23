@@ -18,7 +18,9 @@ class TestFileOptions(TestCase):
     def test_should_write_to_file_is_true_when_output_type_is_not_none_and_file_path_is_not_none_and_mode_is_not_none(
         self,
     ):
-        assert FileOptions.of(path="some file path", mode="some mode").should_write_to_file
+        assert FileOptions.of(
+            path="some file path", mode="some mode"
+        ).should_write_to_file
 
     def test_two_options_with_same_properties_are_equivalent(self):
         assert FileOptions.of() == FileOptions.of()

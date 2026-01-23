@@ -14,19 +14,19 @@ class TestSecondsPlayedParser(TestCase):
         assert self.parser.parse("0:01") == 1
 
     def test_parse_seconds_played_for_59_seconds(self):
-        assert self.parser.parse("0:59") == 59
+        assert self.parser.parse("0:59") == 59  # noqa: PLR2004
 
     def test_parse_seconds_played_for_60_seconds(self):
-        assert self.parser.parse("1:00") == 60
+        assert self.parser.parse("1:00") == 60  # noqa: PLR2004
 
     def test_parse_seconds_played_for_61_seconds(self):
-        assert self.parser.parse("1:01") == 61
+        assert self.parser.parse("1:01") == 61  # noqa: PLR2004
 
     def test_parse_seconds_played_for_59_minutes_59_seconds(self):
-        assert self.parser.parse("59:59") == 3599
+        assert self.parser.parse("59:59") == 3599  # noqa: PLR2004
 
     def test_parse_seconds_played_for_60_minutes(self):
-        assert self.parser.parse("60:00") == 3600
+        assert self.parser.parse("60:00") == 3600  # noqa: PLR2004
 
     def test_parse_seconds_played_for_60_minutes_and_1_second(self):
-        assert self.parser.parse("60:01") == 3601
+        assert self.parser.parse("60:01") == 3601  # noqa: PLR2004

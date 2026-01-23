@@ -109,6 +109,8 @@ class PlayerSeasonBoxScoresRow(PlayerSeasonGameLogRow):
             return self.html == other.html
         return False
 
+    __hash__ = None
+
     @property
     def is_active(self):
         """bool: True if the player played in the game (not DNP/Inactive).

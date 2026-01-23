@@ -12,7 +12,19 @@ class TestPlayerAdvancedSeasonTotalsTable(TestCase):
         self.html = MagicMock()
 
     def test_rows_query_after_stripping_whitespace(self):
-        assert """\r\n            //table[@id=\"advanced\"]\r\n            /tbody\r\n            /tr[\r\n                (\r\n                    not(contains(@class, 'thead')) and\r\n                    not(contains(@class, 'norank'))\r\n                )\r\n            ]\r\n            """.strip() == PlayerAdvancedSeasonTotalsTable(html=self.html).rows_query.strip()
+        assert (
+            """
+            //table[@id="advanced"]
+            /tbody
+            /tr[
+                (
+                    not(contains(@class, 'thead')) and
+                    not(contains(@class, 'norank'))
+                )
+            ]
+        """.strip()
+            == PlayerAdvancedSeasonTotalsTable(html=self.html).rows_query.strip()
+        )
 
     @patch.object(
         PlayerAdvancedSeasonTotalsRow,
@@ -20,7 +32,7 @@ class TestPlayerAdvancedSeasonTotalsTable(TestCase):
         new_callable=PropertyMock,
         return_value=False,
     )
-    def test_returns_all_rows_when_rows_are_not_combined_totals_rows(self, _):
+    def test_returns_all_rows_when_rows_are_not_combined_totals_rows(self, _):  # noqa: PT019
         first_html_row = MagicMock()
         html_rows = [first_html_row]
         self.html.xpath = MagicMock(return_value=html_rows)
@@ -34,7 +46,7 @@ class TestPlayerAdvancedSeasonTotalsTable(TestCase):
         new_callable=PropertyMock,
         return_value=True,
     )
-    def test_returns_no_rows_when_all_rows_are_combined_totals_rows(self, _):
+    def test_returns_no_rows_when_all_rows_are_combined_totals_rows(self, _):  # noqa: PT019
         first_html_row = MagicMock()
         html_rows = [first_html_row]
         self.html.xpath = MagicMock(return_value=html_rows)

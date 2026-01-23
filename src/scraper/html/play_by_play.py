@@ -81,6 +81,12 @@ class PlayByPlayRow:
         html (lxml.html.HtmlElement): The raw HTML element for the row.
     """
 
+    FULL_PLAY_ROW_CELL_COUNT = 6
+    MIN_ROW_CELL_COUNT = 2
+    AWAY_PLAY_INDEX = 1
+    SCORE_INDEX = 3
+    HOME_PLAY_INDEX = 5
+
     def __init__(self, html):
         """Initialize the row wrapper.
 
@@ -102,16 +108,16 @@ class PlayByPlayRow:
     @property
     def away_team_play_description(self):
         """str: Description of the away team's action (if any)."""
-        if len(self.html) == 6:
-            return self.html[1].text_content().strip()
+        if len(self.html) == self.FULL_PLAY_ROW_CELL_COUNT:
+            return self.html[self.AWAY_PLAY_INDEX].text_content().strip()
 
         return ""
 
     @property
     def home_team_play_description(self):
         """str: Description of the home team's action (if any)."""
-        if len(self.html) == 6:
-            return self.html[5].text_content().strip()
+        if len(self.html) == self.FULL_PLAY_ROW_CELL_COUNT:
+            return self.html[self.HOME_PLAY_INDEX].text_content().strip()
 
         return ""
 
@@ -128,8 +134,8 @@ class PlayByPlayRow:
     @property
     def formatted_scores(self):
         """str: Current score (e.g., '10-8')."""
-        if len(self.html) == 6:
-            return self.html[3].text_content().strip()
+        if len(self.html) == self.FULL_PLAY_ROW_CELL_COUNT:
+            return self.html[self.SCORE_INDEX].text_content().strip()
         return ""
 
     @property
@@ -146,7 +152,7 @@ class PlayByPlayRow:
         if self.is_start_of_period:
             return False
 
-        if len(self.html) < 2:
+        if len(self.html) < self.MIN_ROW_CELL_COUNT:
             return False
 
         # Rows with colspan="5" are usually "End of 1st Quarter" or similar spacers
@@ -156,7 +162,4 @@ class PlayByPlayRow:
 
         # Header rows for each period have aria-label="Time" on the first cell
         is_header_row = self.timestamp_cell.get("aria-label") == "Time"
-        if is_header_row:
-            return False
-
-        return True
+        return not is_header_row

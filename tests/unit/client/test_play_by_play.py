@@ -14,7 +14,7 @@ class TestPlayByPlay(TestCase):
         mocked_play_by_play.side_effect = HTTPError(
             response=mock.Mock(status_code=codes.not_found)
         )
-        self.assertRaises(
+        self.assertRaises(  # noqa: PT027
             InvalidDateError,
             play_by_play,
             home_team=Team.MILWAUKEE_BUCKS,
@@ -28,7 +28,7 @@ class TestPlayByPlay(TestCase):
         mocked_play_by_play.side_effect = HTTPError(
             response=mock.Mock(status_code=codes.server_error)
         )
-        self.assertRaises(
+        self.assertRaises(  # noqa: PT027
             HTTPError,
             play_by_play,
             home_team=Team.MILWAUKEE_BUCKS,

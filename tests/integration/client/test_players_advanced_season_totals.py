@@ -13,9 +13,9 @@ from src.scraper.common.errors import InvalidSeasonError
 
 class Test2019(TestCase):
     def setUp(self):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 "../files/player_advanced_season_totals/2019.html",
             ),
             encoding="utf-8",
@@ -30,7 +30,7 @@ class Test2019(TestCase):
             status_code=200,
         )
         result = players_advanced_season_totals(season_end_year=2019)
-        assert len(result) == 622
+        assert len(result) == 622  # noqa: PLR2004
 
 
 class BaseTestPlayerAdvancedSeasonTotalsCSVOutput(TestCase):
@@ -43,26 +43,26 @@ class BaseTestPlayerAdvancedSeasonTotalsCSVOutput(TestCase):
         raise NotImplementedError
 
     def setUp(self):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 f"../files/player_advanced_season_totals/{self.year}.html",
             ),
             encoding="utf-8",
         ) as file_input:
             self._html = file_input.read()
 
-        self.output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             f"./output/generated/player_advanced_season_totals/{self.year}.csv",
         )
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             f"./output/expected/player_advanced_season_totals/{self.year}.csv",
         )
 
     def tearDown(self):
-        os.remove(self.output_file_path)
+        os.remove(self.output_file_path)  # noqa: PTH107
 
     @requests_mock.Mocker()
     def assert_player_advanced_season_totals_csv(self, m):
@@ -92,26 +92,26 @@ class BaseTestPlayerAdvancedSeasonTotalsJSONOutput(TestCase):
         raise NotImplementedError
 
     def setUp(self):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 f"../files/player_advanced_season_totals/{self.year}.html",
             ),
             encoding="utf-8",
         ) as file_input:
             self._html = file_input.read()
 
-        self.output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             f"./output/generated/player_advanced_season_totals/{self.year}.json",
         )
-        self.expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        self.expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             f"./output/expected/player_advanced_season_totals/{self.year}.json",
         )
 
     def tearDown(self):
-        os.remove(self.output_file_path)
+        os.remove(self.output_file_path)  # noqa: PTH107
 
     @requests_mock.Mocker()
     def assert_player_advanced_season_totals_json(self, m):
@@ -129,8 +129,8 @@ class BaseTestPlayerAdvancedSeasonTotalsJSONOutput(TestCase):
         )
 
         with (
-            open(self.output_file_path, encoding="utf-8") as output_file,
-            open(
+            open(self.output_file_path, encoding="utf-8") as output_file,  # noqa: PTH123
+            open(  # noqa: PTH123
                 self.expected_output_file_path, encoding="utf-8"
             ) as expected_output_file,
         ):
@@ -290,9 +290,9 @@ class Test2001PlayerAdvancedSeasonTotalsJSONOutput(
 @requests_mock.Mocker()
 class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
     def setUp(self):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 "../files/player_advanced_season_totals/2018.html",
             ),
             encoding="utf-8",
@@ -305,7 +305,7 @@ class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
             text="Not found",
             status_code=404,
         )
-        self.assertRaisesRegex(
+        self.assertRaisesRegex(  # noqa: PT027
             InvalidSeasonError,
             f"Season end year of {sys.maxsize} is invalid",
             players_advanced_season_totals,
@@ -320,7 +320,7 @@ class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
         )
 
         result = players_advanced_season_totals(season_end_year=2018)
-        assert len(result) == 605
+        assert len(result) == 605  # noqa: PLR2004
 
     def test_first_2018_players_advanced_season_totals_row(self, m):
         m.get(
@@ -330,7 +330,36 @@ class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
         )
 
         result = players_advanced_season_totals(season_end_year=2018)
-        assert result[0] == {"age": 33, "assist_percentage": 44.4, "block_percentage": 2.0, "box_plus_minus": 8.7, "defensive_box_plus_minus": 1.4, "defensive_rebound_percentage": 22.3, "defensive_win_shares": 3.0, "free_throw_attempt_rate": 0.336, "games_played": 82, "is_combined_totals": False, "minutes_played": 3026, "name": "LeBron James", "offensive_box_plus_minus": 7.3, "offensive_rebound_percentage": 3.7, "offensive_win_shares": 11.0, "player_efficiency_rating": 28.6, "positions": [Position.POWER_FORWARD], "slug": "jamesle01", "steal_percentage": 1.9, "team": Team.CLEVELAND_CAVALIERS, "three_point_attempt_rate": 0.257, "total_rebound_percentage": 13.1, "true_shooting_percentage": 0.621, "turnover_percentage": 16.1, "usage_percentage": 31.6, "value_over_replacement_player": 8.2, "win_shares": 14.0, "win_shares_per_48_minutes": 0.221}
+        assert result[0] == {
+            "age": 33,
+            "assist_percentage": 44.4,
+            "block_percentage": 2.0,
+            "box_plus_minus": 8.7,
+            "defensive_box_plus_minus": 1.4,
+            "defensive_rebound_percentage": 22.3,
+            "defensive_win_shares": 3.0,
+            "free_throw_attempt_rate": 0.336,
+            "games_played": 82,
+            "is_combined_totals": False,
+            "minutes_played": 3026,
+            "name": "LeBron James",
+            "offensive_box_plus_minus": 7.3,
+            "offensive_rebound_percentage": 3.7,
+            "offensive_win_shares": 11.0,
+            "player_efficiency_rating": 28.6,
+            "positions": [Position.POWER_FORWARD],
+            "slug": "jamesle01",
+            "steal_percentage": 1.9,
+            "team": Team.CLEVELAND_CAVALIERS,
+            "three_point_attempt_rate": 0.257,
+            "total_rebound_percentage": 13.1,
+            "true_shooting_percentage": 0.621,
+            "turnover_percentage": 16.1,
+            "usage_percentage": 31.6,
+            "value_over_replacement_player": 8.2,
+            "win_shares": 14.0,
+            "win_shares_per_48_minutes": 0.221,
+        }
 
     def test_last_2018_players_advanced_season_totals_row(self, m):
         m.get(
@@ -340,7 +369,36 @@ class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
         )
 
         result = players_advanced_season_totals(season_end_year=2018)
-        assert result[604] == {"age": 27, "assist_percentage": 0.0, "block_percentage": 0.0, "box_plus_minus": -8.5, "defensive_box_plus_minus": -2.3, "defensive_rebound_percentage": 0.0, "defensive_win_shares": 0.0, "free_throw_attempt_rate": 0.0, "games_played": 1, "is_combined_totals": False, "minutes_played": 1, "name": "Trey McKinney-Jones", "offensive_box_plus_minus": -6.2, "offensive_rebound_percentage": 0.0, "offensive_win_shares": 0.0, "player_efficiency_rating": 0.0, "positions": [Position.SHOOTING_GUARD], "slug": "mckintr01", "steal_percentage": 0.0, "team": Team.INDIANA_PACERS, "three_point_attempt_rate": 0.0, "total_rebound_percentage": 0.0, "true_shooting_percentage": 0.0, "turnover_percentage": 0.0, "usage_percentage": 0.0, "value_over_replacement_player": 0.0, "win_shares": 0.0, "win_shares_per_48_minutes": -0.001}
+        assert result[604] == {
+            "age": 27,
+            "assist_percentage": 0.0,
+            "block_percentage": 0.0,
+            "box_plus_minus": -8.5,
+            "defensive_box_plus_minus": -2.3,
+            "defensive_rebound_percentage": 0.0,
+            "defensive_win_shares": 0.0,
+            "free_throw_attempt_rate": 0.0,
+            "games_played": 1,
+            "is_combined_totals": False,
+            "minutes_played": 1,
+            "name": "Trey McKinney-Jones",
+            "offensive_box_plus_minus": -6.2,
+            "offensive_rebound_percentage": 0.0,
+            "offensive_win_shares": 0.0,
+            "player_efficiency_rating": 0.0,
+            "positions": [Position.SHOOTING_GUARD],
+            "slug": "mckintr01",
+            "steal_percentage": 0.0,
+            "team": Team.INDIANA_PACERS,
+            "three_point_attempt_rate": 0.0,
+            "total_rebound_percentage": 0.0,
+            "true_shooting_percentage": 0.0,
+            "turnover_percentage": 0.0,
+            "usage_percentage": 0.0,
+            "value_over_replacement_player": 0.0,
+            "win_shares": 0.0,
+            "win_shares_per_48_minutes": -0.001,
+        }
 
     def test_players_advanced_season_totals_json(self, m):
         m.get(
@@ -349,12 +407,12 @@ class TestPlayerAdvancedSeasonTotalsInMemoryOutput(TestCase):
             status_code=200,
         )
 
-        expected_output_file_path = os.path.join(
-            os.path.dirname(__file__),
+        expected_output_file_path = os.path.join(  # noqa: PTH118
+            os.path.dirname(__file__),  # noqa: PTH120
             "./output/expected/player_advanced_season_totals/2018.json",
         )
         result = players_advanced_season_totals(
             season_end_year=2018, output_type=OutputType.JSON
         )
-        with open(expected_output_file_path, encoding="utf-8") as expected_output:
+        with open(expected_output_file_path, encoding="utf-8") as expected_output:  # noqa: PTH123
             assert json.loads(result) == json.load(expected_output)

@@ -19,9 +19,9 @@ class BaseTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 f"../files/schedule/{cls._path_from_schedule_directory}",
             ),
             encoding="utf-8",
@@ -35,9 +35,9 @@ class BaseTest(TestCase):
 class BaseParserTest(BaseTest):
     @classmethod
     def setUpClass(cls):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 f"../files/schedule/{cls._path_from_schedule_directory}",
             ),
             encoding="utf-8",
@@ -55,47 +55,59 @@ class TestSchedulePage(BaseTest):
     _path_from_schedule_directory = "2001/2001.html"
 
     def test_expected_urls(self):
-        assert self._page.other_months_schedule_urls == ["/leagues/NBA_2001_games-october.html", "/leagues/NBA_2001_games-november.html", "/leagues/NBA_2001_games-december.html", "/leagues/NBA_2001_games-january.html", "/leagues/NBA_2001_games-february.html", "/leagues/NBA_2001_games-march.html", "/leagues/NBA_2001_games-april.html", "/leagues/NBA_2001_games-may.html", "/leagues/NBA_2001_games-june.html"]
+        assert self._page.other_months_schedule_urls == [
+            "/leagues/NBA_2001_games-october.html",
+            "/leagues/NBA_2001_games-november.html",
+            "/leagues/NBA_2001_games-december.html",
+            "/leagues/NBA_2001_games-january.html",
+            "/leagues/NBA_2001_games-february.html",
+            "/leagues/NBA_2001_games-march.html",
+            "/leagues/NBA_2001_games-april.html",
+            "/leagues/NBA_2001_games-may.html",
+            "/leagues/NBA_2001_games-june.html",
+        ]
 
 
 class TestOctober2001Parser(BaseParserTest):
     _path_from_schedule_directory = "2001/2001.html"
 
     def test_length(self):
-        assert len(self._parsed_results) == 13
+        assert len(self._parsed_results) == 13  # noqa: PLR2004
 
     def test_first_game(self):
         first_game = self._parsed_results[0]
         expected_datetime = (
             pytz.timezone("US/Eastern")
-            .localize(datetime(year=2000, month=10, day=31, hour=19, minute=30))
+            .localize(datetime(year=2000, month=10, day=31, hour=19, minute=30))  # noqa: DTZ001
             .astimezone(pytz.utc)
         )
 
         assert abs(first_game["start_time"] - expected_datetime) < timedelta(seconds=1)
         assert first_game["away_team"] == Team.CHARLOTTE_HORNETS
         assert first_game["home_team"] == Team.ATLANTA_HAWKS
-        assert first_game["away_team_score"] == 106
-        assert first_game["home_team_score"] == 82
+        assert first_game["away_team_score"] == 106  # noqa: PLR2004
+        assert first_game["home_team_score"] == 82  # noqa: PLR2004
 
 
 class TestOctober2018Parser(BaseParserTest):
     _path_from_schedule_directory = "2018/2018.html"
 
     def test_length(self):
-        assert len(self._parsed_results) == 104
+        assert len(self._parsed_results) == 104  # noqa: PLR2004
 
 
 class TestParsingUpcomingGames(BaseParserTest):
     _path_from_schedule_directory = "upcoming-games.html"
 
     def test_length(self):
-        assert len(self._parsed_results) == 79
+        assert len(self._parsed_results) == 79  # noqa: PLR2004
 
     def test_first_game(self):
         first_game = self._parsed_results[0]
 
-        assert first_game["start_time"] == pytz.timezone("US/Eastern").localize(datetime(year=2019, month=4, day=1, hour=19, minute=30)).astimezone(pytz.utc)
+        assert first_game["start_time"] == pytz.timezone("US/Eastern").localize(
+            datetime(year=2019, month=4, day=1, hour=19, minute=30)  # noqa: DTZ001
+        ).astimezone(pytz.utc)
         assert first_game["away_team"] == Team.MIAMI_HEAT
         assert first_game["home_team"] == Team.BOSTON_CELTICS
         assert first_game["away_team_score"] is None

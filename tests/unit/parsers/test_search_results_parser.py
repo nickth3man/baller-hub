@@ -31,7 +31,15 @@ class TestSearchResultsParser(TestCase):
                 league_abbreviations="NBA",
             )
         ]
-        assert self.parser.parse(nba_aba_baa_players=players) == {"players": [{"name": "jaebaebae", "identifier": "jaebaebae", "leagues": {League.NATIONAL_BASKETBALL_ASSOCIATION}}]}
+        assert self.parser.parse(nba_aba_baa_players=players) == {
+            "players": [
+                {
+                    "name": "jaebaebae",
+                    "identifier": "jaebaebae",
+                    "leagues": {League.NATIONAL_BASKETBALL_ASSOCIATION},
+                }
+            ]
+        }
 
     def test_parse_single_aba_player(self):
         players = [
@@ -41,7 +49,15 @@ class TestSearchResultsParser(TestCase):
                 league_abbreviations="ABA",
             )
         ]
-        assert self.parser.parse(nba_aba_baa_players=players) == {"players": [{"name": "jaebaebae", "identifier": "jaebaebae", "leagues": {League.AMERICAN_BASKETBALL_ASSOCIATION}}]}
+        assert self.parser.parse(nba_aba_baa_players=players) == {
+            "players": [
+                {
+                    "name": "jaebaebae",
+                    "identifier": "jaebaebae",
+                    "leagues": {League.AMERICAN_BASKETBALL_ASSOCIATION},
+                }
+            ]
+        }
 
     def test_parse_single_baa_player(self):
         players = [
@@ -51,7 +67,15 @@ class TestSearchResultsParser(TestCase):
                 league_abbreviations="BAA",
             )
         ]
-        assert self.parser.parse(nba_aba_baa_players=players) == {"players": [{"name": "jaebaebae", "identifier": "jaebaebae", "leagues": {League.BASKETBALL_ASSOCIATION_OF_AMERICA}}]}
+        assert self.parser.parse(nba_aba_baa_players=players) == {
+            "players": [
+                {
+                    "name": "jaebaebae",
+                    "identifier": "jaebaebae",
+                    "leagues": {League.BASKETBALL_ASSOCIATION_OF_AMERICA},
+                }
+            ]
+        }
 
     def test_parse_single_nba_aba_baa_player(self):
         players = [
@@ -61,7 +85,19 @@ class TestSearchResultsParser(TestCase):
                 league_abbreviations="NBA/ABA/BAA",
             )
         ]
-        assert self.parser.parse(nba_aba_baa_players=players) == {"players": [{"name": "jaebaebae", "identifier": "jaebaebae", "leagues": {League.NATIONAL_BASKETBALL_ASSOCIATION, League.AMERICAN_BASKETBALL_ASSOCIATION, League.BASKETBALL_ASSOCIATION_OF_AMERICA}}]}
+        assert self.parser.parse(nba_aba_baa_players=players) == {
+            "players": [
+                {
+                    "name": "jaebaebae",
+                    "identifier": "jaebaebae",
+                    "leagues": {
+                        League.NATIONAL_BASKETBALL_ASSOCIATION,
+                        League.AMERICAN_BASKETBALL_ASSOCIATION,
+                        League.BASKETBALL_ASSOCIATION_OF_AMERICA,
+                    },
+                }
+            ]
+        }
 
     def test_parse_multiple_nba_aba_baa_players(self):
         players = [
@@ -81,4 +117,34 @@ class TestSearchResultsParser(TestCase):
                 league_abbreviations="NBA/ABA/BAA",
             ),
         ]
-        assert self.parser.parse(nba_aba_baa_players=players) == {"players": [{"name": "jaebaebae1", "identifier": "jaebaebae1", "leagues": {League.NATIONAL_BASKETBALL_ASSOCIATION, League.AMERICAN_BASKETBALL_ASSOCIATION, League.BASKETBALL_ASSOCIATION_OF_AMERICA}}, {"name": "jaebaebae2", "identifier": "jaebaebae2", "leagues": {League.NATIONAL_BASKETBALL_ASSOCIATION, League.AMERICAN_BASKETBALL_ASSOCIATION, League.BASKETBALL_ASSOCIATION_OF_AMERICA}}, {"name": "jaebaebae3", "identifier": "jaebaebae3", "leagues": {League.NATIONAL_BASKETBALL_ASSOCIATION, League.AMERICAN_BASKETBALL_ASSOCIATION, League.BASKETBALL_ASSOCIATION_OF_AMERICA}}]}
+        assert self.parser.parse(nba_aba_baa_players=players) == {
+            "players": [
+                {
+                    "name": "jaebaebae1",
+                    "identifier": "jaebaebae1",
+                    "leagues": {
+                        League.NATIONAL_BASKETBALL_ASSOCIATION,
+                        League.AMERICAN_BASKETBALL_ASSOCIATION,
+                        League.BASKETBALL_ASSOCIATION_OF_AMERICA,
+                    },
+                },
+                {
+                    "name": "jaebaebae2",
+                    "identifier": "jaebaebae2",
+                    "leagues": {
+                        League.NATIONAL_BASKETBALL_ASSOCIATION,
+                        League.AMERICAN_BASKETBALL_ASSOCIATION,
+                        League.BASKETBALL_ASSOCIATION_OF_AMERICA,
+                    },
+                },
+                {
+                    "name": "jaebaebae3",
+                    "identifier": "jaebaebae3",
+                    "leagues": {
+                        League.NATIONAL_BASKETBALL_ASSOCIATION,
+                        League.AMERICAN_BASKETBALL_ASSOCIATION,
+                        League.BASKETBALL_ASSOCIATION_OF_AMERICA,
+                    },
+                },
+            ]
+        }

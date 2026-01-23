@@ -5,8 +5,8 @@ from app.models.player import Position
 
 def test_seconds_from_minutes_str():
     assert mappers._seconds_from_minutes_str("12:34") == 12 * 60 + 34
-    assert mappers._seconds_from_minutes_str("0:59") == 59
-    assert mappers._seconds_from_minutes_str("15") == 15
+    assert mappers._seconds_from_minutes_str("0:59") == 59  # noqa: PLR2004
+    assert mappers._seconds_from_minutes_str("15") == 15  # noqa: PLR2004
     assert mappers._seconds_from_minutes_str(None) == 0
 
 
@@ -48,10 +48,10 @@ def test_map_player_box_score():
     )
 
     assert mapped.player_id == 1
-    assert mapped.box_id == 2
-    assert mapped.game_id == 3
-    assert mapped.team_id == 4
+    assert mapped.box_id == 2  # noqa: PLR2004
+    assert mapped.game_id == 3  # noqa: PLR2004
+    assert mapped.team_id == 4  # noqa: PLR2004
     assert mapped.player_slug == "testpl01"
     assert mapped.position == Position.POINT_GUARD
-    assert mapped.seconds_played == 630
-    assert mapped.points_scored == 11
+    assert mapped.seconds_played == 630  # noqa: PLR2004
+    assert mapped.points_scored == 11  # noqa: PLR2004

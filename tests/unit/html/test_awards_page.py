@@ -13,7 +13,7 @@ class TestAwardsPage(TestCase):
 
     def test_awards_table_query(self):
         """Test xpath query for awards table."""
-        from src.scraper.html.awards import AwardsPage
+        from src.scraper.html.awards import AwardsPage  # noqa: PLC0415
 
         page = AwardsPage(html=self.html)
         # Awards tables have IDs like mvp_NBA, dpoy_NBA, etc.
@@ -21,14 +21,14 @@ class TestAwardsPage(TestCase):
 
     def test_rows_query(self):
         """Test xpath query for award rows."""
-        from src.scraper.html.awards import AwardsPage
+        from src.scraper.html.awards import AwardsPage  # noqa: PLC0415
 
         page = AwardsPage(html=self.html)
         assert "tbody/tr" in page.rows_query
 
     def test_header_query(self):
         """Test xpath query for page header."""
-        from src.scraper.html.awards import AwardsPage
+        from src.scraper.html.awards import AwardsPage  # noqa: PLC0415
 
         page = AwardsPage(html=self.html)
         expected = "//h1"
@@ -44,35 +44,35 @@ class TestAwardRow(TestCase):
 
     def test_season_query(self):
         """Test xpath query for season."""
-        from src.scraper.html.awards import AwardRow
+        from src.scraper.html.awards import AwardRow  # noqa: PLC0415
 
         row = AwardRow(html=self.html)
         assert row.season_query == 'th[@data-stat="season"]/a'
 
     def test_player_query(self):
         """Test xpath query for player name."""
-        from src.scraper.html.awards import AwardRow
+        from src.scraper.html.awards import AwardRow  # noqa: PLC0415
 
         row = AwardRow(html=self.html)
         assert row.player_query == 'td[@data-stat="player"]/a'
 
     def test_team_query(self):
         """Test xpath query for team."""
-        from src.scraper.html.awards import AwardRow
+        from src.scraper.html.awards import AwardRow  # noqa: PLC0415
 
         row = AwardRow(html=self.html)
         assert row.team_query == 'td[@data-stat="team_id"]/a'
 
     def test_age_query(self):
         """Test xpath query for age."""
-        from src.scraper.html.awards import AwardRow
+        from src.scraper.html.awards import AwardRow  # noqa: PLC0415
 
         row = AwardRow(html=self.html)
         assert row.age_query == 'td[@data-stat="age"]'
 
     def test_voting_share_query(self):
         """Test xpath query for voting share."""
-        from src.scraper.html.awards import AwardRow
+        from src.scraper.html.awards import AwardRow  # noqa: PLC0415
 
         row = AwardRow(html=self.html)
         assert row.voting_share_query == 'td[@data-stat="award_share"]'
@@ -87,14 +87,14 @@ class TestHallOfFamePage(TestCase):
 
     def test_inductees_table_query(self):
         """Test xpath query for inductees table."""
-        from src.scraper.html.awards import HallOfFamePage
+        from src.scraper.html.awards import HallOfFamePage  # noqa: PLC0415
 
         page = HallOfFamePage(html=self.html)
         assert "stats_table" in page.inductees_table_query
 
     def test_inductee_rows_query(self):
         """Test xpath query for inductee rows."""
-        from src.scraper.html.awards import HallOfFamePage
+        from src.scraper.html.awards import HallOfFamePage  # noqa: PLC0415
 
         page = HallOfFamePage(html=self.html)
         assert "tbody/tr" in page.rows_query
@@ -109,14 +109,14 @@ class TestAllNBATeamPage(TestCase):
 
     def test_team_tables_query(self):
         """Test xpath query for team selection tables."""
-        from src.scraper.html.awards import AllNBATeamPage
+        from src.scraper.html.awards import AllNBATeamPage  # noqa: PLC0415
 
         page = AllNBATeamPage(html=self.html)
         assert "stats_table" in page.team_tables_query
 
     def test_first_team_query(self):
         """Test xpath query for first team selections."""
-        from src.scraper.html.awards import AllNBATeamPage
+        from src.scraper.html.awards import AllNBATeamPage  # noqa: PLC0415
 
         page = AllNBATeamPage(html=self.html)
         assert page.first_team_query is not None

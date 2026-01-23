@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.get("/", response_model=PlayerList)
-def list_players(
+def list_players(  # noqa: PLR0913
     page: int = Query(1, ge=1),
     per_page: int = Query(50, ge=1, le=100),
     is_active: bool | None = None,

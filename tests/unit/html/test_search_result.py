@@ -6,7 +6,10 @@ from src.scraper.html import SearchResult
 
 class TestSearchResult(TestCase):
     def test_resource_link_query(self):
-        assert SearchResult(html=MagicMock()).resource_link_query == './div[@class="search-item-name"]//a'
+        assert (
+            SearchResult(html=MagicMock()).resource_link_query
+            == './div[@class="search-item-name"]//a'
+        )
 
     @patch.object(SearchResult, "resource_link_query", new_callable=PropertyMock)
     def test_resource_link_when_no_matching_links(self, mocked_query):

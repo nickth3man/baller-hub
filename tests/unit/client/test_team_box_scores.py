@@ -17,7 +17,7 @@ class TestTeamBoxScores(TestCase):
         mocked_http_team_box_scores.side_effect = HTTPError(
             response=MagicMock(status_code=requests.codes.not_found)
         )
-        self.assertRaisesRegex(
+        self.assertRaisesRegex(  # noqa: PT027
             InvalidDateError,
             "Date with year set to jae, month set to bae, and day set to bae is invalid",
             client.team_box_scores,

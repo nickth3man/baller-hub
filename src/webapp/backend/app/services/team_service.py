@@ -26,9 +26,9 @@ class TeamService:
 
     def list_teams(
         self,
-        is_active: bool = True,
-        conference: str | None = None,
-        division: str | None = None,
+        is_active: bool = True,  # noqa: ARG002
+        conference: str | None = None,  # noqa: ARG002
+        division: str | None = None,  # noqa: ARG002
     ) -> list[dict]:
         query = team_queries.LIST_TEAMS
         params = []
@@ -117,4 +117,3 @@ class TeamService:
 
         columns = [desc[0] for desc in self.conn.description]
         return dict(zip(columns, result, strict=False))
-
