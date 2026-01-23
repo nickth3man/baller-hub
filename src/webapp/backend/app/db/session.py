@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
+from contextlib import suppress
 
 # check_same_thread=False is required for SQLite, but not supported/needed by DuckDB
 connect_args = {}
@@ -42,9 +43,24 @@ def get_session() -> Generator[Session, None, None]:
 def init_db() -> None:
     # Create views to bridge Star Schema to SQLModel expectations
     with engine.connect() as conn:
+        for obj in [
+            "player",
+            "team",
+            "season",
+            "player_season",
+            "draft",
+            "draft_pick",
+            "award",
+            "award_recipient",
+        ]:
+            with suppress(Exception):
+                conn.execute(text(f"DROP VIEW IF EXISTS {obj};"))
+            with suppress(Exception):
+                conn.execute(text(f"DROP TABLE IF EXISTS {obj};"))
+
         conn.execute(
             text("""
-            CREATE OR REPLACE VIEW player AS
+            CREATE VIEW player AS
             SELECT
                 hash(bref_id) AS player_id,
                 bref_id AS slug,
@@ -73,7 +89,7 @@ def init_db() -> None:
         )
         conn.execute(
             text("""
-            CREATE OR REPLACE VIEW team AS
+            CREATE VIEW team AS
             SELECT
                 hash(bref_id) AS team_id,
                 bref_id AS abbreviation,
@@ -93,7 +109,7 @@ def init_db() -> None:
         )
         conn.execute(
             text("""
-            CREATE OR REPLACE VIEW season AS
+            CREATE VIEW season AS
             SELECT DISTINCT
                 year(date) AS season_id,
                 year(date) AS year,
@@ -103,7 +119,7 @@ def init_db() -> None:
         )
         conn.execute(
             text("""
-            CREATE OR REPLACE VIEW player_season AS
+            CREATE VIEW player_season AS
             SELECT
                 hash(player_id) AS player_id,
                 year(date) AS season_id,
@@ -136,12 +152,66 @@ def init_db() -> None:
             GROUP BY player_id, year(date), team_id
         """)
         )
+        conn.execute(
+            text("""
+            CREATE VIEW draft AS
+            SELECT DISTINCT
+                hash(season) AS draft_id,
+                year(CAST(split_part(season, '-', 1) || '-06-25' AS DATE)) AS season_id,
+                CAST(split_part(season, '-', 1) AS INTEGER) AS year,
+                CAST(split_part(season, '-', 1) || '-06-25' AS DATE) AS draft_date,
+                2 AS round_count,
+                60 AS pick_count
+            FROM staging_draft_pick_history
+        """)
+        )
+        conn.execute(
+            text("""
+            CREATE VIEW draft_pick AS
+            SELECT
+                hash(season || overall_pick) AS pick_id,
+                hash(season) AS draft_id,
+                CAST(overall_pick AS INTEGER) AS overall_pick,
+                CAST(round AS INTEGER) AS round_number,
+                ((CAST(overall_pick AS INTEGER) - 1) % 30) + 1 AS round_pick,
+                hash(tm) AS team_id,
+                hash(player_id) AS player_id,
+                hash(tm) AS original_team_id,
+                NULL AS trade_notes,
+                college,
+                NULL AS height_in,
+                NULL AS weight_lbs,
+                NULL AS position
+            FROM staging_draft_pick_history
+        """)
+        )
+        conn.execute(
+            text("""
+            CREATE VIEW award AS
+            SELECT 1 AS award_id, 'NBA Championship' AS name, 'CHAMPIONSHIP' AS category, 'NBA Finals Winner' AS description, 1947 AS first_awarded_year, NULL AS last_awarded_year, TRUE AS is_active
+            UNION ALL
+            SELECT 2 AS award_id, 'All-Star Selection' AS name, 'ALL_STAR' AS category, 'NBA All-Star' AS description, 1951 AS first_awarded_year, NULL AS last_awarded_year, TRUE AS is_active
+        """)
+        )
+        conn.execute(
+            text("""
+            CREATE VIEW award_recipient AS
+            SELECT
+                1 AS award_id,
+                year(CAST(split_part(season, '-', 1) || '-06-01' AS DATE)) AS season_id,
+                NULL AS player_id,
+                hash(champion) AS team_id,
+                1 AS vote_rank,
+                NULL AS vote_count,
+                1.0 AS vote_percentage,
+                NULL AS first_place_votes,
+                'TEAM' AS recipient_type,
+                NULL AS notes
+            FROM staging_nba_championships
+        """)
+        )
         # Create empty tables/views for other models to avoid crashes
         for table in [
-            "award",
-            "award_recipient",
-            "draft",
-            "draft_pick",
             "game",
             "box_score",
             "play_by_play",

@@ -23,7 +23,7 @@ class TestTeamSeasonParser(TestCase):
         parser = TeamSeasonParser()
         result = parser.parse(mock_page)
 
-        self.assertEqual(result["record"], "64-18")
-        self.assertEqual(len(result["roster"]), 1)
-        self.assertEqual(result["roster"][0]["player"], "Jayson Tatum")
-        self.assertEqual(result["roster"][0]["player_id"], "tatumja01")
+        assert result["record"] == "64-18"
+        assert len(result["roster"]) == 1
+        assert result["roster"][0]["player"] == "Jayson Tatum"
+        assert result["roster"][0]["player_id"] == "tatumja01"

@@ -59,20 +59,20 @@ class ChaosExperiment:
         """Inject network-related failures."""
         if failure_type == "timeout":
             raise TimeoutError("Chaos: Network timeout injected")
-        elif failure_type == "connection_error":
+        if failure_type == "connection_error":
             raise ConnectionError("Chaos: Connection failed")
-        elif failure_type == "dns_error":
+        if failure_type == "dns_error":
             raise socket.gaierror("Chaos: DNS resolution failed")
-        elif failure_type == "tls_error":
+        if failure_type == "tls_error":
             raise ssl.SSLError("Chaos: TLS handshake failed")
 
     def inject_resource_failure(self, failure_type: str) -> None:
         """Inject resource-related failures."""
         if failure_type == "disk_full":
             raise OSError("Chaos: No space left on device")
-        elif failure_type == "memory_error":
+        if failure_type == "memory_error":
             raise MemoryError("Chaos: Out of memory")
-        elif failure_type == "permission_error":
+        if failure_type == "permission_error":
             raise PermissionError("Chaos: Permission denied")
 
     def inject_validation_failure(self) -> list[str]:

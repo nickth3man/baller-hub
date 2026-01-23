@@ -1,18 +1,19 @@
 """CLI command for running database validation."""
 
+import argparse
 import asyncio
 import sys
 from pathlib import Path
 
-import structlog
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
-
 sys.path[:0] = [str(Path(__file__).parents[3])]
 
-from app.db.session import async_session_factory
-from app.validation.models import ValidationRun
-from app.validation.runner import DatabaseValidator, ValidationReporter
+import structlog  # noqa: E402
+from sqlalchemy import text  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncSession  # noqa: E402
+
+from app.db.session import async_session_factory  # noqa: E402
+from app.validation.models import ValidationRun  # noqa: E402
+from app.validation.runner import DatabaseValidator, ValidationReporter  # noqa: E402
 
 logger = structlog.get_logger(__name__)
 
@@ -20,36 +21,27 @@ logger = structlog.get_logger(__name__)
 async def run_validation(
     output_format: str = "console",
     save_to_db: bool = False,
-    tables: list[str] | None = None,
+    _tables: list[str] | None = None,
 ) -> None:
     """Run database validation and output results.
 
     Args:
         output_format: Output format (console, json)
         save_to_db: Whether to save results to database
-        tables: Specific tables to validate (None = all tables)
+        _tables: Specific tables to validate (None = all tables)
     """
-    print(f"\n{'=' * 60}")
-    print("DATABASE VALIDATION")
-    print(f"{'=' * 60}")
 
     async with async_session_factory() as session:
         validator = DatabaseValidator(session)
 
-        print("\nRunning validation checks...")
         result = await validator.run_all_checks()
 
-        print(f"\nValidation completed in {result.summary.duration_seconds:.2f}s")
-
         if output_format == "console":
-            report = ValidationReporter.generate_console_report(result)
-            print(report)
+            ValidationReporter.generate_console_report(result)
         elif output_format == "json":
-            report = ValidationReporter.generate_json_report(result)
-            print(report)
+            ValidationReporter.generate_json_report(result)
 
             if save_to_db:
-                print("\nSaving results to database...")
                 validation_run = ValidationRun(
                     run_id=result.run_id,
                     timestamp=result.timestamp,
@@ -61,24 +53,17 @@ async def run_validation(
                 )
                 session.add(validation_run)
                 await session.commit()
-                print(f"[OK] Saved validation run: {result.run_id}")
-
-        print("\n" + "=" * 60)
 
         if result.summary.critical_issues > 0:
-            print("[CRITICAL] ISSUES FOUND - Database needs immediate attention")
             sys.exit(1)
         elif result.summary.major_issues > 0:
-            print("[MAJOR] ISSUES FOUND - Database needs attention soon")
             sys.exit(2)
         else:
-            print("[SUCCESS] VALIDATION PASSED - Database is healthy")
             sys.exit(0)
 
 
 async def create_validation_tables(session: AsyncSession) -> None:
     """Create validation tables in database."""
-    print("Creating validation tables...")
 
     await session.execute(
         text("""
@@ -97,21 +82,19 @@ async def create_validation_tables(session: AsyncSession) -> None:
 
     await session.execute(
         text("""
-        CREATE INDEX IF NOT EXISTS idx_validation_run_timestamp 
+        CREATE INDEX IF NOT EXISTS idx_validation_run_timestamp
         ON validation_run(timestamp DESC)
     """)
     )
 
     await session.execute(
         text("""
-        CREATE INDEX IF NOT EXISTS idx_validation_run_triggered_by 
+        CREATE INDEX IF NOT EXISTS idx_validation_run_triggered_by
         ON validation_run(triggered_by)
     """)
     )
 
     await session.commit()
-
-    print("[OK] Validation tables created")
 
 
 async def check_database_connection(session: AsyncSession) -> bool:
@@ -119,16 +102,15 @@ async def check_database_connection(session: AsyncSession) -> bool:
     try:
         result = await session.execute(text("SELECT 1"))
         result.fetchone()
-        return True
     except Exception as e:
-        logger.error("Database connection failed", error=str(e))
+        logger.exception("Database connection failed", error=str(e))
         return False
+    else:
+        return True
 
 
 async def main() -> None:
     """Main entry point for validation CLI."""
-    import argparse
-
     parser = argparse.ArgumentParser(
         description="Run database validation for Baller Hub"
     )
@@ -162,12 +144,9 @@ async def main() -> None:
 
     async with async_session_factory() as session:
         if args.check_connection:
-            print("\nChecking database connection...")
             if await check_database_connection(session):
-                print("[OK] Database connection successful")
                 sys.exit(0)
             else:
-                print("[FAIL] Database connection failed")
                 sys.exit(1)
 
         if args.init:

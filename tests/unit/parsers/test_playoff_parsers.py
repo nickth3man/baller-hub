@@ -19,9 +19,9 @@ class TestPlayoffsParser(TestCase):
         parser = PlayoffsParser()
         result = parser.parse(mock_page)
 
-        self.assertEqual(result["champion"], "Boston Celtics")
-        self.assertEqual(result["finals_mvp"], "Jaylen Brown")
-        self.assertEqual(result["series_urls"], ["/playoffs/2024-nba-finals.html"])
+        assert result["champion"] == "Boston Celtics"
+        assert result["finals_mvp"] == "Jaylen Brown"
+        assert result["series_urls"] == ["/playoffs/2024-nba-finals.html"]
 
 
 class TestPlayoffSeriesParser(TestCase):
@@ -45,11 +45,14 @@ class TestPlayoffSeriesParser(TestCase):
 
         mock_page.games = [mock_row]
 
-        self.team_name_parser.from_name.side_effect = ["BOSTON_CELTICS", "DALLAS_MAVERICKS"]
+        self.team_name_parser.from_name.side_effect = [
+            "BOSTON_CELTICS",
+            "DALLAS_MAVERICKS",
+        ]
 
         result = self.parser.parse(mock_page)
 
-        self.assertEqual(len(result["games"]), 1)
-        self.assertEqual(result["games"][0]["game_number"], 1)
-        self.assertEqual(result["games"][0]["home_team"], "BOSTON_CELTICS")
-        self.assertEqual(result["games"][0]["away_team"], "DALLAS_MAVERICKS")
+        assert len(result["games"]) == 1
+        assert result["games"][0]["game_number"] == 1
+        assert result["games"][0]["home_team"] == "BOSTON_CELTICS"
+        assert result["games"][0]["away_team"] == "DALLAS_MAVERICKS"

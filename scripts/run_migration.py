@@ -1,11 +1,18 @@
+"""
+Script to run database migrations (Deprecated).
+
+This script was used to migrate data to the legacy DuckDB instance.
+It is now deprecated in favor of `src/etl/builder.py`.
+"""
+
 import logging
-import os
 import sys
 import time
-from datetime import datetime
+from datetime import UTC, datetime
+from pathlib import Path
 
 # Fix path to allow importing src from project root
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import duckdb
 
@@ -15,17 +22,24 @@ try:
     from src.etl.schema import setup_schema
     from src.etl.validate import validate_etl
 except ImportError as e:
-    print(f"CRITICAL ERROR: Could not import project modules: {e}")
+    # We use basic print here because logger isn't setup yet and this is critical
+    sys.stderr.write(f"CRITICAL ERROR: Could not import project modules: {e}\n")
     sys.exit(1)
 
 
 def setup_logging():
-    # Create logs directory in project root
-    log_dir = os.path.join(os.path.dirname(__file__), "..", "logs")
-    os.makedirs(log_dir, exist_ok=True)
+    """
+    Configure logging for the migration process.
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = os.path.join(log_dir, f"migration_{timestamp}.log")
+    Returns:
+        tuple: (logger, log_file_path)
+    """
+    # Create logs directory in project root
+    log_dir = Path(__file__).resolve().parent.parent / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+    log_file = log_dir / f"migration_{timestamp}.log"
 
     # Configure logging
     logger = logging.getLogger("migration")
@@ -52,23 +66,34 @@ def setup_logging():
 
 
 def run_migration():
+    """
+    Execute the database migration process.
+
+    Deprecated: Use src/etl/builder.py instead.
+    """
     logger, log_file = setup_logging()
+    logger.warning("=" * 60)
+    logger.warning("DEPRECATED: This script is deprecated.")
+    logger.warning("Please use 'src/etl/builder.py' for the unified ETL pipeline.")
+    logger.warning("This script targets the legacy root 'baller.duckdb' path.")
+    logger.warning("=" * 60)
+
     db_path = "baller.duckdb"
     con = None
     start_time = time.time()
 
     logger.info("🚀 Starting migration process")
-    logger.info(f"📂 Log file: {os.path.abspath(log_file)}")
-    logger.debug(f"Python executable: {sys.executable}")
-    logger.debug(f"Current working directory: {os.getcwd()}")
+    logger.info("📂 Log file: %s", log_file.resolve())
+    logger.debug("Python executable: %s", sys.executable)
+    logger.debug("Current working directory: %s", Path.cwd())
 
     try:
-        if os.path.exists(db_path):
+        if Path(db_path).exists():
             logger.warning(
-                f"Database file {db_path} already exists. It will be updated."
+                "Database file %s already exists. It will be updated.", db_path
             )
 
-        logger.info(f"🔌 Connecting to DuckDB at {db_path}...")
+        logger.info("🔌 Connecting to DuckDB at %s...", db_path)
         con = duckdb.connect(db_path)
         logger.debug("Connection established.")
 
@@ -89,25 +114,13 @@ def run_migration():
         logger.debug("Facts load completed.")
 
         logger.info("✅ Step 5: Validating ETL pipeline...")
-        # Capture stdout from validate_etl to log it
-        from io import StringIO
-
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = StringIO()
-
-        try:
-            validate_etl(con)
-            validation_output = mystdout.getvalue()
-            for line in validation_output.splitlines():
-                logger.info(f"[VALIDATION] {line}")
-        finally:
-            sys.stdout = old_stdout
+        validate_etl(con)
 
         duration = time.time() - start_time
-        logger.info(f"🎉 Migration completed successfully in {duration:.2f} seconds!")
+        logger.info("🎉 Migration completed successfully in %.2f seconds!", duration)
 
-    except Exception as e:
-        logger.exception(f"❌ Error during migration: {e}")
+    except Exception:
+        logger.exception("❌ Error during migration")
         sys.exit(1)
     finally:
         if con:

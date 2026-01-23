@@ -88,7 +88,8 @@ class LocationAbbreviationParser:
         """
         location = self.abbreviations_to_locations.get(abbreviation)
         if location is None:
-            raise ValueError(f"Unknown symbol: {location}")
+            message = f"Unknown symbol: {location}"
+            raise ValueError(message)
 
         return location
 
@@ -116,7 +117,8 @@ class OutcomeAbbreviationParser:
         """
         outcome = self.abbreviations_to_outcomes.get(abbreviation)
         if outcome is None:
-            raise ValueError(f"Unknown symbol: {outcome}")
+            message = f"Unknown symbol: {outcome}"
+            raise ValueError(message)
 
         return outcome
 
@@ -144,7 +146,8 @@ class LeagueAbbreviationParser:
         """
         league = self.abbreviations_to_league.get(abbreviation)
         if league is None:
-            raise ValueError(f"Unknown league abbreviation: {abbreviation}")
+            message = f"Unknown league abbreviation: {abbreviation}"
+            raise ValueError(message)
 
         return league
 

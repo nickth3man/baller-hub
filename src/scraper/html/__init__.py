@@ -1,4 +1,9 @@
-# Re-export all classes for backward compatibility
+"""Exposes HTML wrapper classes for scraping basketball-reference.com pages.
+
+This module re-exports all page and row wrapper classes to provide a flat
+namespace for the scraper.
+"""
+
 from .base_rows import (
     BasicBoxScoreRow,
     PlayerBoxScoreRow,
@@ -57,45 +62,45 @@ from .standings import (
 __all__ = [
     # Base rows
     "BasicBoxScoreRow",
-    "PlayerIdentificationRow",
-    "PlayerBoxScoreRow",
-    "PlayerGameBoxScoreRow",
     # Box scores
     "BoxScoresPage",
-    "StatisticsTable",
+    "ConferenceDivisionStandingsRow",
+    "ConferenceDivisionStandingsTable",
+    "DailyBoxScoresPage",
+    # Daily
+    "DailyLeadersPage",
+    "DivisionStandings",
+    # Play by play
+    "PlayByPlayPage",
+    "PlayByPlayRow",
+    "PlayByPlayTable",
+    "PlayerAdvancedSeasonTotalsRow",
+    "PlayerAdvancedSeasonTotalsTable",
+    "PlayerBoxScoreRow",
+    # Contracts
+    "PlayerContractsRow",
+    "PlayerGameBoxScoreRow",
+    "PlayerIdentificationRow",
+    # Player
+    "PlayerPage",
+    "PlayerPageTotalsRow",
+    "PlayerPageTotalsTable",
+    "PlayerSearchResult",
+    # Game log
+    "PlayerSeasonBoxScoresPage",
+    "PlayerSeasonBoxScoresRow",
+    "PlayerSeasonBoxScoresTable",
+    "PlayerSeasonGameLogRow",
+    # Season totals
+    "PlayerSeasonTotalTable",
+    "PlayerSeasonTotalsRow",
     # Schedule
     "SchedulePage",
     "ScheduleRow",
     # Search
     "SearchPage",
     "SearchResult",
-    "PlayerSearchResult",
-    # Play by play
-    "PlayByPlayPage",
-    "PlayByPlayTable",
-    "PlayByPlayRow",
-    # Player
-    "PlayerPage",
-    "PlayerPageTotalsTable",
-    "PlayerPageTotalsRow",
     # Standings
     "StandingsPage",
-    "DivisionStandings",
-    "ConferenceDivisionStandingsTable",
-    "ConferenceDivisionStandingsRow",
-    # Daily
-    "DailyLeadersPage",
-    "DailyBoxScoresPage",
-    # Season totals
-    "PlayerSeasonTotalTable",
-    "PlayerSeasonTotalsRow",
-    "PlayerAdvancedSeasonTotalsTable",
-    "PlayerAdvancedSeasonTotalsRow",
-    # Game log
-    "PlayerSeasonBoxScoresPage",
-    "PlayerSeasonBoxScoresTable",
-    "PlayerSeasonBoxScoresRow",
-    "PlayerSeasonGameLogRow",
-    # Contracts
-    "PlayerContractsRow",
+    "StatisticsTable",
 ]

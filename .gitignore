@@ -90,7 +90,7 @@ out/
 
 # Database files
 raw-data/database/sqlite/nba.sqlite
-raw-data/misc-csv/csv_3/play_by_play.csv
+raw-data/misc-csv/play_by_play.csv
 
 # Test output directories
 tests/integration/output/**.csv
@@ -110,5 +110,12 @@ tests/integration/files/**/*.html
 !tests/integration/files/**/.gitkeep
 /.antigravity
 baller.duckdb
-/.sisyphus
-/tests/integration/files
+/.cline
+/PR_FEEDBACK_DETAILED.md
+analyze_all_comments.py
+generate_feedback_report.py
+parse_comments.py
+pr_issue_comments.json
+pr_review_comments.json
+raw-data/csv/play_by_play.csv
+raw-data/csv/PlayerStatistics.csv

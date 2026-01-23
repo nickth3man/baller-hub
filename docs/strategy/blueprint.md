@@ -31,8 +31,9 @@ for the frontend, with a staging-first ETL pipeline.
 into staging tables before upserting into production tables.
 
 ## 5. Tech Stack Rationale
-- Supabase Postgres: managed Postgres with tooling and stable local Docker.
+- Supabase Postgres: managed Postgres with tooling and stable local development.
 - FastAPI + SQLModel: rapid schema-driven API development.
+
 - Next.js 15: SSR + RSC for fast page loads and SEO.
 
 **Implementation Implication:** Keep DB access in services, and keep UI pages in the

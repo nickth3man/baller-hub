@@ -1,28 +1,30 @@
-# src/webapp AGENTS.md
+# PROJECT KNOWLEDGE BASE
 
-**Context:** Orchestration for Full Stack (FastAPI + Next.js).
-**Children:** `backend/AGENTS.md`, `frontend/AGENTS.md`
+**Generated:** 2026-01-22
+**Context:** Full Stack Orchestration
 
 ## OVERVIEW
-Monorepo-style structure within `src/webapp`.
-- **Backend:** Python/FastAPI (`backend/`)
-- **Frontend:** TypeScript/Next.js (`frontend/`)
+This directory orchestrates the full stack application, connecting the FastAPI backend, Next.js frontend, and database services. It serves as the integration point for running the complete Baller Hub platform locally.
 
-## COMMANDS
-```bash
-# Full Stack (Docker)
-docker compose up -d
+## FOLDER STRUCTURE
+- `backend/`: FastAPI service source code.
+- `frontend/`: Next.js application source code.
+- `scripts/`: Utility scripts for orchestration and maintenance.
+- `baller.duckdb`: Local database file (git-ignored).
 
-# Seed Data
-python -m scripts.seed_db --bootstrap
-```
+## CORE BEHAVIORS & PATTERNS
+- **Port Allocation**:
+    - Backend: `8000` (API Docs: `/docs`).
+    - Frontend: `3000`.
+    - Database: Standard DuckDB file access.
+- **Integration**: Backend and Frontend communicate via local network or mapped ports.
 
-## ARCHITECTURE
-- **Frontend** proxies `/api/v1` -> **Backend**.
-- **Backend** talks to **Postgres** (Data), **Redis** (Cache), **Meilisearch** (Search).
-- **Ingestion** scripts run in Backend context but import from `src/scraper`.
+## CONVENTIONS
+- **Environment**: `.env` files manage configuration secrets.
+- **Scripts**: Run orchestration tasks via `scripts/` (e.g., `dev.sh`, `up.sh`).
 
-## WHERE TO LOOK
-- **API Logic:** `backend/AGENTS.md`
-- **UI/Components:** `frontend/AGENTS.md`
-- **Data Models:** `backend/app/models`
+## WORKING AGREEMENTS
+- **Configuration**: Do not commit secrets/credentials to git.
+- **Ports**: Verify port availability before starting services.
+- **Shutdown**: Ensure processes are terminated after development.
+

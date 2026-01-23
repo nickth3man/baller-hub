@@ -17,6 +17,14 @@ DEFAULT_MANIFEST = Path("scripts/fixture_manifest.json")
 
 
 def parse_args(argv: Iterable[str]) -> argparse.Namespace:
+    """Parse command-line arguments.
+
+    Args:
+        argv: Command-line arguments.
+
+    Returns:
+        argparse.Namespace: Parsed arguments.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--manifest",
@@ -40,6 +48,14 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
 
 
 def main(argv: Iterable[str]) -> int:
+    """Run the validation script.
+
+    Args:
+        argv: Command-line arguments.
+
+    Returns:
+        int: Exit code (0 for success, 1 for failure).
+    """
     args = parse_args(argv)
     data = json.loads(args.manifest.read_text(encoding="utf-8"))
     base_dir = Path(data.get("output_dir", "tests/integration/files"))
@@ -69,9 +85,7 @@ def main(argv: Iterable[str]) -> int:
         errors = validate_fixture_html(content, validator_key)
         if errors:
             context = build_validation_context(content, validator_key)
-            failures.append(
-                f"{fixture_path.as_posix()}: " + "; ".join(errors)
-            )
+            failures.append(f"{fixture_path.as_posix()}: " + "; ".join(errors))
             failures.append(f"{fixture_path.as_posix()}: context={context}")
 
     if failures:

@@ -18,7 +18,7 @@ class PlayoffsParser:
         Extract playoff summary info.
 
         Args:
-            page: The PlayoffsPage wrapper.
+            page (PlayoffsPage): The PlayoffsPage wrapper.
 
         Returns:
             dict: Structured playoff summary.
@@ -41,7 +41,7 @@ class PlayoffSeriesParser:
         Extract series details and games.
 
         Args:
-            page: The PlayoffSeriesPage wrapper.
+            page (PlayoffSeriesPage): The PlayoffSeriesPage wrapper.
 
         Returns:
             dict: Structured series data.
@@ -55,7 +55,7 @@ class PlayoffSeriesParser:
         Parse playoff game rows.
 
         Args:
-            rows: List of PlayoffGameRow objects.
+            rows (list): List of PlayoffGameRow objects.
 
         Returns:
             list[dict]: Cleaned game data.

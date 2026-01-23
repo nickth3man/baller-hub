@@ -13,31 +13,31 @@ class TestLeadersPage(TestCase):
 
     def test_leaders_table_query(self):
         """Test xpath query for leaders table."""
-        from src.scraper.html.leaders import LeadersPage
+        from src.scraper.html.leaders import LeadersPage  # noqa: PLC0415
 
         page = LeadersPage(html=self.html)
-        self.assertIn("stats_table", page.leaders_table_query)
+        assert "stats_table" in page.leaders_table_query
 
     def test_rows_query(self):
         """Test xpath query for leader rows."""
-        from src.scraper.html.leaders import LeadersPage
+        from src.scraper.html.leaders import LeadersPage  # noqa: PLC0415
 
         page = LeadersPage(html=self.html)
-        self.assertIn("tbody/tr", page.rows_query)
+        assert "tbody/tr" in page.rows_query
 
     def test_stat_type_query(self):
         """Test xpath query for stat type (points, rebounds, etc.)."""
-        from src.scraper.html.leaders import LeadersPage
+        from src.scraper.html.leaders import LeadersPage  # noqa: PLC0415
 
         page = LeadersPage(html=self.html)
-        self.assertIsNotNone(page.stat_type_query)
+        assert page.stat_type_query is not None
 
     def test_leader_type_query(self):
         """Test xpath query for leader type (career, active, season)."""
-        from src.scraper.html.leaders import LeadersPage
+        from src.scraper.html.leaders import LeadersPage  # noqa: PLC0415
 
         page = LeadersPage(html=self.html)
-        self.assertIsNotNone(page.leader_type_query)
+        assert page.leader_type_query is not None
 
 
 class TestLeaderRow(TestCase):
@@ -49,38 +49,38 @@ class TestLeaderRow(TestCase):
 
     def test_rank_query(self):
         """Test xpath query for rank."""
-        from src.scraper.html.leaders import LeaderRow
+        from src.scraper.html.leaders import LeaderRow  # noqa: PLC0415
 
         row = LeaderRow(html=self.html)
-        self.assertIn("rank", row.rank_query)
+        assert "rank" in row.rank_query
 
     def test_player_query(self):
         """Test xpath query for player name."""
-        from src.scraper.html.leaders import LeaderRow
+        from src.scraper.html.leaders import LeaderRow  # noqa: PLC0415
 
         row = LeaderRow(html=self.html)
-        self.assertIn("player", row.player_query)
+        assert "player" in row.player_query
 
     def test_value_query(self):
         """Test xpath query for stat value."""
-        from src.scraper.html.leaders import LeaderRow
+        from src.scraper.html.leaders import LeaderRow  # noqa: PLC0415
 
         row = LeaderRow(html=self.html)
-        self.assertIsNotNone(row.value_query)
+        assert row.value_query is not None
 
     def test_years_query(self):
         """Test xpath query for years played."""
-        from src.scraper.html.leaders import LeaderRow
+        from src.scraper.html.leaders import LeaderRow  # noqa: PLC0415
 
         row = LeaderRow(html=self.html)
-        self.assertIsNotNone(row.years_query)
+        assert row.years_query is not None
 
     def test_teams_query(self):
         """Test xpath query for teams played for."""
-        from src.scraper.html.leaders import LeaderRow
+        from src.scraper.html.leaders import LeaderRow  # noqa: PLC0415
 
         row = LeaderRow(html=self.html)
-        self.assertIsNotNone(row.teams_query)
+        assert row.teams_query is not None
 
 
 class TestCareerLeadersPage(TestCase):
@@ -92,10 +92,10 @@ class TestCareerLeadersPage(TestCase):
 
     def test_career_table_query(self):
         """Test xpath query for career leaders table."""
-        from src.scraper.html.leaders import CareerLeadersPage
+        from src.scraper.html.leaders import CareerLeadersPage  # noqa: PLC0415
 
         page = CareerLeadersPage(html=self.html)
-        self.assertIn("stats_table", page.career_table_query)
+        assert "stats_table" in page.career_table_query
 
 
 class TestActiveLeadersPage(TestCase):
@@ -107,7 +107,7 @@ class TestActiveLeadersPage(TestCase):
 
     def test_active_table_query(self):
         """Test xpath query for active leaders table."""
-        from src.scraper.html.leaders import ActiveLeadersPage
+        from src.scraper.html.leaders import ActiveLeadersPage  # noqa: PLC0415
 
         page = ActiveLeadersPage(html=self.html)
-        self.assertIn("stats_table", page.active_table_query)
+        assert "stats_table" in page.active_table_query

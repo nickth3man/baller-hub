@@ -27,10 +27,13 @@ class BaseBoxScoresTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         year, month, day = cls._date.year, cls._date.month, cls._date.day
-        with open(os.path.join(
-                os.path.dirname(__file__),
+        with open(  # noqa: PTH123
+            os.path.join(  # noqa: PTH118
+                os.path.dirname(__file__),  # noqa: PTH120
                 f"../files/player_box_scores/{year}/{month}/{day}.html",
-        ), encoding="utf-8") as file_input:
+            ),
+            encoding="utf-8",
+        ) as file_input:
             _html = file_input.read()
         cls._parsed_results = PlayerBoxScoresParser(
             team_abbreviation_parser=TeamAbbreviationParser(
@@ -50,75 +53,75 @@ class TestNovemberFirst2006(BaseBoxScoresTestCase):
     _date = datetime.date(year=2006, month=11, day=1)
 
     def test_length(self):
-        self.assertEqual(len(self._parsed_results), 272)
+        assert len(self._parsed_results) == 272  # noqa: PLR2004
 
     def test_new_orleans_oklahoma_city_hornets(self):
         chris_paul = self._parsed_results[10]
 
-        self.assertEqual(chris_paul["slug"], "paulch01")
-        self.assertEqual(chris_paul["name"], "Chris Paul")
-        self.assertEqual(chris_paul["team"], Team.NEW_ORLEANS_OKLAHOMA_CITY_HORNETS)
+        assert chris_paul["slug"] == "paulch01"
+        assert chris_paul["name"] == "Chris Paul"
+        assert chris_paul["team"] == Team.NEW_ORLEANS_OKLAHOMA_CITY_HORNETS
 
 
 class TestDecemberEighteenth2015(BaseBoxScoresTestCase):
     _date = datetime.date(year=2015, month=12, day=18)
 
     def test_length(self):
-        self.assertEqual(len(self._parsed_results), 250)
+        assert len(self._parsed_results) == 250  # noqa: PLR2004
 
 
 class TestNovemberThird2003(BaseBoxScoresTestCase):
     _date = datetime.date(year=2003, month=11, day=3)
 
     def test_length(self):
-        self.assertEqual(len(self._parsed_results), 145)
+        assert len(self._parsed_results) == 145  # noqa: PLR2004
 
     def test_new_orleans_hornets(self):
         pj_brown = self._parsed_results[51]
 
-        self.assertEqual(pj_brown["slug"], "brownpj01")
-        self.assertEqual(pj_brown["name"], "P.J. Brown")
-        self.assertEqual(pj_brown["team"], Team.NEW_ORLEANS_HORNETS)
+        assert pj_brown["slug"] == "brownpj01"
+        assert pj_brown["name"] == "P.J. Brown"
+        assert pj_brown["team"] == Team.NEW_ORLEANS_HORNETS
 
 
 class TestDecemberTwelfth2017(BaseBoxScoresTestCase):
     _date = datetime.date(year=2017, month=12, day=12)
 
     def test_length(self):
-        self.assertEqual(len(self._parsed_results), 149)
+        assert len(self._parsed_results) == 149  # noqa: PLR2004
 
     def test_andrew_bogut(self):
         andrew_bogut = self._parsed_results[128]
-        self.assertEqual(andrew_bogut["made_three_point_field_goals"], 0)
-        self.assertEqual(andrew_bogut["attempted_three_point_field_goals"], 0)
+        assert andrew_bogut["made_three_point_field_goals"] == 0
+        assert andrew_bogut["attempted_three_point_field_goals"] == 0
 
 
 class TestJanuaryTwentyNinth2017(BaseBoxScoresTestCase):
     _date = datetime.date(year=2017, month=1, day=29)
 
     def test_length(self):
-        self.assertEqual(len(self._parsed_results), 170)
+        assert len(self._parsed_results) == 170  # noqa: PLR2004
 
     def test_paul_millsap(self):
         paul_millsap = self._parsed_results[0]
 
-        self.assertEqual(paul_millsap["slug"], "millspa01")
-        self.assertEqual(paul_millsap["name"], "Paul Millsap")
-        self.assertEqual(paul_millsap["team"], Team.ATLANTA_HAWKS)
-        self.assertEqual(paul_millsap["opponent"], Team.NEW_YORK_KNICKS)
-        self.assertEqual(paul_millsap["outcome"], Outcome.WIN)
-        self.assertEqual(paul_millsap["seconds_played"], 3607)
-        self.assertEqual(paul_millsap["made_field_goals"], 13)
-        self.assertEqual(paul_millsap["attempted_field_goals"], 29)
-        self.assertEqual(paul_millsap["made_three_point_field_goals"], 3)
-        self.assertEqual(paul_millsap["attempted_three_point_field_goals"], 8)
-        self.assertEqual(paul_millsap["made_free_throws"], 8)
-        self.assertEqual(paul_millsap["attempted_free_throws"], 10)
-        self.assertEqual(paul_millsap["offensive_rebounds"], 8)
-        self.assertEqual(paul_millsap["defensive_rebounds"], 11)
-        self.assertEqual(paul_millsap["assists"], 7)
-        self.assertEqual(paul_millsap["steals"], 1)
-        self.assertEqual(paul_millsap["blocks"], 0)
-        self.assertEqual(paul_millsap["turnovers"], 3)
-        self.assertEqual(paul_millsap["personal_fouls"], 4)
-        self.assertEqual(paul_millsap["game_score"], 31.3)
+        assert paul_millsap["slug"] == "millspa01"
+        assert paul_millsap["name"] == "Paul Millsap"
+        assert paul_millsap["team"] == Team.ATLANTA_HAWKS
+        assert paul_millsap["opponent"] == Team.NEW_YORK_KNICKS
+        assert paul_millsap["outcome"] == Outcome.WIN
+        assert paul_millsap["seconds_played"] == 3607  # noqa: PLR2004
+        assert paul_millsap["made_field_goals"] == 13  # noqa: PLR2004
+        assert paul_millsap["attempted_field_goals"] == 29  # noqa: PLR2004
+        assert paul_millsap["made_three_point_field_goals"] == 3  # noqa: PLR2004
+        assert paul_millsap["attempted_three_point_field_goals"] == 8  # noqa: PLR2004
+        assert paul_millsap["made_free_throws"] == 8  # noqa: PLR2004
+        assert paul_millsap["attempted_free_throws"] == 10  # noqa: PLR2004
+        assert paul_millsap["offensive_rebounds"] == 8  # noqa: PLR2004
+        assert paul_millsap["defensive_rebounds"] == 11  # noqa: PLR2004
+        assert paul_millsap["assists"] == 7  # noqa: PLR2004
+        assert paul_millsap["steals"] == 1
+        assert paul_millsap["blocks"] == 0
+        assert paul_millsap["turnovers"] == 3  # noqa: PLR2004
+        assert paul_millsap["personal_fouls"] == 4  # noqa: PLR2004
+        assert paul_millsap["game_score"] == 31.3  # noqa: PLR2004

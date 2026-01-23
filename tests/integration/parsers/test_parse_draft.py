@@ -17,9 +17,7 @@ class TestDraftIntegration(TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up test fixtures."""
-        cls.fixture_dir = os.path.join(
-            os.path.dirname(__file__), "../files/draft"
-        )
+        cls.fixture_dir = os.path.join(os.path.dirname(__file__), "../files/draft")  # noqa: PTH118, PTH120
         cls.team_abbreviation_parser = TeamAbbreviationParser(
             abbreviations_to_teams=TEAM_ABBREVIATIONS_TO_TEAM
         )
@@ -27,10 +25,10 @@ class TestDraftIntegration(TestCase):
 
     def _get_page(self, filename: str) -> DraftPage:
         """Helper to load a fixture and return DraftPage."""
-        path = os.path.join(self.fixture_dir, filename)
-        if not os.path.exists(path):
+        path = os.path.join(self.fixture_dir, filename)  # noqa: PTH118
+        if not os.path.exists(path):  # noqa: PTH110
             self.skipTest(f"Fixture {filename} not found")
-        with open(path, encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:  # noqa: PTH123
             return DraftPage(html=html.fromstring(f.read()))
 
     def test_2003_draft(self):
@@ -38,19 +36,19 @@ class TestDraftIntegration(TestCase):
         page = self._get_page("2003.html")
         result = self.parser.parse(page)
 
-        self.assertEqual(result["year"], 2003)
+        assert result["year"] == 2003  # noqa: PLR2004
         # LeBron was pick 1
         lebron = next(p for p in result["picks"] if p["pick"] == 1)
-        self.assertEqual(lebron["player"], "LeBron James")
-        self.assertEqual(lebron["team"], Team.CLEVELAND_CAVALIERS)
+        assert lebron["player"] == "LeBron James"
+        assert lebron["team"] == Team.CLEVELAND_CAVALIERS
 
     def test_1984_draft(self):
         """Test parsing 1984 draft (Jordan)."""
         page = self._get_page("1984.html")
         result = self.parser.parse(page)
 
-        self.assertEqual(result["year"], 1984)
+        assert result["year"] == 1984  # noqa: PLR2004
         # Jordan was pick 3
-        jordan = next(p for p in result["picks"] if p["pick"] == 3)
-        self.assertEqual(jordan["player"], "Michael Jordan")
-        self.assertEqual(jordan["team"], Team.CHICAGO_BULLS)
+        jordan = next(p for p in result["picks"] if p["pick"] == 3)  # noqa: PLR2004
+        assert jordan["player"] == "Michael Jordan"
+        assert jordan["team"] == Team.CHICAGO_BULLS

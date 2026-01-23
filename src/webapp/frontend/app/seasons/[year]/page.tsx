@@ -1,12 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  getSeason,
-  getSeasonLeaders,
-  getSeasonSchedule,
-  SeasonLeaders,
-  SeasonScheduleGame,
-} from "@/lib/api";
+import { getSeason, getSeasonLeaders, getSeasonSchedule } from "@/lib/api";
+import { ScheduleTable } from "@/(components)/seasons/ScheduleTable";
+import { LeadersCard } from "@/(components)/seasons/LeadersCard";
 
 interface PageProps {
   params: Promise<{ year: string }>;
@@ -18,94 +13,6 @@ const LEADER_CATEGORIES = [
   { key: "rebounds", label: "Rebounds", unit: "RPG" },
   { key: "assists", label: "Assists", unit: "APG" },
 ];
-
-function ScheduleTable({ games }: { games: SeasonScheduleGame[] }) {
-  return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-lg">
-      <div className="bg-slate-900 px-6 py-4 text-white">
-        <h2 className="text-lg font-semibold">Season Schedule</h2>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100 text-gray-700">
-            <tr>
-              <th className="px-4 py-3 text-left">Date</th>
-              <th className="px-4 py-3 text-left">Visitor</th>
-              <th className="px-4 py-3 text-left">Home</th>
-              <th className="px-4 py-3 text-center">Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {games.map((game, idx) => (
-              <tr
-                key={game.game_id}
-                className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
-                <td className="px-4 py-3">
-                  {new Date(game.date).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </td>
-                <td className="px-4 py-3">{game.away_team_abbrev}</td>
-                <td className="px-4 py-3">{game.home_team_abbrev}</td>
-                <td className="px-4 py-3 text-center">
-                  {game.home_score !== null && game.away_score !== null
-                    ? `${game.away_score}-${game.home_score}`
-                    : "TBD"}
-                </td>
-              </tr>
-            ))}
-            {games.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
-                  No schedule data available.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function LeadersCard({
-  title,
-  unit,
-  leaders,
-}: {
-  title: string;
-  unit: string;
-  leaders: SeasonLeaders;
-}) {
-  return (
-    <div className="rounded-2xl bg-white p-4 shadow-lg">
-      <h3 className="mb-3 font-semibold text-gray-900">{title}</h3>
-      <ol className="space-y-2">
-        {leaders.leaders.map((leader) => (
-          <li
-            key={leader.player_slug}
-            className="flex items-center justify-between text-sm"
-          >
-            <Link
-              href={`/players/${leader.player_slug}`}
-              className="truncate font-medium text-blue-600 hover:text-blue-800"
-            >
-              {leader.player_name}
-            </Link>
-            <span className="text-gray-500">
-              {leader.value.toFixed(1)} {unit}
-            </span>
-          </li>
-        ))}
-        {leaders.leaders.length === 0 && (
-          <li className="text-xs text-gray-400">No leader data.</li>
-        )}
-      </ol>
-    </div>
-  );
-}
 
 export default async function SeasonDetailPage({
   params,

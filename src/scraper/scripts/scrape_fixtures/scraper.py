@@ -4,13 +4,15 @@ import asyncio
 import logging
 import random
 import time
-
-from curl_cffi import requests
+from typing import TYPE_CHECKING
 
 from src.scraper.scripts.scrape_fixtures.circuit_breaker import CircuitBreaker
 from src.scraper.scripts.scrape_fixtures.constants import IMPERSONATION_PROFILES
 from src.scraper.scripts.scrape_fixtures.models.monitoring.chaos import ChaosExperiment
 from src.scraper.scripts.scrape_fixtures.models.monitoring.health import HealthMetrics
+
+if TYPE_CHECKING:
+    from curl_cffi import requests
 
 logger = logging.getLogger("scraper")
 
@@ -138,7 +140,7 @@ class AsyncComprehensiveScraper:
                         self.circuit_breaker.record_failure()
                         self.health_metrics.record_request(False, response_time)
                         logger.error(f"403 Forbidden on {url} (Profile: {profile})")
-                        raise RuntimeError("blocked_403")
+                        raise RuntimeError("blocked_403")  # noqa: TRY301
 
                     if response.status_code == 429:
                         self.circuit_breaker.record_failure()
@@ -165,7 +167,7 @@ class AsyncComprehensiveScraper:
 
                     # Non-200 but not error status codes
                     self.health_metrics.record_request(False, response_time)
-                    return response
+                    return response  # noqa: TRY300
 
                 except asyncio.CancelledError:
                     # Re-raise cancellation immediately without retry
@@ -177,9 +179,8 @@ class AsyncComprehensiveScraper:
                         self.circuit_breaker.record_failure()
                         self.health_metrics.record_request(False, response_time)
                         self.health_metrics.network_errors += 1
-                        raise RuntimeError(
-                            f"Fetch failed after {attempt} retries: {e}"
-                        ) from e
+                        msg = f"Fetch failed after {attempt} retries: {e}"
+                        raise RuntimeError(msg) from e
                     try:
                         await asyncio.sleep(5 * (attempt + 1))
                     except asyncio.CancelledError:

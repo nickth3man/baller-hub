@@ -17,9 +17,7 @@ class TestCoachIntegration(TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up test fixtures."""
-        cls.fixture_dir = os.path.join(
-            os.path.dirname(__file__), "../files/coaches"
-        )
+        cls.fixture_dir = os.path.join(os.path.dirname(__file__), "../files/coaches")  # noqa: PTH118, PTH120
         cls.team_abbreviation_parser = TeamAbbreviationParser(
             abbreviations_to_teams=TEAM_ABBREVIATIONS_TO_TEAM
         )
@@ -27,10 +25,10 @@ class TestCoachIntegration(TestCase):
 
     def _get_page(self, filename: str) -> CoachPage:
         """Helper to load a fixture and return CoachPage."""
-        path = os.path.join(self.fixture_dir, filename)
-        if not os.path.exists(path):
+        path = os.path.join(self.fixture_dir, filename)  # noqa: PTH118
+        if not os.path.exists(path):  # noqa: PTH110
             self.skipTest(f"Fixture {filename} not found")
-        with open(path, encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:  # noqa: PTH123
             return CoachPage(html=html.fromstring(f.read()))
 
     def test_phil_jackson(self):
@@ -38,18 +36,18 @@ class TestCoachIntegration(TestCase):
         page = self._get_page("jacksph01c.html")
         result = self.parser.parse(page)
 
-        self.assertEqual(result["name"], "Phil Jackson")
+        assert result["name"] == "Phil Jackson"
         # Find 1995-96 Bulls season
         bulls_72 = next(r for r in result["record"] if r["season"] == "1995-96")
-        self.assertEqual(bulls_72["team"], Team.CHICAGO_BULLS)
-        self.assertEqual(bulls_72["wins"], 72)
-        self.assertEqual(bulls_72["losses"], 10)
+        assert bulls_72["team"] == Team.CHICAGO_BULLS
+        assert bulls_72["wins"] == 72  # noqa: PLR2004
+        assert bulls_72["losses"] == 10  # noqa: PLR2004
 
     def test_gregg_popovich(self):
         """Test parsing Gregg Popovich's page."""
         page = self._get_page("popovgr01c.html")
         result = self.parser.parse(page)
 
-        self.assertEqual(result["name"], "Gregg Popovich")
+        assert result["name"] == "Gregg Popovich"
         # Popovich has coached for many seasons
-        self.assertTrue(len(result["record"]) > 20)
+        assert len(result["record"]) > 20  # noqa: PLR2004

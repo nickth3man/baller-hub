@@ -1,13 +1,9 @@
 """Team-related database models."""
 
 from decimal import Decimal
-from typing import TYPE_CHECKING
 
 from sqlalchemy import JSON
 from sqlmodel import Field, Relationship, SQLModel
-
-if TYPE_CHECKING:
-    pass
 
 
 class Franchise(SQLModel, table=True):

@@ -12,7 +12,9 @@ class TestDraftParser(TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.team_abbreviation_parser = MagicMock()
-        self.parser = DraftParser(team_abbreviation_parser=self.team_abbreviation_parser)
+        self.parser = DraftParser(
+            team_abbreviation_parser=self.team_abbreviation_parser
+        )
 
     def test_parse(self):
         """Test parsing draft page."""
@@ -34,8 +36,8 @@ class TestDraftParser(TestCase):
 
         result = self.parser.parse(mock_page)
 
-        self.assertEqual(result["year"], 2024)
-        self.assertEqual(len(result["picks"]), 1)
-        self.assertEqual(result["picks"][0]["pick"], 1)
-        self.assertEqual(result["picks"][0]["player"], "Zaccharie Risacher")
-        self.assertEqual(result["picks"][0]["team"], "ATLANTA_HAWKS")
+        assert result["year"] == 2024  # noqa: PLR2004
+        assert len(result["picks"]) == 1
+        assert result["picks"][0]["pick"] == 1
+        assert result["picks"][0]["player"] == "Zaccharie Risacher"
+        assert result["picks"][0]["team"] == "ATLANTA_HAWKS"

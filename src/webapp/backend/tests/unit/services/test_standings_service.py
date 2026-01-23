@@ -13,6 +13,6 @@ def test_apply_rank_and_games_back():
 
     assert ranked[0]["conference_rank"] == 1
     assert ranked[0]["games_back"] == 0.0
-    assert ranked[1]["conference_rank"] == 2
-    assert ranked[1]["games_back"] == 2.0
-    assert ranked[2]["conference_rank"] == 3
+    assert ranked[1]["conference_rank"] == 2  # noqa: PLR2004
+    assert ranked[1]["games_back"] == 2.0  # noqa: PLR2004
+    assert ranked[2]["conference_rank"] == 3  # noqa: PLR2004

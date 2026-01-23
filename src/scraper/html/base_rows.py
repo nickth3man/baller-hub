@@ -2,8 +2,7 @@
 
 
 class BasicBoxScoreRow:
-    """
-    Base DOM wrapper for a single row in a box score table.
+    """Base DOM wrapper for a single row in a box score table.
 
     This class extracts raw string data from an `lxml.html` table row (<tr>).
     It is designed to be inherited by more specific row types.
@@ -13,11 +12,16 @@ class BasicBoxScoreRow:
     """
 
     def __init__(self, html):
+        """Initialize the row wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the row.
+        """
         self.html = html
 
     @property
     def playing_time(self):
-        """String value of minutes played (e.g., '34:12')."""
+        """str: String value of minutes played (e.g., '34:12')."""
         cells = self.html.xpath('td[@data-stat="mp"]')
 
         if len(cells) > 0:
@@ -212,17 +216,34 @@ class BasicBoxScoreRow:
 
 
 class PlayerSeasonGameLogRow(BasicBoxScoreRow):
-    """
-    Row representing a game in a player's season log.
+    """Row representing a game in a player's season log.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the row.
     """
 
     def __init__(self, html):
+        """Initialize the row wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the row.
+        """
         super().__init__(html=html)
 
     def __eq__(self, other):
+        """Check if two rows represent the same HTML element.
+
+        Args:
+            other (object): The other object to compare.
+
+        Returns:
+            bool: True if the rows wrap the same HTML element, False otherwise.
+        """
         if isinstance(other, PlayerBoxScoreRow):
             return self.html == other.html
         return False
+
+    __hash__ = None
 
     @property
     def team_abbreviation(self):
@@ -246,17 +267,34 @@ class PlayerSeasonGameLogRow(BasicBoxScoreRow):
 
 
 class PlayerBoxScoreRow(BasicBoxScoreRow):
-    """
-    Row representing a player's stats in a single game box score.
+    """Row representing a player's stats in a single game box score.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the row.
     """
 
     def __init__(self, html):
+        """Initialize the row wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the row.
+        """
         super().__init__(html=html)
 
     def __eq__(self, other):
+        """Check if two rows represent the same HTML element.
+
+        Args:
+            other (object): The other object to compare.
+
+        Returns:
+            bool: True if the rows wrap the same HTML element, False otherwise.
+        """
         if isinstance(other, PlayerBoxScoreRow):
             return self.html == other.html
         return False
+
+    __hash__ = None
 
     @property
     def team_abbreviation(self):
@@ -280,11 +318,18 @@ class PlayerBoxScoreRow(BasicBoxScoreRow):
 
 
 class PlayerIdentificationRow:
-    """
-    Mixin for rows that include player identity information.
+    """Mixin for rows that include player identity information.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the row.
     """
 
     def __init__(self, html):
+        """Initialize the row wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the row.
+        """
         self.html = html
 
     @property
@@ -317,9 +362,16 @@ class PlayerIdentificationRow:
 
 
 class PlayerGameBoxScoreRow(PlayerBoxScoreRow, PlayerIdentificationRow):
-    """
-    Row combining player stats and identification.
+    """Row combining player stats and identification.
+
+    Attributes:
+        html (lxml.html.HtmlElement): The raw HTML element for the row.
     """
 
     def __init__(self, html):
+        """Initialize the row wrapper.
+
+        Args:
+            html (lxml.html.HtmlElement): The raw HTML element for the row.
+        """
         super().__init__(html)

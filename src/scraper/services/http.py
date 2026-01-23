@@ -2,6 +2,7 @@
 
 import re
 from datetime import timedelta
+from http import HTTPStatus
 
 import requests
 from lxml import html
@@ -9,7 +10,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from src.core.domain import PlayerData, TeamTotal
-from src.scraper.common.errors import InvalidDate, InvalidPlayerAndSeason
+from src.scraper.common.errors import InvalidDateError, InvalidPlayerAndSeasonError
 from src.scraper.html import (
     BoxScoresPage,
     DailyBoxScoresPage,
@@ -57,6 +58,9 @@ class HTTPService:
     def _create_session(self):
         """
         Creates a requests Session with retry logic.
+
+        Returns:
+            requests.Session: A configured requests session.
         """
         session = requests.Session()
         session.headers.update(
@@ -86,6 +90,12 @@ class HTTPService:
         - Historical box scores: Immutable -> Long TTL (30 days)
         - Historical season data: Rarely changes -> Long TTL (7 days)
         - Current season/daily data: Changes often -> Short TTL (1 day or less)
+
+        Args:
+            url (str): The URL to determine TTL for.
+
+        Returns:
+            timedelta: The time-to-live for the cached URL.
         """
         # Historical Box Scores (e.g. /boxscores/pbp/2023...)
         if re.search(r"/boxscores/(?:pbp/)?\d{8}", url):
@@ -147,7 +157,7 @@ class HTTPService:
         response.raise_for_status()
 
         # Cache successful responses
-        if not params and response.status_code == 200:
+        if not params and response.status_code == HTTPStatus.OK:
             ttl = self._get_ttl(url)
             self.cache.set(url, response.content, ttl=ttl)
 
@@ -156,6 +166,15 @@ class HTTPService:
     def standings(self, season_end_year):
         """
         Fetches division standings for a given season.
+
+        Args:
+            season_end_year (int): The year the season ends.
+
+        Returns:
+            list[dict]: A list of division standings.
+
+        Raises:
+            ValueError: If parsing fails.
         """
         url = URLBuilder.standings(season_end_year)
 
@@ -166,13 +185,15 @@ class HTTPService:
         division_standings = page.division_standings
 
         if division_standings is None:
-            raise ValueError("Parsing error: Unable to locate division standings")
+            msg = "Parsing error: Unable to locate division standings"
+            raise ValueError(msg)
 
         eastern_conference_table = division_standings.eastern_conference_table
         western_conference_table = division_standings.western_conference_table
 
         if eastern_conference_table is None or western_conference_table is None:
-            raise ValueError("Parsing error: Unable to locate conference tables")
+            msg = "Parsing error: Unable to locate conference tables"
+            raise ValueError(msg)
 
         return self.parser.parse_division_standings(
             standings=eastern_conference_table.rows
@@ -183,22 +204,44 @@ class HTTPService:
     def player_box_scores(self, day, month, year):
         """
         Fetches daily leader stats for all players on a specific date.
+
+        Args:
+            day (int): Day of the month.
+            month (int): Month number.
+            year (int): Year.
+
+        Returns:
+            list[dict]: A list of player box scores.
+
+        Raises:
+            InvalidDate: If the date is invalid or has no data.
         """
         url = URLBuilder.player_box_scores(day=day, month=month, year=year)
 
         response = self._fetch(url=url, allow_redirects=False)
 
-        if response.status_code == requests.codes.ok:  # ty: ignore[unresolved-attribute]
+        if response.status_code == HTTPStatus.OK:
             page = DailyLeadersPage(html=html.fromstring(response.content))
             return self.parser.parse_player_box_scores(box_scores=page.daily_leaders)
 
-        raise InvalidDate(day=day, month=month, year=year)
+        raise InvalidDateError(day=day, month=month, year=year)
 
     def regular_season_player_box_scores(
         self, player_identifier, season_end_year, include_inactive_games=False
     ):
         """
         Fetches the regular season game log for a specific player.
+
+        Args:
+            player_identifier (str): The unique player ID.
+            season_end_year (int): The year the season ends.
+            include_inactive_games (bool, optional): Whether to include inactive games. Defaults to False.
+
+        Returns:
+            list[dict]: A list of regular season game logs.
+
+        Raises:
+            InvalidPlayerAndSeason: If the player or season is invalid.
         """
         url = URLBuilder.player_season_box_scores(
             player_identifier=player_identifier, season_end_year=season_end_year
@@ -208,7 +251,7 @@ class HTTPService:
 
         page = PlayerSeasonBoxScoresPage(html=html.fromstring(response.content))
         if page.regular_season_box_scores_table is None:
-            raise InvalidPlayerAndSeason(
+            raise InvalidPlayerAndSeasonError(
                 player_identifier=player_identifier, season_end_year=season_end_year
             )
 
@@ -231,7 +274,7 @@ class HTTPService:
 
         page = PlayerSeasonBoxScoresPage(html=html.fromstring(response.content))
         if page.playoff_box_scores_table is None:
-            raise InvalidPlayerAndSeason(
+            raise InvalidPlayerAndSeasonError(
                 player_identifier=player_identifier, season_end_year=season_end_year
             )
 
@@ -383,10 +426,12 @@ class HTTPService:
             totals_table = page.totals_table
 
             if name is None:
-                raise ValueError("Parsing error: Unable to locate player name")
+                msg = "Parsing error: Unable to locate player name"
+                raise ValueError(msg)
 
             if totals_table is None:
-                raise ValueError("Parsing error: Unable to locate totals table")
+                msg = "Parsing error: Unable to locate totals table"
+                raise ValueError(msg)
 
             data = PlayerData(
                 name=name,

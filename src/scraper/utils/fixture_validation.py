@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from lxml import html as lxml_html
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 
 @dataclass(frozen=True)
@@ -92,9 +95,7 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
     ),
     "search_results_empty": ValidationRule(
         # Empty search results page - current content is a guidance block
-        required_xpath=(
-            "//strong[contains(., 'Examples of successful searches')]",
-        ),
+        required_xpath=("//strong[contains(., 'Examples of successful searches')]",),
     ),
     "player_profile": ValidationRule(
         required_ids=("per_game_stats",),
@@ -115,9 +116,7 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
     # ==========================================================================
     "coach": ValidationRule(
         # Coach pages have coaching record tables
-        required_xpath=(
-            "//table[contains(@id, 'coach')]//tbody/tr",
-        ),
+        required_xpath=("//table[contains(@id, 'coach')]//tbody/tr",),
         min_rows=1,
     ),
     "draft": ValidationRule(
@@ -199,15 +198,11 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
         min_rows=100,
     ),
     "per_poss": ValidationRule(
-        required_xpath=(
-            "//table[@id='per_poss' or @id='per_poss_stats']//tbody/tr",
-        ),
+        required_xpath=("//table[@id='per_poss' or @id='per_poss_stats']//tbody/tr",),
         min_rows=100,
     ),
     "shooting": ValidationRule(
-        required_xpath=(
-            "//table[@id='shooting' or @id='shooting_stats']//tbody/tr",
-        ),
+        required_xpath=("//table[@id='shooting' or @id='shooting_stats']//tbody/tr",),
         min_rows=50,
     ),
     # ==========================================================================
@@ -220,8 +215,7 @@ VALIDATION_RULES: dict[str, ValidationRule] = {
     ),
     "player_shooting": ValidationRule(
         required_xpath=(
-            "//table[contains(@class, 'stats_table')] | "
-            "//h1[contains(., 'Shooting')]",
+            "//table[contains(@class, 'stats_table')] | //h1[contains(., 'Shooting')]",
         ),
         min_rows=1,
     ),
@@ -346,9 +340,11 @@ def validate_fixture_html(html_content: bytes, validator_key: str) -> list[str]:
     errors: list[str] = []
 
     # Check required element IDs
-    for required_id in _as_iterable(rule.required_ids):
-        if not any(t.xpath(f".//*[@id='{required_id}']") for t in trees):
-            errors.append(f"Missing element id: {required_id}")
+    errors.extend(
+        f"Missing element id: {required_id}"
+        for required_id in _as_iterable(rule.required_ids)
+        if not any(t.xpath(f".//*[@id='{required_id}']") for t in trees)
+    )
 
     # Check required XPath expressions and collect row counts
     row_counts: list[int] = []
@@ -359,11 +355,7 @@ def validate_fixture_html(html_content: bytes, validator_key: str) -> list[str]:
         row_counts.append(match_count)
 
     # Check minimum row count
-    if (
-        rule.min_rows is not None
-        and row_counts
-        and max(row_counts) < rule.min_rows
-    ):
+    if rule.min_rows is not None and row_counts and max(row_counts) < rule.min_rows:
         errors.append(
             f"Expected at least {rule.min_rows} rows, found {max(row_counts)}"
         )
@@ -377,9 +369,11 @@ def validate_fixture_html(html_content: bytes, validator_key: str) -> list[str]:
             )
 
     # Check required text content
-    for required_text in _as_iterable(rule.required_text):
-        if required_text not in combined_text:
-            errors.append(f"Missing required text: {required_text}")
+    errors.extend(
+        f"Missing required text: {required_text}"
+        for required_text in _as_iterable(rule.required_text)
+        if required_text not in combined_text
+    )
 
     return errors
 
@@ -397,9 +391,7 @@ def _extract_comment_trees(tree: lxml_html.HtmlElement) -> list[lxml_html.HtmlEl
         if not comment.text or "<table" not in comment.text:
             continue
         try:
-            fragment = lxml_html.fragment_fromstring(
-                comment.text, create_parent=True
-            )
+            fragment = lxml_html.fragment_fromstring(comment.text, create_parent=True)
         except Exception:
             continue
         comment_trees.append(fragment)
@@ -441,8 +433,7 @@ def build_validation_context(
         for xpath in _as_iterable(rule.required_xpath)
     }
     required_text = {
-        text: text in combined_text
-        for text in _as_iterable(rule.required_text)
+        text: text in combined_text for text in _as_iterable(rule.required_text)
     }
 
     context.update(

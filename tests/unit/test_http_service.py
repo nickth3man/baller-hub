@@ -2,7 +2,7 @@ from unittest import TestCase, mock
 
 from requests import codes
 
-from src.scraper.common.errors import InvalidDate
+from src.scraper.common.errors import InvalidDateError
 from src.scraper.services.http import HTTPService
 
 
@@ -11,9 +11,12 @@ class TestHTTPService(TestCase):
         service = HTTPService(parser=mock.MagicMock())
         response = mock.Mock(status_code=codes.multiple_choices)
 
-        with mock.patch.object(service, '_fetch', return_value=response):
-            self.assertRaisesRegex(
-                InvalidDate,
+        with mock.patch.object(service, "_fetch", return_value=response):
+            self.assertRaisesRegex(  # noqa: PT027
+                InvalidDateError,
                 "Date with year set to 2018, month set to 1, and day set to 1 is invalid",
                 service.player_box_scores,
-                day=1, month=1, year=2018)
+                day=1,
+                month=1,
+                year=2018,
+            )

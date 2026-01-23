@@ -1,3 +1,4 @@
+import os
 from unittest.mock import patch
 
 import pytest
@@ -26,7 +27,6 @@ def speed_up_tests(request):
 
     # For now, let's assume we want speed by default.
     # Users should set env var CI_RECORD=1 if they need real sleeps.
-    import os
 
     _ = request
     if not os.getenv("CI_RECORD"):
