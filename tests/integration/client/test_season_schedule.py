@@ -77,10 +77,12 @@ class TestFutureSeasonSchedule(TestCase):
 class Test2018SeasonScheduleCsvOutput(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/generated/season_schedule/2018.csv"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/generated/season_schedule/2018.csv",
         )
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/season_schedule/2018.csv"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/season_schedule/2018.csv",
         )
 
     def tearDown(self):
@@ -105,10 +107,12 @@ class Test2018SeasonScheduleCsvOutput(TestCase):
 class Test2018SeasonScheduleJsonOutput(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/generated/season_schedule/2018.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/generated/season_schedule/2018.json",
         )
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/season_schedule/2018.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/season_schedule/2018.json",
         )
 
     def tearDown(self):
@@ -133,7 +137,8 @@ class Test2018SeasonScheduleJsonOutput(TestCase):
 class Test2018SeasonScheduleInMemoryJson(TestCase):
     def setUp(self):
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/season_schedule/2018.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/season_schedule/2018.json",
         )
 
     def test_in_memory_json(self):
@@ -152,10 +157,12 @@ class Test2018SeasonScheduleInMemoryJson(TestCase):
 class Test2001SeasonScheduleCsvOutput(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/generated/season_schedule/2001.csv"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/generated/season_schedule/2001.csv",
         )
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/season_schedule/2001.csv"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/season_schedule/2001.csv",
         )
 
     def tearDown(self):
@@ -180,10 +187,12 @@ class Test2001SeasonScheduleCsvOutput(TestCase):
 class Test2001SeasonScheduleJsonOutput(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/generated/season_schedule/2001.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/generated/season_schedule/2001.json",
         )
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/season_schedule/2001.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/season_schedule/2001.json",
         )
 
     def tearDown(self):
@@ -208,7 +217,8 @@ class Test2001SeasonScheduleJsonOutput(TestCase):
 class Test2001SeasonScheduleInMemoryJson(TestCase):
     def setUp(self):
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/season_schedule/2001.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/season_schedule/2001.json",
         )
 
     def test_in_memory_json(self):

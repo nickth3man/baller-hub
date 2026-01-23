@@ -162,7 +162,8 @@ class TestNonExistentPlayerPlayoffBoxScores(TestCase):
     def setUp(self):
         with open(  # noqa: PTH123
             os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__), "../files/player_box_scores/2020/foobar.html"  # noqa: PTH120
+                os.path.dirname(__file__),
+                "../files/player_box_scores/2020/foobar.html",
             ),
             encoding="utf-8",
         ) as file_input:

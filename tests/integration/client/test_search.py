@@ -128,7 +128,8 @@ class TestAlonzoMourning(TestCase):
     def setUp(self):
         with open(  # noqa: PTH123
             os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__), "../files/search/Alonzo Mourning.html"  # noqa: PTH120
+                os.path.dirname(__file__),
+                "../files/search/Alonzo Mourning.html",
             ),
             encoding="utf-8",
         ) as file_input:
@@ -159,7 +160,8 @@ class TestDominiqueWilkins(TestCase):
     def setUp(self):
         with open(  # noqa: PTH123
             os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__), "../files/search/Dominique Wilkins.html"  # noqa: PTH120
+                os.path.dirname(__file__),
+                "../files/search/Dominique Wilkins.html",
             ),
             encoding="utf-8",
         ) as file_input:
@@ -242,7 +244,8 @@ class TestKobeBryant(TestCase):
 class TestKobe(TestCase):
     def setUp(self):
         with open(  # noqa: PTH123
-            os.path.join(ARCHIVE_SEARCH_DIR, "kobe.html"), encoding="utf-8"  # noqa: PTH118
+            os.path.join(ARCHIVE_SEARCH_DIR, "kobe.html"),
+            encoding="utf-8",
         ) as file_input:
             self._html = file_input.read()
 
@@ -268,7 +271,8 @@ class TestKobe(TestCase):
 class TestSearchJSONFileOutput(TestCase):
     def setUp(self):
         with open(  # noqa: PTH123
-            os.path.join(ARCHIVE_SEARCH_DIR, "kobe.html"), encoding="utf-8"  # noqa: PTH118
+            os.path.join(ARCHIVE_SEARCH_DIR, "kobe.html"),
+            encoding="utf-8",
         ) as file_input:
             self._html = file_input.read()
         self.output_file_path = os.path.join(  # noqa: PTH118
@@ -303,7 +307,8 @@ class TestSearchJSONFileOutput(TestCase):
 class TestSearchJSONInMemoryOutput(TestCase):
     def setUp(self):
         with open(  # noqa: PTH123
-            os.path.join(ARCHIVE_SEARCH_DIR, "kobe.html"), encoding="utf-8"  # noqa: PTH118
+            os.path.join(ARCHIVE_SEARCH_DIR, "kobe.html"),
+            encoding="utf-8",
         ) as file_input:
             self._html = file_input.read()
         self.output_file_path = os.path.join(  # noqa: PTH118
@@ -336,7 +341,8 @@ class TestSearchJSONInMemoryOutput(TestCase):
 class TestSearchCSVOutput(TestCase):
     def setUp(self):
         with open(  # noqa: PTH123
-            os.path.join(ARCHIVE_SEARCH_DIR, "kobe.html"), encoding="utf-8"  # noqa: PTH118
+            os.path.join(ARCHIVE_SEARCH_DIR, "kobe.html"),
+            encoding="utf-8",
         ) as file_input:
             self._html = file_input.read()
         self.output_file_path = os.path.join(  # noqa: PTH118

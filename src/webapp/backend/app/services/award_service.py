@@ -1,6 +1,7 @@
 """Service layer for award-related business logic."""
 
 import duckdb
+
 from app.db.queries import awards as award_queries
 
 

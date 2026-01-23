@@ -290,10 +290,12 @@ class Test2020StandingsInMemory(TestCase):
 class TestCSVStandingsFor2001(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/generated/standings/2001.csv"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/generated/standings/2001.csv",
         )
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/standings/2001.csv"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/standings/2001.csv",
         )
 
     def tearDown(self):
@@ -319,10 +321,12 @@ class TestCSVStandingsFor2001(TestCase):
 class TestJSONPlayerBoxScores2001(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/generated/standings/2001.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/generated/standings/2001.json",
         )
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/standings/2001.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/standings/2001.json",
         )
 
     def tearDown(self):
@@ -349,7 +353,8 @@ class TestJSONPlayerBoxScores2001(TestCase):
 class TestInMemoryJSONStandings2001(TestCase):
     def setUp(self):
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/standings/2001.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/standings/2001.json",
         )
 
     def test_2001_standings(self):
@@ -374,10 +379,12 @@ class TestInMemoryJSONStandings2001(TestCase):
 class TestCSVStandingsFor2019(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/generated/standings/2019.csv"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/generated/standings/2019.csv",
         )
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/standings/2019.csv"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/standings/2019.csv",
         )
 
     def tearDown(self):
@@ -403,10 +410,12 @@ class TestCSVStandingsFor2019(TestCase):
 class TestJSONPlayerBoxScores2019(TestCase):
     def setUp(self):
         self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/generated/standings/2019.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/generated/standings/2019.json",
         )
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/standings/2019.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/standings/2019.json",
         )
 
     def tearDown(self):
@@ -433,7 +442,8 @@ class TestJSONPlayerBoxScores2019(TestCase):
 class TestInMemoryJSONStandings2019(TestCase):
     def setUp(self):
         self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__), "./output/expected/standings/2019.json"  # noqa: PTH120
+            os.path.dirname(__file__),
+            "./output/expected/standings/2019.json",
         )
 
     def test_2019_standings(self):

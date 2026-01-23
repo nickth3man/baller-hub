@@ -1,7 +1,9 @@
 """Draft Pydantic schemas for API request/response validation."""
 
 from datetime import date
+
 from pydantic import BaseModel, ConfigDict
+
 from app.models.player import Position
 
 

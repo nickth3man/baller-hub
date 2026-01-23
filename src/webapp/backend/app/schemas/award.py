@@ -1,6 +1,7 @@
 """Award Pydantic schemas for API request/response validation."""
 
 from pydantic import BaseModel, ConfigDict
+
 from app.models.award import AwardCategory, RecipientType
 
 

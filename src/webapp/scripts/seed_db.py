@@ -22,14 +22,13 @@ Options:
 """
 
 import argparse
-import asyncio
 import logging
 import sys
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
-from app.search.tasks import reindex_all
 from app.db.session import init_db
+from app.search.tasks import reindex_all
 
 # Add the backend and repo root directories to sys.path for imports.
 repo_root = Path(__file__).resolve().parents[2]

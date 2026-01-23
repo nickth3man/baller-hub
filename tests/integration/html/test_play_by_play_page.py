@@ -10,7 +10,8 @@ class TestPlayByPlayPage(TestCase):
     def setUp(self):
         with open(  # noqa: PTH123
             os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__), "../files/play_by_play/199911160ATL.html"  # noqa: PTH120
+                os.path.dirname(__file__),
+                "../files/play_by_play/199911160ATL.html",
             ),
             encoding="utf-8",
         ) as f:

@@ -1,12 +1,12 @@
 """Database session and engine configuration."""
 
 from collections.abc import Generator
+from contextlib import suppress
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
-from contextlib import suppress
 
 # check_same_thread=False is required for SQLite, but not supported/needed by DuckDB
 connect_args = {}
