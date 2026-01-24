@@ -1,7 +1,7 @@
 import filecmp
 import json
-import os
 from datetime import datetime
+from pathlib import Path
 from unittest import TestCase
 
 import pytz
@@ -11,12 +11,12 @@ from src.core.domain import OutputType, Team
 from src.scraper.api.client import season_schedule
 from tests.integration.client.utilities import SeasonScheduleMocker
 
+BASE_DIR = Path(__file__).parent
+SCHEDULE_FILES_DIR = BASE_DIR / "../files/schedule"
+
 
 @SeasonScheduleMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2018,
 )
 class TestSeasonScheduleInMemoryOutput(TestCase):
@@ -47,14 +47,8 @@ class TestSeasonScheduleInMemoryOutput(TestCase):
 
 class TestFutureSeasonSchedule(TestCase):
     def setUp(self):
-        with open(  # noqa: PTH123
-            os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),  # noqa: PTH120
-                "../files/schedule/not-found.html",
-            ),
-            encoding="utf-8",
-        ) as file_input:
-            self._html = file_input.read()
+        html_path = SCHEDULE_FILES_DIR / "not-found.html"
+        self._html = html_path.read_text(encoding="utf-8")
 
     @requests_mock.Mocker()
     def test_future_season_schedule_returns_empty_list(self, m):
@@ -68,160 +62,112 @@ class TestFutureSeasonSchedule(TestCase):
 
 
 @SeasonScheduleMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2018,
 )
 class Test2018SeasonScheduleCsvOutput(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/generated/season_schedule/2018.csv",
-        )
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/season_schedule/2018.csv",
-        )
+        self.output_file_path = BASE_DIR / "./output/generated/season_schedule/2018.csv"
+        self.expected_output_file_path = BASE_DIR / "./output/expected/season_schedule/2018.csv"
 
     def tearDown(self):
-        os.remove(self.output_file_path)  # noqa: PTH107
+        self.output_file_path.unlink()
 
     def test_output(self):
         season_schedule(
             season_end_year=2018,
             output_type=OutputType.CSV,
-            output_file_path=self.output_file_path,
+            output_file_path=str(self.output_file_path),
         )
         assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 @SeasonScheduleMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2018,
 )
 class Test2018SeasonScheduleJsonOutput(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/generated/season_schedule/2018.json",
-        )
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/season_schedule/2018.json",
-        )
+        self.output_file_path = BASE_DIR / "./output/generated/season_schedule/2018.json"
+        self.expected_output_file_path = BASE_DIR / "./output/expected/season_schedule/2018.json"
 
     def tearDown(self):
-        os.remove(self.output_file_path)  # noqa: PTH107
+        self.output_file_path.unlink()
 
     def test_file_output(self):
         season_schedule(
             season_end_year=2018,
             output_type=OutputType.JSON,
-            output_file_path=self.output_file_path,
+            output_file_path=str(self.output_file_path),
         )
         assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 @SeasonScheduleMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2018,
 )
 class Test2018SeasonScheduleInMemoryJson(TestCase):
     def setUp(self):
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/season_schedule/2018.json",
-        )
+        self.expected_output_file_path = BASE_DIR / "./output/expected/season_schedule/2018.json"
 
     def test_in_memory_json(self):
         schedule = season_schedule(season_end_year=2018, output_type=OutputType.JSON)
-        with open(self.expected_output_file_path, encoding="utf-8") as f:  # noqa: PTH123
-            assert json.load(f) == json.loads(schedule)
+        expected = json.loads(self.expected_output_file_path.read_text(encoding="utf-8"))
+        assert expected == json.loads(schedule)
 
 
 @SeasonScheduleMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2001,
 )
 class Test2001SeasonScheduleCsvOutput(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/generated/season_schedule/2001.csv",
-        )
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/season_schedule/2001.csv",
-        )
+        self.output_file_path = BASE_DIR / "./output/generated/season_schedule/2001.csv"
+        self.expected_output_file_path = BASE_DIR / "./output/expected/season_schedule/2001.csv"
 
     def tearDown(self):
-        os.remove(self.output_file_path)  # noqa: PTH107
+        self.output_file_path.unlink()
 
     def test_output(self):
         season_schedule(
             season_end_year=2001,
             output_type=OutputType.CSV,
-            output_file_path=self.output_file_path,
+            output_file_path=str(self.output_file_path),
         )
         assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 @SeasonScheduleMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2001,
 )
 class Test2001SeasonScheduleJsonOutput(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/generated/season_schedule/2001.json",
-        )
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/season_schedule/2001.json",
-        )
+        self.output_file_path = BASE_DIR / "./output/generated/season_schedule/2001.json"
+        self.expected_output_file_path = BASE_DIR / "./output/expected/season_schedule/2001.json"
 
     def tearDown(self):
-        os.remove(self.output_file_path)  # noqa: PTH107
+        self.output_file_path.unlink()
 
     def test_file_output(self):
         season_schedule(
             season_end_year=2001,
             output_type=OutputType.JSON,
-            output_file_path=self.output_file_path,
+            output_file_path=str(self.output_file_path),
         )
         assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 @SeasonScheduleMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2001,
 )
 class Test2001SeasonScheduleInMemoryJson(TestCase):
     def setUp(self):
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/season_schedule/2001.json",
-        )
+        self.expected_output_file_path = BASE_DIR / "./output/expected/season_schedule/2001.json"
 
     def test_in_memory_json(self):
         schedule = season_schedule(season_end_year=2001, output_type=OutputType.JSON)
-        with open(self.expected_output_file_path, encoding="utf-8") as f:  # noqa: PTH123
-            assert json.load(f) == json.loads(schedule)
+        expected = json.loads(self.expected_output_file_path.read_text(encoding="utf-8"))
+        assert expected == json.loads(schedule)

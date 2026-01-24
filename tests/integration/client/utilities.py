@@ -1,5 +1,5 @@
 import functools
-import os
+from pathlib import Path
 
 import requests_mock
 
@@ -54,20 +54,18 @@ class ResponseMocker:
 
 
 class SeasonScheduleMocker(ResponseMocker):
-    def __init__(self, schedules_directory: str, season_end_year: int):
+    def __init__(self, schedules_directory: str | Path, season_end_year: int):
         basketball_reference_paths_by_filename: dict[str, str] = {}
-        html_files_directory = os.path.join(schedules_directory, str(season_end_year))  # noqa: PTH118
-        for file in os.listdir(os.fsencode(html_files_directory)):  # noqa: PTH208
-            filename = os.fsdecode(file)
-            if not filename.endswith(".html"):
+        html_files_directory = Path(schedules_directory) / str(season_end_year)
+        for file_path in html_files_directory.iterdir():
+            if file_path.suffix != ".html":
                 continue
+            filename = file_path.name
             if filename.startswith(str(season_end_year)):
                 key = f"leagues/NBA_{season_end_year}_games.html"
             else:
                 key = f"leagues/NBA_{season_end_year}_games-{filename}"
-            basketball_reference_paths_by_filename[
-                os.path.join(html_files_directory, filename)  # noqa: PTH118
-            ] = key
+            basketball_reference_paths_by_filename[str(file_path)] = key
 
         super().__init__(
             basketball_reference_paths_by_filename=basketball_reference_paths_by_filename

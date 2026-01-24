@@ -1,6 +1,6 @@
 import json
-import os
 from datetime import datetime
+from pathlib import Path
 from unittest import TestCase
 
 import requests_mock
@@ -12,14 +12,8 @@ from src.scraper.common.errors import InvalidPlayerAndSeasonError
 
 class TestWestbrook2020(TestCase):
     def setUp(self):
-        with open(  # noqa: PTH123
-            os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),  # noqa: PTH120
-                "../files/player_box_scores/2020/westbru01.html",
-            ),
-            encoding="utf-8",
-        ) as file_input:
-            self._html = file_input.read()
+        html_path = Path(__file__).parent / "../files/player_box_scores/2020/westbru01.html"
+        self._html = html_path.read_text(encoding="utf-8")
 
     @requests_mock.Mocker()
     def test_length(self, m):
@@ -68,14 +62,8 @@ class TestWestbrook2020(TestCase):
 
 class TestWestbrook2019(TestCase):
     def setUp(self):
-        with open(  # noqa: PTH123
-            os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),  # noqa: PTH120
-                "../files/player_box_scores/2019/westbru01.html",
-            ),
-            encoding="utf-8",
-        ) as file_input:
-            self._html = file_input.read()
+        html_path = Path(__file__).parent / "../files/player_box_scores/2019/westbru01.html"
+        self._html = html_path.read_text(encoding="utf-8")
 
     @requests_mock.Mocker()
     def test_length(self, m):
@@ -92,14 +80,8 @@ class TestWestbrook2019(TestCase):
 
 class TestNonExistentPlayerPlayoffBoxScores(TestCase):
     def setUp(self):
-        with open(  # noqa: PTH123
-            os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),
-                "../files/player_box_scores/2020/foobar.html",
-            ),
-            encoding="utf-8",
-        ) as file_input:
-            self._html = file_input.read()
+        html_path = Path(__file__).parent / "../files/player_box_scores/2020/foobar.html"
+        self._html = html_path.read_text(encoding="utf-8")
 
     @requests_mock.Mocker()
     def test_non_existent_player_raises(self, m):
@@ -123,14 +105,8 @@ class TestNonExistentPlayerPlayoffBoxScores(TestCase):
 
 class TestJabariBrown2015(TestCase):
     def setUp(self):
-        with open(  # noqa: PTH123
-            os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),  # noqa: PTH120
-                "../files/player_box_scores/2015/brownja01.html",
-            ),
-            encoding="utf-8",
-        ) as file_input:
-            self._html = file_input.read()
+        html_path = Path(__file__).parent / "../files/player_box_scores/2015/brownja01.html"
+        self._html = html_path.read_text(encoding="utf-8")
 
     @requests_mock.Mocker()
     def test_default_does_not_include_inactive_games(self, m):
@@ -217,29 +193,20 @@ class TestJabariBrown2015(TestCase):
 
 class TestAveryBradley2019(TestCase):
     def setUp(self):
-        with open(  # noqa: PTH123
-            os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),  # noqa: PTH120
-                "../files/player_box_scores/2019/bradlav01.html",
-            ),
-            encoding="utf-8",
-        ) as file_input:
-            self._html = file_input.read()
-        self.expected_excluding_inactive_games_output_json_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),  # noqa: PTH120
-            "./output/expected/player_box_scores/2019/bradlav01/exclude_inactive.json",
+        base_dir = Path(__file__).parent
+        html_path = base_dir / "../files/player_box_scores/2019/bradlav01.html"
+        self._html = html_path.read_text(encoding="utf-8")
+        self.expected_excluding_inactive_games_output_json_file_path = (
+            base_dir / "./output/expected/player_box_scores/2019/bradlav01/exclude_inactive.json"
         )
-        self.expected_excluding_inactive_games_output_csv_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),  # noqa: PTH120
-            "./output/expected/player_box_scores/2019/bradlav01/exclude_inactive.csv",
+        self.expected_excluding_inactive_games_output_csv_file_path = (
+            base_dir / "./output/expected/player_box_scores/2019/bradlav01/exclude_inactive.csv"
         )
-        self.expected_including_inactive_games_output_json_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),  # noqa: PTH120
-            "./output/expected/player_box_scores/2019/bradlav01/include_inactive.json",
+        self.expected_including_inactive_games_output_json_file_path = (
+            base_dir / "./output/expected/player_box_scores/2019/bradlav01/include_inactive.json"
         )
-        self.expected_including_inactive_games_output_csv_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),  # noqa: PTH120
-            "./output/expected/player_box_scores/2019/bradlav01/include_inactive.csv",
+        self.expected_including_inactive_games_output_csv_file_path = (
+            base_dir / "./output/expected/player_box_scores/2019/bradlav01/include_inactive.csv"
         )
 
     @requests_mock.Mocker()
@@ -255,11 +222,10 @@ class TestAveryBradley2019(TestCase):
             season_end_year=2019,
             output_type=OutputType.JSON,
         )
-        with open(  # noqa: PTH123
-            self.expected_excluding_inactive_games_output_json_file_path,
-            encoding="utf-8",
-        ) as expected_output:
-            assert json.loads(results) == json.load(expected_output)
+        expected_output = json.loads(
+            self.expected_excluding_inactive_games_output_json_file_path.read_text(encoding="utf-8")
+        )
+        assert json.loads(results) == expected_output
 
     @requests_mock.Mocker()
     def test_json_file_output_excluding_inactive_games(self, m):
@@ -269,9 +235,8 @@ class TestAveryBradley2019(TestCase):
             status_code=200,
         )
 
-        output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),  # noqa: PTH120
-            "./output/generated/player_box_scores/2019/bradlav01/exclude_inactive.json",
+        output_file_path = (
+            Path(__file__).parent / "./output/generated/player_box_scores/2019/bradlav01/exclude_inactive.json"
         )
 
         try:
@@ -279,21 +244,16 @@ class TestAveryBradley2019(TestCase):
                 player_identifier="bradlav01",
                 season_end_year=2019,
                 output_type=OutputType.JSON,
-                output_file_path=output_file_path,
+                output_file_path=str(output_file_path),
             )
-            with (
-                open(output_file_path, encoding="utf-8") as output_file,  # noqa: PTH123
-                open(  # noqa: PTH123
-                    self.expected_excluding_inactive_games_output_json_file_path,
-                    encoding="utf-8",
-                ) as expected_file,
-            ):
-                output_lines = output_file.readlines()
-                expected_lines = expected_file.readlines()
+            output_lines = output_file_path.read_text(encoding="utf-8").splitlines(keepends=True)
+            expected_lines = self.expected_excluding_inactive_games_output_json_file_path.read_text(
+                encoding="utf-8"
+            ).splitlines(keepends=True)
 
             assert output_lines == expected_lines
         finally:
-            os.remove(output_file_path)  # noqa: PTH107
+            output_file_path.unlink()
 
     @requests_mock.Mocker()
     def test_json_output_including_inactive_games(self, m):
@@ -312,11 +272,10 @@ class TestAveryBradley2019(TestCase):
         # Bradley only has 81 reported games in 2019 due to a mid-season trade
         assert len(json.loads(results)) == 81  # noqa: PLR2004
 
-        with open(  # noqa: PTH123
-            self.expected_including_inactive_games_output_json_file_path,
-            encoding="utf-8",
-        ) as expected_output:
-            assert json.loads(results) == json.load(expected_output)
+        expected_output = json.loads(
+            self.expected_including_inactive_games_output_json_file_path.read_text(encoding="utf-8")
+        )
+        assert json.loads(results) == expected_output
 
     @requests_mock.Mocker()
     def test_csv_file_output_excluding_inactive_games(self, m):
@@ -326,9 +285,8 @@ class TestAveryBradley2019(TestCase):
             status_code=200,
         )
 
-        output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),  # noqa: PTH120
-            "./output/generated/player_box_scores/2019/bradlav01/exclude_inactive.csv",
+        output_file_path = (
+            Path(__file__).parent / "./output/generated/player_box_scores/2019/bradlav01/exclude_inactive.csv"
         )
 
         try:
@@ -336,21 +294,16 @@ class TestAveryBradley2019(TestCase):
                 player_identifier="bradlav01",
                 season_end_year=2019,
                 output_type=OutputType.CSV,
-                output_file_path=output_file_path,
+                output_file_path=str(output_file_path),
             )
-            with (
-                open(output_file_path, encoding="utf-8") as output_file,  # noqa: PTH123
-                open(  # noqa: PTH123
-                    self.expected_excluding_inactive_games_output_csv_file_path,
-                    encoding="utf-8",
-                ) as expected_file,
-            ):
-                output_lines = output_file.readlines()
-                expected_lines = expected_file.readlines()
+            output_lines = output_file_path.read_text(encoding="utf-8").splitlines(keepends=True)
+            expected_lines = self.expected_excluding_inactive_games_output_csv_file_path.read_text(
+                encoding="utf-8"
+            ).splitlines(keepends=True)
 
             assert output_lines == expected_lines
         finally:
-            os.remove(output_file_path)  # noqa: PTH107
+            output_file_path.unlink()
 
     @requests_mock.Mocker()
     def test_csv_file_output_including_inactive_games(self, m):
@@ -360,9 +313,8 @@ class TestAveryBradley2019(TestCase):
             status_code=200,
         )
 
-        output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),  # noqa: PTH120
-            "./output/generated/player_box_scores/2019/bradlav01/include_inactive.csv",
+        output_file_path = (
+            Path(__file__).parent / "./output/generated/player_box_scores/2019/bradlav01/include_inactive.csv"
         )
 
         try:
@@ -370,19 +322,14 @@ class TestAveryBradley2019(TestCase):
                 player_identifier="bradlav01",
                 season_end_year=2019,
                 output_type=OutputType.CSV,
-                output_file_path=output_file_path,
+                output_file_path=str(output_file_path),
                 include_inactive_games=True,
             )
-            with (
-                open(output_file_path, encoding="utf-8") as output_file,  # noqa: PTH123
-                open(  # noqa: PTH123
-                    self.expected_including_inactive_games_output_csv_file_path,
-                    encoding="utf-8",
-                ) as expected_file,
-            ):
-                output_lines = output_file.readlines()
-                expected_lines = expected_file.readlines()
+            output_lines = output_file_path.read_text(encoding="utf-8").splitlines(keepends=True)
+            expected_lines = self.expected_including_inactive_games_output_csv_file_path.read_text(
+                encoding="utf-8"
+            ).splitlines(keepends=True)
 
             assert output_lines == expected_lines
         finally:
-            os.remove(output_file_path)  # noqa: PTH107
+            output_file_path.unlink()

@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from unittest import TestCase
 
 from lxml import html
@@ -8,14 +8,8 @@ from src.scraper.html import PlayByPlayPage
 
 class TestPlayByPlayPage(TestCase):
     def setUp(self):
-        with open(  # noqa: PTH123
-            os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),
-                "../files/play_by_play/199911160ATL.html",
-            ),
-            encoding="utf-8",
-        ) as f:
-            self._1999_11_16_ATL_html = f.read()
+        html_path = Path(__file__).parent / "../files/play_by_play/199911160ATL.html"
+        self._1999_11_16_ATL_html = html_path.read_text(encoding="utf-8")
 
     def test_game_url_paths_query(self):
         page = PlayByPlayPage(html=html.fromstring(self._1999_11_16_ATL_html))

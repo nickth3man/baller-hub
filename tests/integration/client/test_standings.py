@@ -1,7 +1,7 @@
 import filecmp
 import functools
 import json
-import os
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -16,10 +16,14 @@ from src.core.domain import (
 )
 from src.scraper.api.client import standings
 
+BASE_DIR = Path(__file__).parent
+SCHEDULE_FILES_DIR = BASE_DIR / "../files/schedule"
+STANDINGS_FILES_DIR = BASE_DIR / "../files/standings"
+
 
 class StandingsMocker:
-    def __init__(self, schedules_directory, season_end_year):
-        self._schedules_directory = schedules_directory
+    def __init__(self, schedules_directory: str | Path, season_end_year: int):
+        self._schedules_directory = Path(schedules_directory)
         self._season_end_year = season_end_year
 
     def decorate_class(self, klass):
@@ -38,14 +42,8 @@ class StandingsMocker:
     def mock(self, callable):  # noqa: A002
         @functools.wraps(callable)
         def inner(*args, **kwargs):
-            html_files_directory = os.path.join(  # noqa: PTH118
-                self._schedules_directory, str(self._season_end_year)
-            )
-            standings_fixture_path = os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),  # noqa: PTH120
-                "../files/standings",
-                f"{self._season_end_year}.html",
-            )
+            html_files_directory = self._schedules_directory / str(self._season_end_year)
+            standings_fixture_path = STANDINGS_FILES_DIR / f"{self._season_end_year}.html"
 
             # Create a single mock context for all files
             with (
@@ -53,28 +51,25 @@ class StandingsMocker:
                 patch("src.scraper.services.cache.FileCache.set", return_value=None),
                 requests_mock.Mocker() as m,
             ):
-                if os.path.exists(standings_fixture_path):  # noqa: PTH110
-                    with open(standings_fixture_path, encoding="utf-8") as file_input:  # noqa: PTH123
-                        key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
-                        m.get(key, text=file_input.read(), status_code=200)
-                for file in os.listdir(os.fsencode(html_files_directory)):  # noqa: PTH208
-                    filename = os.fsdecode(file)
-                    if not filename.endswith(".html"):
+                if standings_fixture_path.exists():
+                    key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
+                    m.get(key, text=standings_fixture_path.read_text(encoding="utf-8"), status_code=200)
+                for file_path in html_files_directory.iterdir():
+                    if file_path.suffix != ".html":
                         continue
+                    filename = file_path.name
 
-                    filepath = os.path.join(html_files_directory, filename)  # noqa: PTH118
-                    with open(filepath, encoding="utf-8") as file_input:  # noqa: PTH123
-                        file_content = file_input.read()
-                        # Mock the standings URL (NBA_YEAR.html, not NBA_YEAR_games.html)
-                        if filename.startswith(str(self._season_end_year)):
-                            if os.path.exists(standings_fixture_path):  # noqa: PTH110
-                                continue
-                            key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
-                            m.get(key, text=file_content, status_code=200)
-                        else:
-                            # Mock schedule URLs for monthly files
-                            key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}_games-{filename}"
-                            m.get(key, text=file_content, status_code=200)
+                    file_content = file_path.read_text(encoding="utf-8")
+                    # Mock the standings URL (NBA_YEAR.html, not NBA_YEAR_games.html)
+                    if filename.startswith(str(self._season_end_year)):
+                        if standings_fixture_path.exists():
+                            continue
+                        key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}.html"
+                        m.get(key, text=file_content, status_code=200)
+                    else:
+                        # Mock schedule URLs for monthly files
+                        key = f"https://www.basketball-reference.com/leagues/NBA_{self._season_end_year}_games-{filename}"
+                        m.get(key, text=file_content, status_code=200)
 
                 # Execute the test within the mock context
                 return callable(*args, **kwargs)
@@ -90,10 +85,7 @@ class StandingsMocker:
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2000,
 )
 class Test2000StandingsInMemory(TestCase):
@@ -117,10 +109,7 @@ class Test2000StandingsInMemory(TestCase):
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2001,
 )
 class Test2001StandingsInMemory(TestCase):
@@ -144,10 +133,7 @@ class Test2001StandingsInMemory(TestCase):
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2002,
 )
 class Test2002StandingsInMemory(TestCase):
@@ -171,10 +157,7 @@ class Test2002StandingsInMemory(TestCase):
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2005,
 )
 class Test2005StandingsInMemory(TestCase):
@@ -226,10 +209,7 @@ class Test2005StandingsInMemory(TestCase):
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2020,
 )
 class Test2020StandingsInMemory(TestCase):
@@ -281,62 +261,44 @@ class Test2020StandingsInMemory(TestCase):
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2001,
 )
 class TestCSVStandingsFor2001(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/generated/standings/2001.csv",
-        )
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/standings/2001.csv",
-        )
+        self.output_file_path = BASE_DIR / "./output/generated/standings/2001.csv"
+        self.expected_output_file_path = BASE_DIR / "./output/expected/standings/2001.csv"
 
     def tearDown(self):
-        os.remove(self.output_file_path)  # noqa: PTH107
+        self.output_file_path.unlink()
 
     def test_2001_standings(self):
         standings(
             season_end_year=2001,
             output_type=OutputType.CSV,
-            output_file_path=self.output_file_path,
+            output_file_path=str(self.output_file_path),
             output_write_option=OutputWriteOption.WRITE,
         )
         assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2001,
 )
 class TestJSONPlayerBoxScores2001(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/generated/standings/2001.json",
-        )
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/standings/2001.json",
-        )
+        self.output_file_path = BASE_DIR / "./output/generated/standings/2001.json"
+        self.expected_output_file_path = BASE_DIR / "./output/expected/standings/2001.json"
 
     def tearDown(self):
-        os.remove(self.output_file_path)  # noqa: PTH107
+        self.output_file_path.unlink()
 
     def test_2001_standings(self):
         standings(
             season_end_year=2001,
             output_type=OutputType.JSON,
-            output_file_path=self.output_file_path,
+            output_file_path=str(self.output_file_path),
             output_write_option=OutputWriteOption.WRITE,
         )
 
@@ -344,18 +306,12 @@ class TestJSONPlayerBoxScores2001(TestCase):
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2001,
 )
 class TestInMemoryJSONStandings2001(TestCase):
     def setUp(self):
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/standings/2001.json",
-        )
+        self.expected_output_file_path = BASE_DIR / "./output/expected/standings/2001.json"
 
     def test_2001_standings(self):
         box_scores = standings(
@@ -363,69 +319,49 @@ class TestInMemoryJSONStandings2001(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(  # noqa: PTH123
-            self.expected_output_file_path, encoding="utf-8"
-        ) as expected_output_file:
-            assert json.loads(box_scores) == json.load(expected_output_file)
+        expected = json.loads(self.expected_output_file_path.read_text(encoding="utf-8"))
+        assert json.loads(box_scores) == expected
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2019,
 )
 class TestCSVStandingsFor2019(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/generated/standings/2019.csv",
-        )
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/standings/2019.csv",
-        )
+        self.output_file_path = BASE_DIR / "./output/generated/standings/2019.csv"
+        self.expected_output_file_path = BASE_DIR / "./output/expected/standings/2019.csv"
 
     def tearDown(self):
-        os.remove(self.output_file_path)  # noqa: PTH107
+        self.output_file_path.unlink()
 
     def test_2019_standings(self):
         standings(
             season_end_year=2019,
             output_type=OutputType.CSV,
-            output_file_path=self.output_file_path,
+            output_file_path=str(self.output_file_path),
             output_write_option=OutputWriteOption.WRITE,
         )
         assert filecmp.cmp(self.output_file_path, self.expected_output_file_path)
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2019,
 )
 class TestJSONPlayerBoxScores2019(TestCase):
     def setUp(self):
-        self.output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/generated/standings/2019.json",
-        )
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/standings/2019.json",
-        )
+        self.output_file_path = BASE_DIR / "./output/generated/standings/2019.json"
+        self.expected_output_file_path = BASE_DIR / "./output/expected/standings/2019.json"
 
     def tearDown(self):
-        os.remove(self.output_file_path)  # noqa: PTH107
+        self.output_file_path.unlink()
 
     def test_2019_standings(self):
         standings(
             season_end_year=2019,
             output_type=OutputType.JSON,
-            output_file_path=self.output_file_path,
+            output_file_path=str(self.output_file_path),
             output_write_option=OutputWriteOption.WRITE,
         )
 
@@ -433,18 +369,12 @@ class TestJSONPlayerBoxScores2019(TestCase):
 
 
 @StandingsMocker(
-    schedules_directory=os.path.join(  # noqa: PTH118
-        os.path.dirname(__file__),  # noqa: PTH120
-        "../files/schedule",
-    ),
+    schedules_directory=SCHEDULE_FILES_DIR,
     season_end_year=2019,
 )
 class TestInMemoryJSONStandings2019(TestCase):
     def setUp(self):
-        self.expected_output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),
-            "./output/expected/standings/2019.json",
-        )
+        self.expected_output_file_path = BASE_DIR / "./output/expected/standings/2019.json"
 
     def test_2019_standings(self):
         box_scores = standings(
@@ -452,7 +382,5 @@ class TestInMemoryJSONStandings2019(TestCase):
             output_type=OutputType.JSON,
         )
 
-        with open(  # noqa: PTH123
-            self.expected_output_file_path, encoding="utf-8"
-        ) as expected_output_file:
-            assert json.loads(box_scores) == json.load(expected_output_file)
+        expected = json.loads(self.expected_output_file_path.read_text(encoding="utf-8"))
+        assert json.loads(box_scores) == expected

@@ -1,7 +1,7 @@
 import filecmp
 import json
-import os
 from datetime import datetime
+from pathlib import Path
 from unittest import TestCase
 
 import requests_mock
@@ -13,14 +13,8 @@ from src.scraper.common.errors import InvalidPlayerAndSeasonError
 
 class TestRussellWestbrook2019(TestCase):
     def setUp(self):
-        with open(  # noqa: PTH123
-            os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),  # noqa: PTH120
-                "../files/player_box_scores/2019/westbru01.html",
-            ),
-            encoding="utf-8",
-        ) as file_input:
-            self._html = file_input.read()
+        html_path = Path(__file__).parent / "../files/player_box_scores/2019/westbru01.html"
+        self._html = html_path.read_text(encoding="utf-8")
 
     @requests_mock.Mocker()
     def test_length(self, m):
@@ -71,21 +65,14 @@ class TestRussellWestbrook2019(TestCase):
 
 class RussellWestbrook2020IncludingInactiveGames(TestCase):
     def setUp(self):
-        with open(  # noqa: PTH123
-            os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),  # noqa: PTH120
-                "../files/player_box_scores/2020/westbru01.html",
-            ),
-            encoding="utf-8",
-        ) as file_input:
-            self._html = file_input.read()
-        self.expected_output_json_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),  # noqa: PTH120
-            "./output/expected/playoff_player_box_scores/2020/westbru01/include_inactive.json",
+        base_dir = Path(__file__).parent
+        html_path = base_dir / "../files/player_box_scores/2020/westbru01.html"
+        self._html = html_path.read_text(encoding="utf-8")
+        self.expected_output_json_file_path = (
+            base_dir / "./output/expected/playoff_player_box_scores/2020/westbru01/include_inactive.json"
         )
-        self.expected_output_csv_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),  # noqa: PTH120
-            "./output/expected/playoff_player_box_scores/2020/westbru01/include_inactive.csv",
+        self.expected_output_csv_file_path = (
+            base_dir / "./output/expected/playoff_player_box_scores/2020/westbru01/include_inactive.csv"
         )
 
     @requests_mock.Mocker()
@@ -102,10 +89,8 @@ class RussellWestbrook2020IncludingInactiveGames(TestCase):
             output_type=OutputType.JSON,
             include_inactive_games=True,
         )
-        with open(  # noqa: PTH123
-            self.expected_output_json_file_path, encoding="utf-8"
-        ) as expected_output:
-            assert json.loads(results) == json.load(expected_output)
+        expected_output = json.loads(self.expected_output_json_file_path.read_text(encoding="utf-8"))
+        assert json.loads(results) == expected_output
 
     @requests_mock.Mocker()
     def test_json_file_output(self, m):
@@ -115,9 +100,8 @@ class RussellWestbrook2020IncludingInactiveGames(TestCase):
             status_code=200,
         )
 
-        output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),  # noqa: PTH120
-            "./output/generated/playoff_player_box_scores/2020/westbru01/include_inactive.json",
+        output_file_path = (
+            Path(__file__).parent / "./output/generated/playoff_player_box_scores/2020/westbru01/include_inactive.json"
         )
 
         try:
@@ -125,12 +109,12 @@ class RussellWestbrook2020IncludingInactiveGames(TestCase):
                 player_identifier="westbru01",
                 season_end_year=2020,
                 output_type=OutputType.JSON,
-                output_file_path=output_file_path,
+                output_file_path=str(output_file_path),
                 include_inactive_games=True,
             )
             assert filecmp.cmp(output_file_path, self.expected_output_json_file_path)
         finally:
-            os.remove(output_file_path)  # noqa: PTH107
+            output_file_path.unlink()
 
     @requests_mock.Mocker()
     def test_csv_file_output(self, m):
@@ -140,9 +124,8 @@ class RussellWestbrook2020IncludingInactiveGames(TestCase):
             status_code=200,
         )
 
-        output_file_path = os.path.join(  # noqa: PTH118
-            os.path.dirname(__file__),  # noqa: PTH120
-            "./output/generated/playoff_player_box_scores/2020/westbru01/include_inactive.csv",
+        output_file_path = (
+            Path(__file__).parent / "./output/generated/playoff_player_box_scores/2020/westbru01/include_inactive.csv"
         )
 
         try:
@@ -150,24 +133,18 @@ class RussellWestbrook2020IncludingInactiveGames(TestCase):
                 player_identifier="westbru01",
                 season_end_year=2020,
                 output_type=OutputType.CSV,
-                output_file_path=output_file_path,
+                output_file_path=str(output_file_path),
                 include_inactive_games=True,
             )
             assert filecmp.cmp(output_file_path, self.expected_output_csv_file_path)
         finally:
-            os.remove(output_file_path)  # noqa: PTH107
+            output_file_path.unlink()
 
 
 class TestNonExistentPlayerPlayoffBoxScores(TestCase):
     def setUp(self):
-        with open(  # noqa: PTH123
-            os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),
-                "../files/player_box_scores/2020/foobar.html",
-            ),
-            encoding="utf-8",
-        ) as file_input:
-            self._html = file_input.read()
+        html_path = Path(__file__).parent / "../files/player_box_scores/2020/foobar.html"
+        self._html = html_path.read_text(encoding="utf-8")
 
     @requests_mock.Mocker()
     def test_get_season_box_scores_for_player_that_does_not_exist_raises_exception(
@@ -193,14 +170,8 @@ class TestNonExistentPlayerPlayoffBoxScores(TestCase):
 
 class Giannis2020(TestCase):
     def setUp(self):
-        with open(  # noqa: PTH123
-            os.path.join(  # noqa: PTH118
-                os.path.dirname(__file__),  # noqa: PTH120
-                "../files/player_box_scores/2020/antetgi01.html",
-            ),
-            encoding="utf-8",
-        ) as file_input:
-            self._html = file_input.read()
+        html_path = Path(__file__).parent / "../files/player_box_scores/2020/antetgi01.html"
+        self._html = html_path.read_text(encoding="utf-8")
 
     @requests_mock.Mocker()
     def test_inactive_games_are_removed_by_default(self, m):

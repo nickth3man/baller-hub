@@ -42,14 +42,10 @@ def close_connection():
 def session():
     """Context manager for database sessions.
 
-    Provides a context that yields a database connection and ensures
-    proper cleanup after use.
+    Provides a context that yields a singleton database connection.
+    The connection is not closed after use since it's managed as a singleton.
 
     Yields:
         duckdb.DuckDBPyConnection: Database connection.
     """
-    conn = get_connection()
-    try:
-        yield conn
-    finally:
-        pass
+    yield get_connection()

@@ -196,8 +196,8 @@ class SearchIndexer:
                 }
                 for hit in player_results.get("hits", [])
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Player autocomplete search failed", error=str(e))
 
         try:
             team_results = self.search_teams(query, limit=limit // 2)
@@ -212,8 +212,8 @@ class SearchIndexer:
                 }
                 for hit in team_results.get("hits", [])
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Team autocomplete search failed", error=str(e))
 
         return suggestions[:limit]
 
